@@ -1,0 +1,194 @@
+#include "MappedImageINI.h"
+
+namespace ZH {
+
+MappedImageINI::MappedImageINI(std::istream& instream) : stream(instream) {
+  readBuffer.reserve(128);
+}
+
+MappedImageINI::MappedImages MappedImageINI::parse() {
+  MappedImages mappedImages;
+
+  while (!stream.eof()) {
+    parseMappedImage(mappedImages);
+  }
+
+  return mappedImages;
+}
+
+void MappedImageINI::advanceStream() {
+  do {
+    auto peek = stream.peek();
+    if (peek == ' ' || peek == '\n' || peek == '\r') {
+      stream.get();
+    } else {
+      break;
+    }
+  } while (!stream.eof());
+}
+
+std::string MappedImageINI::consumeComment() {
+  advanceStream();
+  auto token = getToken();
+
+  while (!stream.eof() && token == ";") {
+    while (!stream.eof()) {
+      auto c = stream.get();
+      if (c == '\n') {
+        break;
+      }
+    }
+    advanceStream();
+    token = getToken();
+  }
+
+  return token;
+}
+
+std::string MappedImageINI::getToken() {
+  readBuffer.clear();
+
+  // get first whatever it is
+  auto c = stream.get();
+  readBuffer.push_back(c);
+
+  do {
+    auto peek = stream.peek();
+    if (peek == ' ' || peek == '\n' || peek == '\r') {
+      break;
+    } else {
+      auto c = stream.get();
+      readBuffer.push_back(c);
+    }
+  } while (!stream.eof());
+
+  return {readBuffer.cbegin(), readBuffer.cend()};
+}
+
+bool MappedImageINI::parseCoords(INIImage& iniImage) {
+  advanceStream();
+  auto token = getToken();
+  if (token != "=") {
+    return false;
+  }
+
+  for (uint8_t i = 0; i < 4; ++i) {
+    advanceStream();
+    token = getToken();
+    if (token.starts_with("Left:")) {
+      iniImage.topLeft.x = parseIntegerFromCoord(token);
+    } else if (token.starts_with("Top:")) {
+      iniImage.topLeft.y = parseIntegerFromCoord(token);
+    } else if (token.starts_with("Right:")) {
+      iniImage.bottomRight.x = parseIntegerFromCoord(token);
+    } else if (token.starts_with("Bottom:")) {
+      iniImage.bottomRight.y = parseIntegerFromCoord(token);
+    } else {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+std::optional<uint16_t> MappedImageINI::parseInteger() {
+  advanceStream();
+  auto token = getToken();
+  if (token != "=") {
+    return {};
+  }
+
+  advanceStream();
+  token = getToken();
+
+  return parseInteger(token);
+}
+
+std::optional<uint16_t> MappedImageINI::parseInteger(const std::string& s) {
+  try {
+    return {std::stoul(s.c_str(), nullptr)};
+  } catch (std::invalid_argument) {
+    return {};
+  } catch (std::out_of_range) {
+    return {};
+  }
+}
+
+uint16_t MappedImageINI::parseIntegerFromCoord(const std::string& value) {
+  auto pos = value.find(':');
+  if (pos == value.npos) {
+    return 0;
+  }
+
+  auto intToken = value.substr(pos + 1);
+  auto intOptional = parseInteger(intToken);
+  if (!intOptional) {
+    return 0;
+  }
+
+  return *intOptional;
+}
+
+bool MappedImageINI::parseMappedImage(MappedImages& mappedImages) {
+  auto token = consumeComment();
+
+  if (token != "MappedImage") {
+    return false;
+  }
+
+  advanceStream();
+  auto key = getToken();
+  INIImage iniImage;
+  token = consumeComment();
+
+  while (token != "End" && !stream.eof()) {
+    if (token == "Texture") {
+      if (!parseTexture(iniImage)) {
+        return false;
+      }
+    } else if (token == "TextureWidth") {
+      auto value = parseInteger();
+      if (!value) {
+        return false;
+      }
+      iniImage.size.w = *value;
+    } else if (token == "TextureHeight") {
+      auto value = parseInteger();
+      if (!value) {
+        return false;
+      }
+      iniImage.size.h = *value;
+    } else if (token == "Coords") {
+      if (!parseCoords(iniImage)) {
+        return false;
+      }
+    } else if (token == "Status") {
+      advanceStream();
+      getToken(); // =
+      advanceStream();
+      getToken(); // NONE
+    }
+
+    token = consumeComment();
+  }
+
+  mappedImages.emplace(std::move(key), std::move(iniImage));
+
+  return true;
+}
+
+bool MappedImageINI::parseTexture(INIImage& iniImage) {
+  advanceStream();
+  auto token = getToken();
+
+  if (token != "=") {
+    return false;
+  }
+
+  advanceStream();
+  iniImage.texture = getToken();
+
+  return true;
+}
+
+}
