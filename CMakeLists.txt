@@ -112,6 +112,7 @@ ADD_EXECUTABLE(zhen
   game/GUI/wnd/TextColor.cpp
   game/GUI/wnd/Window.cpp
   game/GUI/wnd/WindowAndLayout.cpp
+  game/inis/INIFile.cpp
   game/inis/MappedImageINI.cpp
   game/Main.cpp
   game/MurmurHash.cpp
@@ -214,6 +215,7 @@ TARGET_LINK_LIBRARIES(Test_Font
 )
 
 ADD_UNIT_TEST(MappedImageINI
+  game/inis/INIFile.cpp
   game/inis/MappedImageINI.cpp
   game/tests/Test_MappedImageINI.cpp
 )
