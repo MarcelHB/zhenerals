@@ -52,7 +52,7 @@ TEST_F(BIGFileTest, extractionText) {
   auto it = unit->find("Data\\cdkey.txt");
   EXPECT_NE(unit->cend(), it);
   EXPECT_EQ(12, it.size());
-  EXPECT_EQ("Data\\cdkey.txt", it.key());
+  EXPECT_EQ("data\\cdkey.txt", it.key());
 
   std::array<char, 13> data1 = {0};
   unit->extract(it, data1.data(), 0, it.size());
