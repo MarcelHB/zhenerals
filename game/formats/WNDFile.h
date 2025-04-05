@@ -6,7 +6,7 @@
 #include <map>
 #include <vector>
 
-#include "GUI/wnd/WindowAndLayout.h"
+#include "../GUI/wnd/WindowAndLayout.h"
 
 namespace ZH {
 

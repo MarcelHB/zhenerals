@@ -2,7 +2,7 @@
 #include <array>
 #include <vector>
 
-#include "common.h"
+#include "../common.h"
 #include "BIGFile.h"
 
 namespace ZH {

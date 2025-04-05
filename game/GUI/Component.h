@@ -5,7 +5,7 @@
 #include <list>
 
 #include "../Dimensions.h"
-#include "../MappedImageINI.h"
+#include "../inis/MappedImageINI.h"
 #include "wnd/Window.h"
 
 namespace ZH::GUI {

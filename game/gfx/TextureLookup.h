@@ -2,7 +2,7 @@
 #define H_GFX_TEXTURE_LOOKUP
 
 #include "../ResourceLoader.h"
-#include "../MappedImageINI.h"
+#include "../inis/MappedImageINI.h"
 
 namespace ZH::GFX {
 

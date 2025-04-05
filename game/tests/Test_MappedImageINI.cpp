@@ -2,7 +2,7 @@
 
 #include <gtest/gtest.h>
 
-#include "../MappedImageINI.h"
+#include "../inis/MappedImageINI.h"
 
 namespace ZH {
 

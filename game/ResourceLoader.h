@@ -7,7 +7,7 @@
 #include <unordered_map>
 #include <vector>
 
-#include "BIGFile.h"
+#include "formats/BIGFile.h"
 
 namespace ZH {
 

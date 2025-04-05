@@ -82,13 +82,15 @@ ENDFUNCTION()
 
 # main executable
 ADD_EXECUTABLE(zhen
-  game/BIGFile.cpp
-  game/CSFFile.cpp
   game/Color.cpp
   game/common.cpp
   game/EventDispatcher.cpp
   game/Game.cpp
   game/Game.cpp
+  game/formats/BIGFile.cpp
+  game/formats/CSFFile.cpp
+  game/formats/TGAFile.cpp
+  game/formats/WNDFile.cpp
   game/gfx/HostTexture.cpp
   game/gfx/TextureCache.cpp
   game/gfx/TextureLookup.cpp
@@ -110,18 +112,15 @@ ADD_EXECUTABLE(zhen
   game/GUI/wnd/TextColor.cpp
   game/GUI/wnd/Window.cpp
   game/GUI/wnd/WindowAndLayout.cpp
+  game/inis/MappedImageINI.cpp
   game/Main.cpp
-  game/MappedImageINI.cpp
   game/MurmurHash.cpp
   game/Logger.cpp
   game/Logging.cpp
   game/ResourceLoader.cpp
   game/StringLoader.cpp
-  game/TGAFile.cpp
-  game/WNDFile.cpp
   game/Window.cpp
   game/WindowFactory.cpp
-  game/WNDFile.cpp
 
   game/vugl/vma_loader.cpp
   game/vugl/vugl_command_buffer.cpp
@@ -160,7 +159,7 @@ ENDIF()
 
 # big tool
 ADD_EXECUTABLE(big
-  game/BIGFile.cpp
+  game/formats/BIGFile.cpp
   tools/BIG.cpp
 )
 
@@ -191,12 +190,12 @@ ADD_CUSTOM_COMMAND(
 TARGET_COMPILE_DEFINITIONS(big PRIVATE NO_TRACY=1)
 
 ADD_UNIT_TEST(BIGFile
-  game/BIGFile.cpp
+  game/formats/BIGFile.cpp
   game/tests/Test_BIGFile.cpp
 )
 
 ADD_UNIT_TEST(CSFFile
-  game/CSFFile.cpp
+  game/formats/CSFFile.cpp
   game/tests/Test_CSFFile.cpp
 )
 
@@ -215,12 +214,12 @@ TARGET_LINK_LIBRARIES(Test_Font
 )
 
 ADD_UNIT_TEST(MappedImageINI
-  game/MappedImageINI.cpp
+  game/inis/MappedImageINI.cpp
   game/tests/Test_MappedImageINI.cpp
 )
 
 ADD_UNIT_TEST(ResourceLoader
-  game/BIGFile.cpp
+  game/formats/BIGFile.cpp
   game/Logging.cpp
   game/ResourceLoader.cpp
   game/tests/Test_ResourceLoader.cpp
@@ -229,12 +228,12 @@ ADD_UNIT_TEST(ResourceLoader
 ADD_UNIT_TEST(TGAFile
   game/gfx/HostTexture.cpp
   game/Logging.cpp
-  game/TGAFile.cpp
+  game/formats/TGAFile.cpp
   game/tests/Test_TGAFile.cpp
 )
 
 ADD_UNIT_TEST(WNDFile
-  game/WNDFile.cpp
+  game/formats/WNDFile.cpp
   game/GUI/wnd/DrawData.cpp
   game/GUI/wnd/Font.cpp
   game/GUI/wnd/Font.cpp

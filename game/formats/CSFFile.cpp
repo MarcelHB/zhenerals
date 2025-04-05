@@ -2,7 +2,7 @@
 #include <cstdint>
 #include <vector>
 
-#include "common.h"
+#include "../common.h"
 #include "CSFFile.h"
 
 namespace ZH {

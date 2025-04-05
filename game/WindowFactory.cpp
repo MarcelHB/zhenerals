@@ -1,6 +1,6 @@
 #include "Logging.h"
 #include "WindowFactory.h"
-#include "WNDFile.h"
+#include "formats/WNDFile.h"
 
 #include "GUI/wnd/WindowAndLayout.h"
 

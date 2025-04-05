@@ -3,7 +3,7 @@
 
 #include <gtest/gtest.h>
 
-#include "../BIGFile.h"
+#include "../formats/BIGFile.h"
 
 namespace ZH {
 

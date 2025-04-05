@@ -1,6 +1,6 @@
 #include "../common.h"
 #include "../Logging.h"
-#include "../TGAFile.h"
+#include "../formats/TGAFile.h"
 #include "HostTexture.h"
 #include "TextureCache.h"
 

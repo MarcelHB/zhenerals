@@ -4,7 +4,7 @@
 #include <istream>
 #include <memory>
 
-#include "gfx/HostTexture.h"
+#include "../gfx/HostTexture.h"
 
 namespace ZH {
 

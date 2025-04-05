@@ -2,7 +2,7 @@
 
 #include <gtest/gtest.h>
 
-#include "../WNDFile.h"
+#include "../formats/WNDFile.h"
 
 namespace ZH {
 

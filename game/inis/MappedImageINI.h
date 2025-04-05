@@ -7,7 +7,7 @@
 #include <unordered_map>
 #include <vector>
 
-#include "Dimensions.h"
+#include "../Dimensions.h"
 
 namespace ZH {
 

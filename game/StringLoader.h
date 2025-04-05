@@ -2,7 +2,7 @@
 #define H_STRING_LOADER
 
 #include "common.h"
-#include "CSFFile.h"
+#include "formats/CSFFile.h"
 #include "ResourceLoader.h"
 
 namespace ZH {
