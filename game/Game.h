@@ -5,6 +5,7 @@
 
 #include <SDL2/SDL.h>
 
+#include "audio/Backend.h"
 #include "common.h"
 #include "Config.h"
 #include "EventDispatcher.h"
@@ -37,6 +38,7 @@ class Game {
     std::thread drawThread;
 
     EventDispatcher eventDispatcher;
+    Audio::Backend audioBackend;
     std::shared_ptr<GUI::ComponentFactory> componentFactory;
     std::shared_ptr<GFX::Font::FontManager> fontManager;
     std::shared_ptr<ResourceLoader> iniResourceLoader;

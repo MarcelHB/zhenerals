@@ -9,6 +9,7 @@ Game::Game(Config& config, Window& window)
 {}
 
 bool Game::init() {
+  TRACY(ZoneScoped);
   if (!eventDispatcher.init()) {
     ERROR_ZH("Game", "Could not initialize event dispatcher.");
     return false;
@@ -61,6 +62,10 @@ bool Game::init() {
       , *fontManager
     );
   windowFactory = std::make_shared<WindowFactory>(config);
+
+  if (!audioBackend.init()) {
+    WARN_ZH("Game", "Could initialize audio");
+  }
 
   overlay = std::make_shared<GUI::Overlay>(config.resolution);
 

@@ -5,6 +5,7 @@ PROJECT(zhenerals)
 SET(CMAKE_CXX_STANDARD 20)
 
 FIND_PACKAGE(Freetype REQUIRED)
+FIND_PACKAGE(OpenAL REQUIRED)
 FIND_PACKAGE(SDL2 REQUIRED)
 FIND_PACKAGE(Vulkan REQUIRED)
 
@@ -28,6 +29,7 @@ FetchContent_MakeAvailable(glm)
 INCLUDE_DIRECTORIES(
   ${fmt_SOURCE_DIR}/include
   ${FREETYPE_INCLUDE_DIRS}
+  ${OPENAL_INCLUDE_DIR}
   ${SDL2_INCLUDE_DIR}
   ${Vulkan_INCLUDE_DIRS}
 )
@@ -82,6 +84,8 @@ ENDFUNCTION()
 
 # main executable
 ADD_EXECUTABLE(zhen
+  game/audio/Backend.cpp
+  game/audio/SoundData.cpp
   game/Color.cpp
   game/common.cpp
   game/EventDispatcher.cpp
@@ -151,6 +155,7 @@ TARGET_LINK_LIBRARIES(zhen
   fmt::fmt
   ${FREETYPE_LIBRARIES}
   glm::glm
+  ${OPENAL_LIBRARY}
   ${SDL2_LIBRARIES}
   ${Vulkan_LIBRARY}
 )
