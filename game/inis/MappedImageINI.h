@@ -31,8 +31,6 @@ class MappedImageINI : public INIFile {
     MappedImages parse();
 
   private:
-    std::optional<uint16_t> parseInteger();
-    std::optional<uint16_t> parseInteger(const std::string&);
     uint16_t parseIntegerFromCoord(const std::string&);
     bool parseCoords(INIImage& iniImage);
     bool parseMappedImage(MappedImages& mappedImages);

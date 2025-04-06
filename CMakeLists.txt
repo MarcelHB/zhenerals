@@ -114,6 +114,7 @@ ADD_EXECUTABLE(zhen
   game/GUI/wnd/WindowAndLayout.cpp
   game/inis/INIFile.cpp
   game/inis/MappedImageINI.cpp
+  game/inis/SoundEffectsINI.cpp
   game/Main.cpp
   game/MurmurHash.cpp
   game/Logger.cpp
@@ -227,6 +228,12 @@ ADD_UNIT_TEST(ResourceLoader
   game/tests/Test_ResourceLoader.cpp
 )
 
+ADD_UNIT_TEST(SoundEffectsINI
+  game/inis/INIFile.cpp
+  game/inis/SoundEffectsINI.cpp
+  game/tests/Test_SoundEffectsINI.cpp
+)
+
 ADD_UNIT_TEST(TGAFile
   game/gfx/HostTexture.cpp
   game/Logging.cpp
@@ -254,6 +261,7 @@ IF (BUILD_TESTING)
       Test_Font
       Test_MappedImageINI
       Test_ResourceLoader
+      Test_SoundEffectsINI
       Test_TGAFile
       Test_WNDFile
     POST_BUILD

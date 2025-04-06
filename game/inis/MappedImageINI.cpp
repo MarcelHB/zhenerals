@@ -41,29 +41,6 @@ bool MappedImageINI::parseCoords(INIImage& iniImage) {
   return true;
 }
 
-std::optional<uint16_t> MappedImageINI::parseInteger() {
-  advanceStream();
-  auto token = getToken();
-  if (token != "=") {
-    return {};
-  }
-
-  advanceStream();
-  token = getToken();
-
-  return parseInteger(token);
-}
-
-std::optional<uint16_t> MappedImageINI::parseInteger(const std::string& s) {
-  try {
-    return {std::stoul(s.c_str(), nullptr)};
-  } catch (std::invalid_argument) {
-    return {};
-  } catch (std::out_of_range) {
-    return {};
-  }
-}
-
 uint16_t MappedImageINI::parseIntegerFromCoord(const std::string& value) {
   auto pos = value.find(':');
   if (pos == value.npos) {
