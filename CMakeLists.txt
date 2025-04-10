@@ -9,6 +9,14 @@ FIND_PACKAGE(OpenAL REQUIRED)
 FIND_PACKAGE(SDL2 REQUIRED)
 FIND_PACKAGE(Vulkan REQUIRED)
 
+FIND_PACKAGE(PkgConfig REQUIRED)
+PKG_CHECK_MODULES(LIBAV REQUIRED IMPORTED_TARGET
+  libavcodec
+  libavformat
+  libavutil
+  libswresample
+)
+
 INCLUDE(FetchContent)
 
 FetchContent_Declare(
@@ -29,6 +37,7 @@ FetchContent_MakeAvailable(glm)
 INCLUDE_DIRECTORIES(
   ${fmt_SOURCE_DIR}/include
   ${FREETYPE_INCLUDE_DIRS}
+  ${LIBAV_INCLUDE_DIRS}
   ${OPENAL_INCLUDE_DIR}
   ${SDL2_INCLUDE_DIR}
   ${Vulkan_INCLUDE_DIRS}
@@ -91,6 +100,7 @@ ADD_EXECUTABLE(zhen
   game/EventDispatcher.cpp
   game/Game.cpp
   game/Game.cpp
+  game/formats/AudioFile.cpp
   game/formats/BIGFile.cpp
   game/formats/CSFFile.cpp
   game/formats/TGAFile.cpp
@@ -155,10 +165,13 @@ TARGET_LINK_LIBRARIES(zhen
   fmt::fmt
   ${FREETYPE_LIBRARIES}
   glm::glm
+  PkgConfig::LIBAV
   ${OPENAL_LIBRARY}
   ${SDL2_LIBRARIES}
   ${Vulkan_LIBRARY}
 )
+
+MESSAGE(WARNING "libav ${LIBAV_INCLUDE_DIRS}, ${LIBAV_LIBRARIES}")
 
 IF (USE_TRACY)
   TARGET_LINK_LIBRARIES(zhen Tracy::TracyClient)
@@ -171,8 +184,8 @@ ADD_EXECUTABLE(big
 )
 
 ADD_CUSTOM_TARGET(
-    always_run ALL
-    DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/__header.h
+  always_run ALL
+  DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/__header.h
 )
 
 ADD_CUSTOM_COMMAND(
@@ -195,6 +208,21 @@ ADD_CUSTOM_COMMAND(
 )
 
 TARGET_COMPILE_DEFINITIONS(big PRIVATE NO_TRACY=1)
+
+ADD_UNIT_TEST(AudioFile
+  game/audio/Backend.cpp
+
+  game/audio/SoundData.cpp
+  game/Logging.cpp
+  game/formats/AudioFile.cpp
+  game/tests/Test_AudioFile.cpp
+)
+
+TARGET_LINK_LIBRARIES(Test_AudioFile
+  ${OPENAL_LIBRARY}
+
+  PkgConfig::LIBAV
+)
 
 ADD_UNIT_TEST(BIGFile
   game/formats/BIGFile.cpp
@@ -261,6 +289,7 @@ ADD_UNIT_TEST(WNDFile
 
 IF (BUILD_TESTING)
   ADD_CUSTOM_COMMAND(TARGET
+      Test_AudioFile
       Test_BIGFile
       Test_CSFFile
       Test_Font
