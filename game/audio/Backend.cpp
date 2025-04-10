@@ -50,9 +50,6 @@ static void configureSource(ALuint source) {
   alSourcei(source, AL_SOURCE_RELATIVE, true);
 }
 
-SoundBuffer::SoundBuffer() : buffers({0, 0})
-{}
-
 SoundBuffer::SoundBuffer(ALPair bufferPair) : buffers(bufferPair)
 {}
 
@@ -160,6 +157,17 @@ bool Backend::init() {
   }
 
   return true;
+}
+
+SoundEmitter Backend::createEmitter() {
+  std::array<ALuint, 2> sourcesArray = { 0, 0 };
+  alGenSources(1, sourcesArray.data());
+
+  if (checkALError("Error creating source")) {
+    return {};
+  }
+
+  return {ALPair {sourcesArray[0], sourcesArray[1] }};
 }
 
 SoundBuffer Backend::loadBuffer(const SoundData& sound) {

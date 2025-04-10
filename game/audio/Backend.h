@@ -12,7 +12,7 @@ using ALPair = std::pair<ALuint, ALuint>;
 
 class SoundBuffer {
   public:
-    SoundBuffer();
+    SoundBuffer() = default;
     SoundBuffer(ALPair);
     SoundBuffer(const SoundBuffer&) = delete;
     SoundBuffer(SoundBuffer&&);
@@ -21,11 +21,12 @@ class SoundBuffer {
     bool isDisposable();
     ALPair getBuffers() const;
   private:
-    ALPair buffers;
+    ALPair buffers = {0, 0};
 };
 
 class SoundEmitter {
   public:
+    SoundEmitter() = default;
     SoundEmitter(ALPair);
     SoundEmitter(const SoundEmitter&) = delete;
     SoundEmitter(SoundEmitter&&);
@@ -33,7 +34,7 @@ class SoundEmitter {
 
     bool enqueue(const SoundBuffer&);
   private:
-    ALPair sources;
+    ALPair sources = {0, 0};
 };
 
 class Backend {
@@ -44,6 +45,7 @@ class Backend {
     ~Backend();
 
     bool init();
+    SoundEmitter createEmitter();
     SoundBuffer loadBuffer(const SoundData&);
   private:
     ALCcontext* alContext = nullptr;
