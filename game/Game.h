@@ -6,6 +6,7 @@
 #include <SDL2/SDL.h>
 
 #include "audio/Backend.h"
+#include "audio/Playback.h"
 #include "common.h"
 #include "Config.h"
 #include "EventDispatcher.h"
@@ -41,6 +42,8 @@ class Game {
     Audio::Backend audioBackend;
     std::shared_ptr<GUI::ComponentFactory> componentFactory;
     std::shared_ptr<GFX::Font::FontManager> fontManager;
+    std::shared_ptr<ResourceLoader> audioResourceLoader;
+    std::shared_ptr<Audio::Playback> audioPlayback;
     std::shared_ptr<ResourceLoader> iniResourceLoader;
     std::shared_ptr<ResourceLoader> languageResourceLoader;
     std::shared_ptr<StringLoader> stringLoader;

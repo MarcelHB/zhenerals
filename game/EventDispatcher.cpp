@@ -22,6 +22,14 @@ void EventDispatcher::fire(GameEvent event) {
   SDL_PushEvent(&sdlEvent);
 }
 
+void EventDispatcher::fire(GameEvent event, void* data) {
+  SDL_Event sdlEvent;
+  SDL_zero(sdlEvent);
+  sdlEvent.type = mapEventToSDL(event);
+  sdlEvent.user.data1 = data;
+  SDL_PushEvent(&sdlEvent);
+}
+
 int EventDispatcher::mapEventToSDL(GameEvent event) const {
   return eventOffset + static_cast<int32_t>(event);
 }

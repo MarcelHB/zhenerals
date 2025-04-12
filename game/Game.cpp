@@ -23,6 +23,18 @@ bool Game::init() {
       new ResourceLoader {{"EnglishZH.big", "ZH_Generals/English.big"}, config.baseDir}
     );
 
+  audioResourceLoader =
+    std::shared_ptr<ResourceLoader>(
+      new ResourceLoader {{
+          "AudioEnglishZH.big"
+        , "AudioZH.big"
+        , "SpeechEnglishZH.big"
+        , "ZH_Generals/Audio.big"
+        , "ZH_Generals/AudioEnglish.big"
+        , "ZH_Generals/SpeechEnglish.big"
+      }, config.baseDir}
+    );
+
   stringLoader = std::make_shared<StringLoader>(*languageResourceLoader);
   if (!stringLoader->load()) {
     ERROR_ZH("Game", "Could not load strings table");
@@ -64,7 +76,17 @@ bool Game::init() {
   windowFactory = std::make_shared<WindowFactory>(config);
 
   if (!audioBackend.init()) {
-    WARN_ZH("Game", "Could initialize audio");
+    WARN_ZH("Game", "Could not initialize audio");
+  }
+
+  audioPlayback =
+    std::make_shared<Audio::Playback>(
+        audioBackend
+      , *iniResourceLoader
+      , *audioResourceLoader
+    );
+  if (!audioPlayback->load()) {
+    WARN_ZH("Game", "Could not initialize sound library.");
   }
 
   overlay = std::make_shared<GUI::Overlay>(config.resolution);
@@ -124,6 +146,11 @@ bool Game::processEvent(const SDL_Event& event) {
 
   if (event.type == eventDispatcher.mapEventToSDL(GameEvent::EXIT)) {
     return false;
+  } else if (event.type == eventDispatcher.mapEventToSDL(GameEvent::PLAY_SFX)) {
+    auto stringPtr = reinterpret_cast<std::string*>(event.user.data1);
+    audioPlayback->playSoundEffect(*stringPtr);
+    delete stringPtr;
+    return true;
   }
 
   return overlay->processEvent(event);

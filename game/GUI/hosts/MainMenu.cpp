@@ -1,4 +1,5 @@
 #include "../../Logging.h"
+#include "EventDefaults.h"
 #include "MainMenu.h"
 
 namespace ZH::GUI::Hosts {
@@ -25,6 +26,8 @@ bool MainMenu::init() {
     ERROR_ZH("MainMenu", "Failed to set up window components.");
     return false;
   }
+
+  assignComponentDefaultEvents(*rootWindow, eventDispatcher);
 
   rootWindow->setPositionOffset({
       static_cast<Point::underlying_type>(viewport.w / 2 - rootWindow->getSize().w / 2)

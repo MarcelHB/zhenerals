@@ -119,6 +119,7 @@ ADD_EXECUTABLE(zhen
   game/GUI/Overlay.cpp
   game/GUI/Window.cpp
   game/GUI/drawing/RenderListFactory.cpp
+  game/GUI/hosts/EventDefaults.cpp
   game/GUI/hosts/MainMenu.cpp
   game/GUI/wnd/DrawData.cpp
   game/GUI/wnd/Font.cpp
