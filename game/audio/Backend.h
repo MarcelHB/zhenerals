@@ -33,6 +33,7 @@ class SoundEmitter {
     ~SoundEmitter();
 
     bool enqueue(const SoundBuffer&);
+    bool hasFinishedPlaying() const;
   private:
     ALPair sources = {0, 0};
 };

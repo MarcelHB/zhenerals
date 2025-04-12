@@ -94,6 +94,7 @@ ENDFUNCTION()
 # main executable
 ADD_EXECUTABLE(zhen
   game/audio/Backend.cpp
+  game/audio/Playback.cpp
   game/audio/SoundData.cpp
   game/Color.cpp
   game/common.cpp

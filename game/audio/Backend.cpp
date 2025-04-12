@@ -120,6 +120,13 @@ bool SoundEmitter::enqueue(const SoundBuffer& buffer) {
   return true;
 }
 
+bool SoundEmitter::hasFinishedPlaying() const {
+  ALint state = 0;
+  alGetSourcei(sources.first, AL_SOURCE_STATE, &state);
+
+  return state == AL_STOPPED;
+}
+
 Backend::Backend(Backend&& other) : alContext(other.alContext) {
   other.alContext = nullptr;
 }
