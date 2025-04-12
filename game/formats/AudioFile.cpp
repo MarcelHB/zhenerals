@@ -85,7 +85,8 @@ std::shared_ptr<Audio::SoundData> AudioFile::parseSoundData() {
     return {};
   }
 
-  bool planar = av_sample_fmt_is_planar(codecContext->sample_fmt);
+  bool planar = codecContext->ch_layout.nb_channels > 1
+    && av_sample_fmt_is_planar(codecContext->sample_fmt);
 
   AVPacket *avPacket = av_packet_alloc();
 
