@@ -185,9 +185,14 @@ ADD_EXECUTABLE(big
   tools/BIG.cpp
 )
 
-ADD_CUSTOM_TARGET(
-  always_run ALL
+ADD_CUSTOM_TARGET(always_run
+  ALL
   DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/__header.h
+)
+
+ADD_CUSTOM_TARGET(always_run_tests
+  ALL
+  DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/__header_test.h
 )
 
 ADD_CUSTOM_COMMAND(
@@ -220,11 +225,13 @@ ADD_UNIT_TEST(AudioFile
   game/tests/Test_AudioFile.cpp
 )
 
-TARGET_LINK_LIBRARIES(Test_AudioFile
-  ${OPENAL_LIBRARY}
+IF (BUILD_TESTING)
+  TARGET_LINK_LIBRARIES(Test_AudioFile
+    ${OPENAL_LIBRARY}
 
-  PkgConfig::LIBAV
-)
+    PkgConfig::LIBAV
+  )
+ENDIF()
 
 ADD_UNIT_TEST(BIGFile
   game/formats/BIGFile.cpp
@@ -246,9 +253,11 @@ ADD_UNIT_TEST(Font
   game/tests/Test_Font.cpp
 )
 
-TARGET_LINK_LIBRARIES(Test_Font
-  ${FREETYPE_LIBRARIES}
-)
+IF (BUILD_TESTING)
+  TARGET_LINK_LIBRARIES(Test_Font
+    ${FREETYPE_LIBRARIES}
+  )
+ENDIF()
 
 ADD_UNIT_TEST(MappedImageINI
   game/inis/INIFile.cpp
@@ -290,17 +299,10 @@ ADD_UNIT_TEST(WNDFile
 )
 
 IF (BUILD_TESTING)
-  ADD_CUSTOM_COMMAND(TARGET
-      Test_AudioFile
-      Test_BIGFile
-      Test_CSFFile
-      Test_Font
-      Test_MappedImageINI
-      Test_ResourceLoader
-      Test_SoundEffectsINI
-      Test_TGAFile
-      Test_WNDFile
-    POST_BUILD
+  ADD_CUSTOM_COMMAND(
+    OUTPUT
+      ${CMAKE_CURRENT_BINARY_DIR}/__header_test.h
+      ${CMAKE_CURRENT_BINARY_DIR}/header_test.h
     COMMAND ${CMAKE_COMMAND} -E make_directory $<TARGET_FILE_DIR:zhen>/tests/resources
       && ${CMAKE_COMMAND} -E copy_directory
       ${CMAKE_SOURCE_DIR}/game/tests/resources
