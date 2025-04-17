@@ -104,6 +104,7 @@ ADD_EXECUTABLE(zhen
   game/formats/AudioFile.cpp
   game/formats/BIGFile.cpp
   game/formats/CSFFile.cpp
+  game/formats/Dict.cpp
   game/formats/TGAFile.cpp
   game/formats/WNDFile.cpp
   game/gfx/HostTexture.cpp
@@ -128,6 +129,7 @@ ADD_EXECUTABLE(zhen
   game/GUI/wnd/TextColor.cpp
   game/GUI/wnd/Window.cpp
   game/GUI/wnd/WindowAndLayout.cpp
+  game/InflatingStream.cpp
   game/inis/INIFile.cpp
   game/inis/MappedImageINI.cpp
   game/inis/SoundEffectsINI.cpp
@@ -173,8 +175,6 @@ TARGET_LINK_LIBRARIES(zhen
   ${Vulkan_LIBRARY}
 )
 
-MESSAGE(WARNING "libav ${LIBAV_INCLUDE_DIRS}, ${LIBAV_LIBRARIES}")
-
 IF (USE_TRACY)
   TARGET_LINK_LIBRARIES(zhen Tracy::TracyClient)
 ENDIF()
@@ -183,6 +183,12 @@ ENDIF()
 ADD_EXECUTABLE(big
   game/formats/BIGFile.cpp
   tools/BIG.cpp
+)
+
+# decompress tool
+ADD_EXECUTABLE(decompress
+  game/InflatingStream.cpp
+  tools/decompress.cpp
 )
 
 ADD_CUSTOM_TARGET(always_run
@@ -241,6 +247,12 @@ ADD_UNIT_TEST(BIGFile
 ADD_UNIT_TEST(CSFFile
   game/formats/CSFFile.cpp
   game/tests/Test_CSFFile.cpp
+)
+
+ADD_UNIT_TEST(Dict
+  game/formats/Dict.cpp
+  game/InflatingStream.cpp
+  game/tests/Test_Dict.cpp
 )
 
 ADD_UNIT_TEST(Font
