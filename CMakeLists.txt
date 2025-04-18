@@ -100,7 +100,6 @@ ADD_EXECUTABLE(zhen
   game/common.cpp
   game/EventDispatcher.cpp
   game/Game.cpp
-  game/Game.cpp
   game/formats/AudioFile.cpp
   game/formats/BIGFile.cpp
   game/formats/CSFFile.cpp
@@ -133,6 +132,7 @@ ADD_EXECUTABLE(zhen
   game/inis/INIFile.cpp
   game/inis/MappedImageINI.cpp
   game/inis/SoundEffectsINI.cpp
+  game/inis/TerrainINI.cpp
   game/Main.cpp
   game/MurmurHash.cpp
   game/Logger.cpp
@@ -288,6 +288,12 @@ ADD_UNIT_TEST(SoundEffectsINI
   game/inis/INIFile.cpp
   game/inis/SoundEffectsINI.cpp
   game/tests/Test_SoundEffectsINI.cpp
+)
+
+ADD_UNIT_TEST(TerrainINI
+  game/inis/INIFile.cpp
+  game/inis/TerrainINI.cpp
+  game/tests/Test_TerrainINI.cpp
 )
 
 ADD_UNIT_TEST(TGAFile

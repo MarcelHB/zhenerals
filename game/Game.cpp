@@ -89,6 +89,13 @@ bool Game::init() {
     WARN_ZH("Game", "Could not initialize sound library.");
   }
 
+  auto terrainIniStream = iniResourceLoader->getFileStream("data\\ini\\terrain.ini");
+  if (terrainIniStream) {
+    auto stream = terrainIniStream->getStream();
+    TerrainINI terrainINI {stream};
+    terrains = terrainINI.parse();
+  }
+
   overlay = std::make_shared<GUI::Overlay>(config.resolution);
 
   mainMenu =

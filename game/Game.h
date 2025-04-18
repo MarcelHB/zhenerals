@@ -10,6 +10,7 @@
 #include "common.h"
 #include "Config.h"
 #include "EventDispatcher.h"
+#include "inis/TerrainINI.h"
 #include "ResourceLoader.h"
 #include "StringLoader.h"
 #include "Window.h"
@@ -55,6 +56,8 @@ class Game {
     std::shared_ptr<GUI::Overlay> overlay;
     std::shared_ptr<GUI::Hosts::MainMenu> mainMenu;
     std::shared_ptr<GUI::Drawing::RenderListFactory> renderListFactory;
+
+    TerrainINI::Terrains terrains;
 
     Window& window;
 
