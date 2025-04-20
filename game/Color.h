@@ -8,7 +8,7 @@
 namespace ZH {
 
 struct Color {
-  using underlying_type = uint8_t;
+  using value_type = uint8_t;
 
   Color() = default;
 

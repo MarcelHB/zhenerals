@@ -48,8 +48,7 @@ struct TextRenderConfig {
   const Component& component;
   const Font& font;
   BitField<TextFlags> flags;
-  Point bboxPosition;
-  Size bboxSize;
+  IntFlatBox bbox;
   Color tint = {255, 255, 255, 255};
 };
 

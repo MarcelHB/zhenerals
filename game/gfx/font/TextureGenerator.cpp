@@ -82,8 +82,8 @@ std::shared_ptr<Atlas> TextureGenerator::createFontAtlas(FT_Face face) {
     return {};
   }
 
-  Point::underlying_type xOffset = 0;
-  Point::underlying_type yOffset = 0;
+  Point::value_type xOffset = 0;
+  Point::value_type yOffset = 0;
 
   std::vector<Glyph> glyphs;
   glyphs.resize(CHAR_RANGE_MAX - CHAR_RANGE_MIN);
@@ -103,9 +103,9 @@ std::shared_ptr<Atlas> TextureGenerator::createFontAtlas(FT_Face face) {
 
     // The bitmap is `width` wide, `horiAdvance` is for style guiding in
     // a final bitmap rectangle for each char.
-    auto glyphWidth = static_cast<Size::underlying_type>(face->glyph->metrics.width / 64);
-    auto glyphWidthAndSpace = static_cast<Size::underlying_type>(face->glyph->metrics.horiAdvance / 64);
-    auto glyphXOffset = static_cast<Size::underlying_type>(std::max(0L, face->glyph->metrics.horiBearingX / 64));
+    auto glyphWidth = static_cast<Size::value_type>(face->glyph->metrics.width / 64);
+    auto glyphWidthAndSpace = static_cast<Size::value_type>(face->glyph->metrics.horiAdvance / 64);
+    auto glyphXOffset = static_cast<Size::value_type>(std::max(0L, face->glyph->metrics.horiBearingX / 64));
     if (xOffset + glyphWidthAndSpace >= BUFFER_DIMENSION) {
       xOffset = 0;
       yOffset += maxHeight;
@@ -132,7 +132,7 @@ std::shared_ptr<Atlas> TextureGenerator::createFontAtlas(FT_Face face) {
 
     auto glyphIdx = i - CHAR_RANGE_MIN;
     glyphs[glyphIdx].position = {xOffset, yOffset};
-    glyphs[glyphIdx].size = {glyphWidthAndSpace, static_cast<Size::underlying_type>(maxHeight)};
+    glyphs[glyphIdx].size = {glyphWidthAndSpace, static_cast<Size::value_type>(maxHeight)};
     glyphs[glyphIdx].above0 = face->glyph->metrics.horiBearingY / 64;
 
     xOffset += glyphWidthAndSpace;

@@ -49,7 +49,7 @@ std::shared_ptr<Vugl::UploadSampler> TextureCache::getFontTexture(uint8_t size, 
 
   uploadSampler.createTexture(
       texture.getData()
-    , VkExtent2D {textureSize.w, textureSize.h}
+    , VkExtent2D {textureSize.x, textureSize.y}
     , mappedFormat(texture.getFormat())
   );
 
@@ -107,7 +107,7 @@ std::shared_ptr<Vugl::UploadSampler> TextureCache::getTexture(const std::string&
 
   uploadSampler.createTexture(
       texture->getData()
-    , VkExtent2D {size.w, size.h}
+    , VkExtent2D {size.x, size.y}
     , mappedFormat(texture->getFormat())
   );
 

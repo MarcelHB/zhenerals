@@ -60,8 +60,8 @@ TEST(WNDFileTest, parsing) {
   EXPECT_EQ(3, p.x);
   EXPECT_EQ(4, p.y);
   auto size = screenRect->get().getResolution();
-  EXPECT_EQ(120, size.w);
-  EXPECT_EQ(600, size.h);
+  EXPECT_EQ(120, size.x);
+  EXPECT_EQ(600, size.y);
 
   auto font = window.getFont();
   ASSERT_TRUE(font);

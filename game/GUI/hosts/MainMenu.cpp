@@ -30,8 +30,8 @@ bool MainMenu::init() {
   assignComponentDefaultEvents(*rootWindow, eventDispatcher);
 
   rootWindow->setPositionOffset({
-      static_cast<Point::underlying_type>(viewport.w / 2 - rootWindow->getSize().w / 2)
-    , static_cast<Point::underlying_type>(viewport.h / 2 - rootWindow->getSize().h / 2)
+      viewport.x / 2 - rootWindow->getSize().x / 2
+    , viewport.y / 2 - rootWindow->getSize().y / 2
   });
 
   campaignMenu = rootWindow->findByName("MainMenu.wnd:MapBorder");

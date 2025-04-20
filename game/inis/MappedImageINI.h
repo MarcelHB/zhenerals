@@ -17,8 +17,8 @@ struct INIImage {
 
   Size effectiveSize() const {
     return {
-        static_cast<Size::underlying_type>(bottomRight.x - topLeft.x)
-      , static_cast<Size::underlying_type>(bottomRight.y - topLeft.y)
+        bottomRight.x - topLeft.x
+      , bottomRight.y - topLeft.y
     };
   }
 };

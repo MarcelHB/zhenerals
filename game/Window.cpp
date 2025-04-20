@@ -39,8 +39,8 @@ bool Window::init() {
         "Zhenerals"
       , SDL_WINDOWPOS_CENTERED
       , SDL_WINDOWPOS_CENTERED
-      , resolution.w
-      , resolution.h
+      , resolution.x
+      , resolution.y
       , SDL_WINDOW_SHOWN | SDL_WINDOW_VULKAN
     );
   CHECK_SDL(sdlWindow != nullptr);
@@ -65,8 +65,8 @@ bool Window::init() {
 
   VkSurfaceKHR vkSurface = VK_NULL_HANDLE;
   VkViewport viewport = {};
-  viewport.width = resolution.w;
-  viewport.height = resolution.h;
+  viewport.width = resolution.x;
+  viewport.height = resolution.y;
 
   CHECK_SDL(SDL_Vulkan_CreateSurface(sdlWindow, vuglContext->getInstance(), &vkSurface));
   vuglContext->setSurface(

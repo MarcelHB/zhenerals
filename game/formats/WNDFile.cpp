@@ -63,15 +63,15 @@ static std::optional<uint32_t> parseNonNegative(const std::string& v) {
 }
 
 template<typename T, size_t N>
-static std::array<typename T::underlying_type, N> parseNTuple(const std::string& v) {
-  std::array<typename T::underlying_type, N> values = {0};
+static std::array<typename T::value_type, N> parseNTuple(const std::string& v) {
+  std::array<typename T::value_type, N> values = {0};
   auto currentBegin = v.cbegin();
   auto it = v.cbegin();
 
   size_t i = 0;
   for (; it != v.cend() && i < N; ++it) {
     if (*it == ' ') {
-      auto conversion = stringToNumber<typename T::underlying_type>(std::string_view {currentBegin, it});
+      auto conversion = stringToNumber<typename T::value_type>(std::string_view {currentBegin, it});
       values[i] = conversion.first;
       while (it != v.cend() && *it == ' ') {
         it++;
@@ -83,11 +83,23 @@ static std::array<typename T::underlying_type, N> parseNTuple(const std::string&
   }
 
   if (it != v.cbegin()) {
-    auto conversion = stringToNumber<typename T::underlying_type>(std::string_view {currentBegin, it});
+    auto conversion = stringToNumber<typename T::value_type>(std::string_view {currentBegin, it});
     values[i] = conversion.first;
   }
 
   return values;
+}
+
+static glm::ivec2 parse2Tuple(const std::string& v) {
+  auto result = parseNTuple<glm::ivec2, 2>(v);
+
+  return glm::ivec2(result[0], result[1]);
+}
+
+static glm::uvec2 parse2uTuple(const std::string& v) {
+  auto result = parseNTuple<glm::uvec2, 2>(v);
+
+  return glm::uvec2(result[0], result[1]);
 }
 
 static Color parseColor(const std::string& s) {
@@ -131,9 +143,9 @@ static ApplierMap<GUI::WND::Layout::Builder> LayoutBlockKVMap = {
 };
 
 static ApplierMap<GUI::WND::ScreenRect::Builder> ScreenRectKVMap = {
-  { "UPPERLEFT", [](GUI::WND::ScreenRect::Builder& b, const std::string& v) { b.upperLeft = parseNTuple<Point, 2>(v); }},
-  { "BOTTOMRIGHT", [](GUI::WND::ScreenRect::Builder& b, const std::string& v) { b.bottomRight = parseNTuple<Point, 2>(v); }},
-  { "CREATIONRESOLUTION", [](GUI::WND::ScreenRect::Builder& b, const std::string& v) { b.resolution = parseNTuple<Size, 2>(v); }}
+  { "UPPERLEFT", [](GUI::WND::ScreenRect::Builder& b, const std::string& v) { b.upperLeft = parse2Tuple(v); }},
+  { "BOTTOMRIGHT", [](GUI::WND::ScreenRect::Builder& b, const std::string& v) { b.bottomRight = parse2Tuple(v); }},
+  { "CREATIONRESOLUTION", [](GUI::WND::ScreenRect::Builder& b, const std::string& v) { b.resolution = parse2uTuple(v); }}
 };
 
 static ApplierMap<GUI::WND::TextColor::Builder> TextColorKVMap = {

@@ -78,13 +78,13 @@ bool MappedImageINI::parseMappedImage(MappedImages& mappedImages) {
       if (!value) {
         return false;
       }
-      iniImage.size.w = *value;
+      iniImage.size.x = *value;
     } else if (token == "TextureHeight") {
       auto value = parseInteger();
       if (!value) {
         return false;
       }
-      iniImage.size.h = *value;
+      iniImage.size.y = *value;
     } else if (token == "Coords") {
       if (!parseCoords(iniImage)) {
         return false;

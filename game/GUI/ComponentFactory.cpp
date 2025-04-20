@@ -148,8 +148,8 @@ bool ComponentFactory::setPositionSize(Component& c, const WND::Window& wnd) con
 
   c.setPosition(p1);
   c.setSize({
-      static_cast<Size::underlying_type>(p2.x - p1.x)
-    , static_cast<Size::underlying_type>(p2.y - p1.y)
+      static_cast<Size::value_type>(p2.x - p1.x)
+    , static_cast<Size::value_type>(p2.y - p1.y)
   });
 
   return true;

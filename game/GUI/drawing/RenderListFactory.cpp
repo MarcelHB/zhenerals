@@ -179,11 +179,11 @@ void RenderListFactory::createButtonRenderList(
     , texture1
   );
 
-  renderComponent.position.x += renderComponent.size.w;
-  renderComponent.size.w =
-    button.getSize().w
-      - images->get()[IMAGE_INDEX(ImageIndex::LEFT)]->effectiveSize().w
-      - images->get()[IMAGE_INDEX(ImageIndex::RIGHT)]->effectiveSize().w;
+  renderComponent.position.x += renderComponent.size.x;
+  renderComponent.size.x =
+    button.getSize().x
+      - images->get()[IMAGE_INDEX(ImageIndex::LEFT)]->effectiveSize().x
+      - images->get()[IMAGE_INDEX(ImageIndex::RIGHT)]->effectiveSize().x;
 
   imageIndex = IMAGE_INDEX(button.isLocked() ? ImageIndex::MIDDLE_LOCKED : ImageIndex::MIDDLE);
   auto& texture2 = getButtonTexture(button, resources, imageIndex);
@@ -198,8 +198,8 @@ void RenderListFactory::createButtonRenderList(
     , texture2
   );
 
-  renderComponent.position.x += renderComponent.size.w;
-  renderComponent.size.w = images->get()[IMAGE_INDEX(ImageIndex::RIGHT)]->effectiveSize().w;
+  renderComponent.position.x += renderComponent.size.x;
+  renderComponent.size.x = images->get()[IMAGE_INDEX(ImageIndex::RIGHT)]->effectiveSize().x;
 
   imageIndex = IMAGE_INDEX(button.isLocked() ? ImageIndex::RIGHT_LOCKED : ImageIndex::RIGHT);
   auto& texture3 = getButtonTexture(button, resources, imageIndex);
@@ -225,8 +225,8 @@ void RenderListFactory::createButtonRenderList(
 
     TextRenderConfig renderConfig {button, font};
     renderConfig.flags = BitField<TextRenderConfig::TextFlags>(TextRenderConfig::TextFlags::CENTERED);
-    renderConfig.bboxSize = button.getSize();
-    renderConfig.bboxPosition = button.getPosition() + parent->get().positionOffset;
+    renderConfig.bbox.size = button.getSize();
+    renderConfig.bbox.position = button.getPosition() + parent->get().positionOffset;
     renderConfig.tint = Color::White;
 
     auto textColorOpt = button.getTextColor();
@@ -272,8 +272,8 @@ void RenderListFactory::createRectangularRenderList(
     textureBundle.texture = textureCache.getTexture(texture->texture);
     textureBundle.position = texture->topLeft;
     textureBundle.size = Size (
-        static_cast<Size::underlying_type>(texture->bottomRight.x - texture->topLeft.x)
-      , static_cast<Size::underlying_type>(texture->bottomRight.y - texture->topLeft.y)
+        static_cast<Size::value_type>(texture->bottomRight.x - texture->topLeft.x)
+      , static_cast<Size::value_type>(texture->bottomRight.y - texture->topLeft.y)
     );
   }
 
@@ -526,25 +526,25 @@ void RenderListFactory::prepareTextHolderDescriptorSet(
 ) {
   auto atlas = fontManager.getFont(config.font.size, config.font.bold);
   size_t totalWidth = 0;
-  Point::underlying_type maxAbove0 = 0;
+  Point::value_type maxAbove0 = 0;
 
   for (auto it = text.cbegin(); it != text.cend(); ++it) {
     auto glyph = atlas->getGlyph(*it);
     if (glyph) {
-      totalWidth += glyph->get().size.w;
+      totalWidth += glyph->get().size.x;
       maxAbove0 = std::max(maxAbove0, glyph->get().above0);
     }
   }
 
-  if (totalWidth > config.bboxSize.w) {
-    totalWidth = config.bboxSize.w;
+  if (totalWidth > config.bbox.size.x) {
+    totalWidth = config.bbox.size.x;
   }
 
-  Point startPos = config.bboxPosition + Point {2, 2};
+  Point startPos = config.bbox.position + Point {2, 2};
   if (config.flags | TextRenderConfig::TextFlags::CENTERED) {
-    startPos = config.bboxPosition;
-    startPos.x += config.bboxSize.w / 2 - totalWidth / 2;
-    startPos.y += config.bboxSize.h / 2 - maxAbove0 / 2;
+    startPos = config.bbox.position;
+    startPos.x += config.bbox.size.x / 2 - totalWidth / 2;
+    startPos.y += config.bbox.size.y / 2 - maxAbove0 / 2;
   }
 
   auto texture = textureCache.getFontTexture(config.font.size, config.font.bold);
@@ -640,12 +640,12 @@ OptionalRef<TextCacheEntry> RenderListFactory::createTextElements(
     auto glyph = atlas->getGlyph(*it);
     if (glyph) {
       numGlyphs += 1;
-      height = glyph->get().size.h; // same height everything r/n
+      height = glyph->get().size.y; // same height everything r/n
     }
   }
 
-  if (height > config.bboxSize.h) {
-    height = config.bboxSize.h;
+  if (height > config.bbox.size.y) {
+    height = config.bbox.size.y;
   }
 
   std::vector<float> data;
@@ -673,9 +673,9 @@ OptionalRef<TextCacheEntry> RenderListFactory::createTextElements(
     data[i * 24 + 6] = glyph.position.x / (extent.width * 1.0f);
     data[i * 24 + 7] = (glyph.position.y + height) / (extent.height * 1.0f);
     // bottom-right
-    data[i * 24 + 8] = xOffset + glyph.size.w;
+    data[i * 24 + 8] = xOffset + glyph.size.x;
     data[i * 24 + 9] = height;
-    data[i * 24 + 10] = (glyph.position.x + glyph.size.w) / (extent.width * 1.0f);
+    data[i * 24 + 10] = (glyph.position.x + glyph.size.x) / (extent.width * 1.0f);
     data[i * 24 + 11] = (glyph.position.y + height) / (extent.height * 1.0f);
 
     // top-left \|
@@ -684,17 +684,17 @@ OptionalRef<TextCacheEntry> RenderListFactory::createTextElements(
     data[i * 24 + 14] = glyph.position.x / (extent.width * 1.0f);
     data[i * 24 + 15] = glyph.position.y / (extent.height * 1.0f);
     // top-right
-    data[i * 24 + 16] = xOffset + glyph.size.w;
+    data[i * 24 + 16] = xOffset + glyph.size.x;
     data[i * 24 + 17] = 0;
-    data[i * 24 + 18] = (glyph.position.x + glyph.size.w) / (extent.width * 1.0f);
+    data[i * 24 + 18] = (glyph.position.x + glyph.size.x) / (extent.width * 1.0f);
     data[i * 24 + 19] = glyph.position.y / (extent.height * 1.0f);
     // bottom-right
-    data[i * 24 + 20] = xOffset + glyph.size.w;
+    data[i * 24 + 20] = xOffset + glyph.size.x;
     data[i * 24 + 21] = height;
-    data[i * 24 + 22] = (glyph.position.x + glyph.size.w) / (extent.width * 1.0f);
+    data[i * 24 + 22] = (glyph.position.x + glyph.size.x) / (extent.width * 1.0f);
     data[i * 24 + 23] = (glyph.position.y + height) / (extent.height * 1.0f);
 
-    xOffset += glyph.size.w;
+    xOffset += glyph.size.x;
     ++i;
   }
 
@@ -774,15 +774,15 @@ void RenderListFactory::writePositionMatrices(
         , 1.0f
       })
       * glm::scale(glm::mat4 {1.0f}, glm::vec3 {
-          bundle.size.w / (extent.width * 1.0f)
-        , bundle.size.h / (extent.height * 1.0f)
+          bundle.size.x / (extent.width * 1.0f)
+        , bundle.size.y / (extent.height * 1.0f)
         , 1.0f
       });
   }
 
   auto modelMatrix =
     glm::translate(glm::mat4 {1.0f}, glm::vec3 { position.x, position.y, 0.0f})
-      * glm::scale(glm::mat4 {1.0f}, glm::vec3 { size.w, size.h, 1.0f});
+      * glm::scale(glm::mat4 {1.0f}, glm::vec3 { size.x, size.y, 1.0f});
 
   matrices.mvp = viewportMatrix * modelMatrix;
 

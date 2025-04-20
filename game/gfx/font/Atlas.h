@@ -9,7 +9,7 @@ namespace ZH::GFX::Font {
 struct Glyph {
   Point position;
   Size size;
-  Point::underlying_type above0;
+  Point::value_type above0;
 };
 
 class Atlas {

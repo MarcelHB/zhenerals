@@ -51,13 +51,13 @@ TEST(FontTest, glyphs) {
 
     if (glyph->get().position.x != lastX) {
       EXPECT_EQ(0, glyph->get().position.x);
-      lastX = glyph->get().size.w;
-      EXPECT_EQ(lastY + glyph->get().size.h, glyph->get().position.y);
-      lastY += glyph->get().size.h;
+      lastX = glyph->get().size.x;
+      EXPECT_EQ(lastY + glyph->get().size.y, glyph->get().position.y);
+      lastY += glyph->get().size.y;
     } else {
       EXPECT_EQ(lastX, glyph->get().position.x);
       EXPECT_EQ(lastY, glyph->get().position.y);
-      lastX += glyph->get().size.w;
+      lastX += glyph->get().size.x;
     }
   }
 }
@@ -69,13 +69,13 @@ void dumpTexture(const GFX::Font::Atlas& font) {
 
   std::ofstream out {"texture.ppm"};
   out << "P3" << std::endl
-    << size.w << " " << size.h << std::endl
+    << size.x << " " << size.y << std::endl
     << "255" << std::endl;
 
-  for (size_t y = 0; y < size.h; ++y) {
-    for (size_t x = 0; x < size.w; ++x) {
+  for (size_t y = 0; y < size.y; ++y) {
+    for (size_t x = 0; x < size.x; ++x) {
       for (uint8_t i = 0; i < 3; ++i) {
-        uint8_t v = static_cast<uint8_t>(*(data.begin() + (y * size.w * 4) + (x * 4) + i));
+        uint8_t v = static_cast<uint8_t>(*(data.begin() + (y * size.x * 4) + (x * 4) + i));
         out << std::to_string(v) << " ";
       }
     }
@@ -103,8 +103,8 @@ void dumpAtlas(const GFX::Font::Atlas& font) {
     }
     out << "," << glyph.position.x
       << "," << glyph.position.y
-      << "," << glyph.size.w
-      << "," << glyph.size.h
+      << "," << glyph.size.x
+      << "," << glyph.size.y
       << std::endl;
   }
 }

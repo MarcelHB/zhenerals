@@ -14,8 +14,8 @@ TEST(TGAFileTest, parsing32bit) {
   ASSERT_TRUE(tga);
 
   auto size = tga->getSize();
-  EXPECT_EQ(2, size.w);
-  EXPECT_EQ(4, size.h);
+  EXPECT_EQ(2, size.x);
+  EXPECT_EQ(4, size.y);
 
   EXPECT_EQ(GFX::HostTexture::Format::BGRA8888, tga->getFormat());
 
@@ -39,8 +39,8 @@ TEST(TGAFileTest, parsing24bit) {
   ASSERT_TRUE(tga);
 
   auto size = tga->getSize();
-  EXPECT_EQ(2, size.w);
-  EXPECT_EQ(4, size.h);
+  EXPECT_EQ(2, size.x);
+  EXPECT_EQ(4, size.y);
 
   EXPECT_EQ(GFX::HostTexture::Format::BGRA8888, tga->getFormat());
 
