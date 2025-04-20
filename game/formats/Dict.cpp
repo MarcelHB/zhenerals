@@ -162,13 +162,13 @@ size_t Dict::readU16String(InflatingStream& stream, const std::string& key) {
 
   std::vector<char16_t> buffer;
   buffer.resize(len);
-  bytesRead = stream.read(reinterpret_cast<char*>(buffer.data()), len);
-  if (bytesRead != len) {
+  bytesRead = stream.read(reinterpret_cast<char*>(buffer.data()), len * 2);
+  if (bytesRead != len * 2) {
     return bytesRead + 2;
   }
 
   if (!key.empty()) {
-    DictValue value {std::u16string{buffer.data(), len / 2u}};
+    DictValue value {std::u16string{buffer.data(), len}};
     entries.emplace(key, std::move(value));
   }
 
