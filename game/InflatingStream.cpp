@@ -143,7 +143,7 @@ uint32_t InflatingStream::decodeRefPack() {
 
       readSize = one & 3;
       copySize = ((one & 0x1C) >> 2) + 3;
-      copyOffset = (((one & 0x60) << 3) | two) + 1;
+      copyOffset = ((one & 0x60) << 3) + two + 1;
     } else if (!(one & 0x40)) {
       read1()
       two = buffer1;
@@ -152,7 +152,7 @@ uint32_t InflatingStream::decodeRefPack() {
 
       readSize = two >> 6;
       copySize = (one & 0x3F) + 4;
-      copyOffset = (((two & 0x3F) << 8) | three) + 1;
+      copyOffset = ((two & 0x3F) << 8) + three + 1;
     } else if (!(one & 0x20)) {
       read1()
       two = buffer1;
@@ -163,13 +163,12 @@ uint32_t InflatingStream::decodeRefPack() {
 
       readSize = one & 3;
       copySize = (((one & 0xC) << 6) + four) + 5;
-      copyOffset = (((((one & 0x10) << 4) | two) << 8) | three) + 1;
+      copyOffset = ((one & 0x10) << 12) + (two << 8) + three + 1;
+    } else if (one < 0xFC) {
+      readSize = ((one & 0x1F) + 1) << 2;
     } else {
-      readSize = ((one & 0x1F) + 1) * 4;
-      if (readSize > 112) {
-        readSize = one & 0x3;
-        stop = true;
-      }
+      readSize = one & 0x3;
+      stop = true;
     }
 
     stream.read(reinterpret_cast<char*>(inflationBuffer.data() + fillSize), readSize);
@@ -182,11 +181,10 @@ uint32_t InflatingStream::decodeRefPack() {
         && copyOffset <= fillSize
         && (fillSize - copyOffset + copySize) <= fillSize + copySize
     ) {
-      std::copy(
-          inflationBuffer.begin() + fillSize - copyOffset
-        , inflationBuffer.begin() + fillSize - copyOffset + copySize
-        , inflationBuffer.begin() + fillSize
-      );
+      // don't use std::copy as it appears buffering the read, preventing running copies
+      for (uint32_t i = 0; i < copySize; ++i) {
+        inflationBuffer[fillSize + i] = inflationBuffer[(fillSize - copyOffset) + i];
+      }
       fillSize += copySize;
     }
 
