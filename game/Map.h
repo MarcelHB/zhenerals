@@ -1,0 +1,200 @@
+#ifndef H_MAP
+#define H_MAP
+
+#include <cstdint>
+#include <list>
+#include <string>
+#include <unordered_map>
+
+#include "Color.h"
+#include "Dimensions.h"
+#include "formats/Dict.h"
+#include "Script.h"
+
+namespace ZH {
+
+struct MapObject {
+  glm::vec3 location;
+  float angle = 0.0f;
+  std::string name;
+  Dict properties;
+  Color color;
+
+  bool light = false;
+  bool waypoint = false;
+  bool scorch = false;
+};
+
+struct TextureClass {
+  uint32_t firstTile = 0;
+  uint32_t numTiles = 0;
+  uint32_t width = 0;
+  std::string name;
+  Point position;
+};
+
+struct BlendTileInfo {
+  size_t blendIdx = 0;
+  uint8_t horizontal = 0;
+  uint8_t vertical = 0;
+  uint8_t rightDiagonal = 0;
+  uint8_t leftDiagonal = 0;
+  bool inverted = false;
+  bool longDiagonal = false;
+  std::optional<uint32_t> customBlendEdgeClass;
+};
+
+struct CliffInfo {
+  uint16_t tileIndex = 0;
+  glm::vec4 u;
+  glm::vec4 v;
+  bool flip = false;
+  bool mutant = false;
+};
+
+struct BuildInfo {
+  std::string buildingName;
+  std::string templateName;
+  glm::vec3 position;
+  float angle = 0.0f;
+  bool prebuilt = false;
+  uint32_t numRebuilt = 0;
+  std::string script;
+  uint32_t health = 0;
+  bool whiner = false;
+  bool unsellable = false;
+  bool repairable = true;
+};
+
+struct SideInfo {
+  Dict properties;
+  std::vector<BuildInfo> buildInfos;
+};
+
+struct MapScriptParam {
+  // EVAL plenty of type logic in parser
+  Script::ParameterType type;
+  glm::vec3 positionParam;
+  int32_t intParam = 0;
+  float floatParam = 0.0;
+  std::string stringParam;
+};
+
+struct MapScriptAction {
+  Script::ActionType type;
+  // EVAL type, key type logic in parser
+  uint32_t keyType;
+  std::vector<MapScriptParam> params;
+};
+
+struct MapScriptCondition {
+  Script::ConditionType type;
+  // EVAL type, keyType, version logic in parser
+  uint32_t keyType;
+  uint16_t version;
+  std::vector<MapScriptParam> params;
+};
+
+struct MapScriptOrCondition {
+  std::list<MapScriptCondition> conditions;
+};
+
+struct MapScript {
+  std::string name;
+  std::string comment;
+  std::string condition;
+  std::string action;
+  bool active = true;
+  bool once = false;
+  bool easy = false;
+  bool normal = false;
+  bool hard = true;
+  bool subroutine = false;
+  uint32_t delaySec = 0;
+
+  std::list<MapScriptAction> actions;
+  std::list<MapScriptAction> actionsOnFalse;
+  // last parsed is front
+  std::list<MapScriptOrCondition> orConditions;
+};
+
+struct MapScriptGroup {
+  std::string name;
+  bool active = true;
+  bool subroutine = false;
+};
+
+struct PolygonTrigger {
+  std::string name;
+  std::string layerName;
+  uint32_t id = 0;
+  bool water = false;
+  bool river = false;
+  uint32_t riverStart = 0;
+  std::vector<glm::ivec3> points;
+};
+
+struct TeamInfo {
+  Dict properties;
+};
+
+struct Light {
+  ColorRGBf ambient;
+  ColorRGBf diffuse;
+  glm::vec3 position;
+};
+
+using Lights = std::array<std::array<Light, 3>, 4>;
+
+struct MapBuilder {
+  std::unordered_map<uint32_t, std::string> chunkLabels;
+
+  Dict worldDict;
+
+  Size size;
+  uint32_t borderSize = 0;
+  std::vector<uint8_t> heightMap;
+  std::vector<Point> boundaries;
+
+  std::list<MapObject> objects;
+
+  std::vector<uint16_t> tileIndices;
+  std::vector<uint16_t> cliffInfoIndices;
+  std::vector<uint16_t> blendTileIndices;
+  std::vector<uint16_t> extraBlendTileIndices;
+  std::vector<uint8_t> flipStates;
+  std::vector<uint8_t> cliffStates;
+
+  std::vector<TextureClass> textureClasses;
+  std::vector<TextureClass> edgeTextureClasses;
+  std::vector<BlendTileInfo> blendTileInfos;
+  std::vector<CliffInfo> cliffInfos;
+
+  std::vector<SideInfo> sides;
+  std::vector<TeamInfo> teams;
+
+  // last parsed is front
+  std::list<MapScript> scripts;
+  std::list<MapScriptGroup> scriptGroups;
+
+  std::vector<PolygonTrigger> polygonTriggers;
+
+  uint32_t timeOfDay = 0;
+  Lights lights;
+  Lights objectLights;
+};
+
+class Map {
+  public:
+    Map(MapBuilder&&);
+
+    const std::vector<uint8_t>& getHeightMap() const;
+    Size getSize() const;
+  private:
+    Size size;
+    std::vector<uint8_t> heightMap;
+};
+
+}
+
+#endif

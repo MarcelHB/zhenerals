@@ -44,6 +44,7 @@ INCLUDE_DIRECTORIES(
 )
 
 OPTION(USE_TESTS "Enable building and running of tests" OFF)
+OPTION(USE_GAME_TESTS "Enable building and running of test against game data" OFF)
 OPTION(USE_TRACY "Build with Tracy support" OFF)
 
 IF (USE_TRACY)
@@ -66,7 +67,7 @@ IF (USE_TRACY)
   INCLUDE_DIRECTORIES(${tracy_SOURCE_DIR}/public)
 ENDIF()
 
-IF (USE_TESTS)
+IF (USE_TESTS OR USE_GAME_TESTS)
   FIND_PACKAGE(GTest REQUIRED)
   INCLUDE(CTest)
   ENABLE_TESTING()
@@ -87,6 +88,29 @@ FUNCTION(ADD_UNIT_TEST unit_name)
 
     ADD_TEST(NAME Test_${unit_name}
       COMMAND $<TARGET_FILE:Test_${unit_name}>
+    )
+  ENDIF()
+ENDFUNCTION()
+
+FUNCTION(ADD_GAME_TEST game_test_name)
+  IF (BUILD_TESTING AND USE_GAME_TESTS)
+    ADD_EXECUTABLE(GameTest_${game_test_name}
+      ${ARGN}
+      game/formats/BIGFile.cpp
+      game/Logging.cpp
+      game/ResourceLoader.cpp
+    )
+
+    TARGET_LINK_LIBRARIES(GameTest_${game_test_name}
+      GTest::gtest
+      GTest::gtest_main
+      fmt::fmt
+    )
+
+    TARGET_COMPILE_DEFINITIONS(GameTest_${game_test_name} PRIVATE NO_TRACY=1)
+
+    ADD_TEST(NAME GameTest_${game_test_name}
+      COMMAND $<TARGET_FILE:GameTest_${game_test_name}>
     )
   ENDIF()
 ENDFUNCTION()
@@ -134,10 +158,12 @@ ADD_EXECUTABLE(zhen
   game/inis/SoundEffectsINI.cpp
   game/inis/TerrainINI.cpp
   game/Main.cpp
+  game/Map.cpp
   game/MurmurHash.cpp
   game/Logger.cpp
   game/Logging.cpp
   game/ResourceLoader.cpp
+  game/Script.cpp
   game/StringLoader.cpp
   game/Window.cpp
   game/WindowFactory.cpp
@@ -314,6 +340,15 @@ ADD_UNIT_TEST(WNDFile
   game/GUI/wnd/Window.cpp
   game/GUI/wnd/WindowAndLayout.cpp
   game/tests/Test_WNDFile.cpp
+)
+
+ADD_GAME_TEST(MAPFile
+  game/InflatingStream.cpp
+  game/Map.cpp
+  game/formats/Dict.cpp
+  game/formats/MAPFile.cpp
+  game/Script.cpp
+  game/tests/GameTest_Map.cpp
 )
 
 IF (BUILD_TESTING)

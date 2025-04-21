@@ -28,6 +28,8 @@ struct Color {
   static Color White;
 };
 
+using ColorRGBf = glm::vec3;
+
 }
 
 #endif
