@@ -91,12 +91,7 @@ std::shared_ptr<Audio::SoundData> AudioFile::parseSoundData() {
   AVPacket *avPacket = av_packet_alloc();
 
   std::vector<char> fullBuffer;
-  fullBuffer.reserve(4096);
-
   std::vector<char> fullBuffer2;
-  if (planar) {
-    fullBuffer2.reserve(4096);
-  }
 
   std::shared_ptr<AVFrame> frame {
       av_frame_alloc()
@@ -150,7 +145,7 @@ std::shared_ptr<Audio::SoundData> AudioFile::parseSoundData() {
       auto lastSize = fullBuffer.size();
       fullBuffer.resize(fullBuffer.size() + frameSize);
 
-      if (planar) {
+      if (planar || useSwr) {
         fullBuffer2.resize(fullBuffer2.size() + frameSize);
       }
 
@@ -194,7 +189,7 @@ std::shared_ptr<Audio::SoundData> AudioFile::parseSoundData() {
     swr_free(&swr);
   }
 
-  if (planar) {
+  if (planar || useSwr) {
     std::vector<char> mergeBuffer(fullBuffer.size() * 2);
 
     for (size_t i = 0; i < totalSamples; ++i) {
