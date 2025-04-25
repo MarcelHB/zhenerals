@@ -6,6 +6,10 @@ Overlay::Overlay(Size size) : Component(WND::Window::Type::OVERLAY) {
   setSize(size);
 }
 
+std::shared_ptr<Battlefield> Overlay::getBattlefield() const {
+  return battlefield;
+}
+
 std::unique_lock<std::recursive_mutex> Overlay::getLock() {
   return std::unique_lock {mutex};
 }
@@ -31,6 +35,10 @@ bool Overlay::processEvent(const SDL_Event& event) {
   }
 
   return true;
+}
+
+void Overlay::setBattlefield(std::shared_ptr<Battlefield> battlefield) {
+  this->battlefield = std::move(battlefield);
 }
 
 }

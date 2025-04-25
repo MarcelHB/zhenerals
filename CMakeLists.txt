@@ -120,6 +120,8 @@ ADD_EXECUTABLE(zhen
   game/audio/Backend.cpp
   game/audio/Playback.cpp
   game/audio/SoundData.cpp
+  game/Battlefield.cpp
+  game/BattlefieldFactory.cpp
   game/Color.cpp
   game/common.cpp
   game/EventDispatcher.cpp
@@ -127,6 +129,7 @@ ADD_EXECUTABLE(zhen
   game/formats/AudioFile.cpp
   game/formats/BIGFile.cpp
   game/formats/CSFFile.cpp
+  game/formats/MAPFile.cpp
   game/formats/Dict.cpp
   game/formats/TGAFile.cpp
   game/formats/WNDFile.cpp

@@ -7,6 +7,7 @@
 
 #include "audio/Backend.h"
 #include "audio/Playback.h"
+#include "BattlefieldFactory.h"
 #include "common.h"
 #include "Config.h"
 #include "EventDispatcher.h"
@@ -41,12 +42,14 @@ class Game {
 
     EventDispatcher eventDispatcher;
     Audio::Backend audioBackend;
+    std::shared_ptr<BattlefieldFactory> battlefieldFactory;
     std::shared_ptr<GUI::ComponentFactory> componentFactory;
     std::shared_ptr<GFX::Font::FontManager> fontManager;
     std::shared_ptr<ResourceLoader> audioResourceLoader;
     std::shared_ptr<Audio::Playback> audioPlayback;
     std::shared_ptr<ResourceLoader> iniResourceLoader;
     std::shared_ptr<ResourceLoader> languageResourceLoader;
+    std::shared_ptr<ResourceLoader> mapsLoader;
     std::shared_ptr<StringLoader> stringLoader;
     std::shared_ptr<ResourceLoader> texturesResourceLoader;
     std::shared_ptr<WindowFactory> windowFactory;

@@ -186,13 +186,28 @@ struct MapBuilder {
 
 class Map {
   public:
+    struct VertexData {
+      glm::vec3 position;
+      glm::vec3 normal;
+      glm::vec2 uv;
+    };
+
     Map(MapBuilder&&);
 
+    float getHeight(size_t, size_t, uint8_t);
     const std::vector<uint8_t>& getHeightMap() const;
+    const std::vector<VertexData>& getVertexData() const;
+    const std::vector<uint32_t>& getVertexIndices() const;
+
     Size getSize() const;
   private:
     Size size;
     std::vector<uint8_t> heightMap;
+
+    std::vector<VertexData> verticesAndNormals;
+    std::vector<uint32_t> vertexIndices;
+
+    void tesselateHeightMap();
 };
 
 }

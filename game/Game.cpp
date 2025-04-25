@@ -58,6 +58,13 @@ bool Game::init() {
       }
     );
 
+  mapsLoader =
+    std::shared_ptr<ResourceLoader>(
+      new ResourceLoader {{"MapsZH.big", "ZH_Generals/Maps.big"} , config.baseDir}
+    );
+
+  battlefieldFactory = std::make_shared<BattlefieldFactory>(*mapsLoader);
+
   textureLookup = std::make_shared<GFX::TextureLookup>(*iniResourceLoader);
   if (!textureLookup->load()) {
     ERROR_ZH("Game", "Could not load textures list");
@@ -119,6 +126,13 @@ bool Game::init() {
       , *fontManager
     );
 
+  auto mainMenuMap = battlefieldFactory->load("shellmapmd");
+  if (mainMenuMap) {
+    overlay->setBattlefield(mainMenuMap);
+  } else {
+    WARN_ZH("Game", "Could not load main menu map.");
+  }
+
   drawThread = std::thread(Game::draw, this);
 
   return true;
@@ -160,7 +174,10 @@ bool Game::processEvent(const SDL_Event& event) {
     return true;
   }
 
-  return overlay->processEvent(event);
+  {
+    auto lock = overlay->getLock();
+    return overlay->processEvent(event);
+  }
 }
 
 void Game::draw(void *obj) {
