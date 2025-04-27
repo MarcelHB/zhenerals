@@ -38,12 +38,12 @@ void Map::tesselateHeightMap() {
   // Scan where we want 2 or 4 triangles (not planar)
   for (size_t y = 0; y < size.y; ++y) {
     for (size_t x = 0; x < size.x; ++x) {
-      auto h1 = getHeight(x, y, 0);
-      auto h2 = getHeight(x, y, 1);
-      auto h3 = getHeight(x, y, 2);
-      auto h4 = getHeight(x, y, 3);
+      auto h1 = getHeight(x, y, 0); // tl
+      auto h2 = getHeight(x, y, 1); // tr
+      auto h3 = getHeight(x, y, 2); // bl
+      auto h4 = getHeight(x, y, 3); // br
 
-      if (h1 == h2 && h2 == h3 && h3 == h4) {
+      if ((h1 == h2 && h3 == h4) || (h1 == h3 && h2 == h4)) {
         numTwo++;
       } else {
         numFour++;
@@ -160,7 +160,7 @@ void Map::tesselateHeightMap() {
         } else {
           vertexIndices[baseIdx + 4] = numFour + (y + 1) * size.x + x;
         }
-        vertexIndices[baseIdx + 5] = vertexIndices[baseIdx + 2];
+        vertexIndices[baseIdx + 5] = vertexIndices[baseIdx + 1];
 
         // bottom triangle
         vertexIndices[baseIdx + 6] = i4;
