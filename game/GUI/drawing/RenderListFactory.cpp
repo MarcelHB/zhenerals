@@ -332,21 +332,23 @@ void RenderListFactory::createWindowRenderList(
 
   auto& resources = findOrCreateResourceBundle(window);
 
-  auto imageIndex = IMAGE_INDEX(ImageIndex::DEFAULT);
-  auto& image = window.getEnabledImages()[imageIndex];
+  if (window.isDrawImage()) {
+    auto imageIndex = IMAGE_INDEX(ImageIndex::DEFAULT);
+    auto& image = window.getEnabledImages()[imageIndex];
 
-  if (!resources.enabledTextures[imageIndex]) {
-    resources.enabledTextures[imageIndex] = std::make_optional<TextureBundle>();
+    if (!resources.enabledTextures[imageIndex]) {
+      resources.enabledTextures[imageIndex] = std::make_optional<TextureBundle>();
+    }
+
+    createRectangularRenderList(
+        window
+      , commandBuffer
+      , frameIndex
+      , renderComponent
+      , image
+      , *resources.enabledTextures[imageIndex]
+    );
   }
-
-  createRectangularRenderList(
-      window
-    , commandBuffer
-    , frameIndex
-    , renderComponent
-    , image
-    , *resources.enabledTextures[imageIndex]
-  );
 
   auto optRenderComponent = std::make_optional(std::cref(renderComponent));
   createChildrenRenderList(

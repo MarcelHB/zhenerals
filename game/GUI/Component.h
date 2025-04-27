@@ -44,9 +44,10 @@ class Component {
     Size getSize() const;
     OptionalCRef<WND::TextColor> getTextColor() const;
     ComponentType getType() const;
-    bool isPointInside(const Point&) const;
 
+    bool isDrawImage() const;
     bool isHidden() const;
+    bool isPointInside(const Point&) const;
 
     bool needsRedraw() const;
     void setRedrawn();
@@ -57,9 +58,10 @@ class Component {
     virtual void onCursorClickDown();
     virtual bool onCursorClickUp();
 
+    void setDrawImage(bool);
     void setEnabledImage(uint8_t, const INIImage&);
-    void setHighlightImage(uint8_t, const INIImage&);
     void setFont(std::optional<Font>);
+    void setHighlightImage(uint8_t, const INIImage&);
     void setHidden(bool);
     void setName(std::string);
     void setPosition(Point);
@@ -81,6 +83,7 @@ class Component {
     Point positionOffset;
     Size size;
     bool hidden = false;
+    bool drawImage = true;
     std::optional<WND::TextColor> textColor;
     std::shared_ptr<Component> lastMouseClickLockChild = nullptr;
     std::shared_ptr<Component> lastMouseOverChild = nullptr;

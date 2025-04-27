@@ -86,6 +86,10 @@ Component::ComponentType Component::getType() const {
   return type;
 }
 
+bool Component::isDrawImage() const {
+  return drawImage;
+}
+
 bool Component::isHidden() const {
   return hidden;
 }
@@ -149,6 +153,11 @@ bool Component::onCursorOver(const Point& pos, const Point& movement) {
 
 bool Component::needsRedraw() const {
   return drawUpdate;
+}
+
+void Component::setDrawImage(bool draw) {
+  drawUpdate = true;
+  drawImage = draw;
 }
 
 void Component::setEnabledImage(uint8_t index, const INIImage& iniImage) {

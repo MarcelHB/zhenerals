@@ -74,6 +74,10 @@ bool ComponentFactory::setCommonAttributes(Component& c, const WND::Window& wnd)
     c.setHidden(true);
   }
 
+  if (wnd.getStatus() & WND::Window::Status::IMAGE) {
+    c.setDrawImage(true);
+  }
+
   auto drawData = wnd.getEnabledDrawData();
   setDrawData(c, drawData, [](Component& c, uint8_t i, const INIImage& texture) {
     c.setEnabledImage(i, texture);
