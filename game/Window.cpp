@@ -68,12 +68,15 @@ bool Window::init() {
   viewport.width = resolution.x;
   viewport.height = resolution.y;
 
+  VkPhysicalDeviceFeatures vkDeviceFeatures = {};
+  vkDeviceFeatures.fillModeNonSolid = true;
+
   CHECK_SDL(SDL_Vulkan_CreateSurface(sdlWindow, vuglContext->getInstance(), &vkSurface));
   vuglContext->setSurface(
       vkSurface
     , viewport
     , vkDeviceExtensionsList
-    , {}
+    , vkDeviceFeatures
     , nullptr
   );
 

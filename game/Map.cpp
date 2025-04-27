@@ -179,7 +179,7 @@ float Map::getCenterHeight(size_t x, size_t y) {
 
 float Map::getHeight(size_t x, size_t y, uint8_t corner) {
   auto getHeight = [this](size_t x, size_t y) {
-    return heightMap[y * size.x + x] * 0.025f;
+    return heightMap[y * size.x + x] * 0.075f;
   };
 
   // bottom-right

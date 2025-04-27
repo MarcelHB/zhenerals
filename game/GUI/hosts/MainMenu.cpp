@@ -60,6 +60,8 @@ bool MainMenu::init() {
     , "MainMenu.wnd:ButtonUSARecentSave"
   };
 
+  rootWindow->setDrawImage(false);
+
   for (auto& buttonName : buttonsToHide) {
     auto button = rootWindow->findByName(buttonName);
     if (button) {

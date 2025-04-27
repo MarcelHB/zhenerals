@@ -23,6 +23,7 @@
 #include "GUI/Overlay.h"
 #include "GUI/drawing/RenderListFactory.h"
 #include "GUI/hosts/MainMenu.h"
+#include "rendering/MapRenderer.h"
 
 namespace ZH {
 
@@ -50,6 +51,7 @@ class Game {
     std::shared_ptr<ResourceLoader> iniResourceLoader;
     std::shared_ptr<ResourceLoader> languageResourceLoader;
     std::shared_ptr<ResourceLoader> mapsLoader;
+    std::shared_ptr<MapRenderer> mapRenderer;
     std::shared_ptr<StringLoader> stringLoader;
     std::shared_ptr<ResourceLoader> texturesResourceLoader;
     std::shared_ptr<WindowFactory> windowFactory;

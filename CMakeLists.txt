@@ -166,6 +166,7 @@ ADD_EXECUTABLE(zhen
   game/Logger.cpp
   game/Logging.cpp
   game/ResourceLoader.cpp
+  game/rendering/MapRenderer.cpp
   game/Script.cpp
   game/StringLoader.cpp
   game/Window.cpp

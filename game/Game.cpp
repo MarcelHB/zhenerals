@@ -133,6 +133,13 @@ bool Game::init() {
     WARN_ZH("Game", "Could not load main menu map.");
   }
 
+  mapRenderer =
+    std::make_shared<MapRenderer>(
+        window.getVuglContext()
+      , *mainMenuMap
+      , *textureCache
+    );
+
   drawThread = std::thread(Game::draw, this);
 
   return true;
@@ -201,11 +208,13 @@ void Game::draw(void *obj) {
     auto frameIndex = frame.getImageIndex();
 
     Vugl::CommandBuffer primary {vuglContext.createCommandBuffer(frameIndex)};
-    std::shared_ptr<Vugl::CommandBuffer> secondary;
+    std::shared_ptr<Vugl::CommandBuffer> battlefieldSecondary;
+    std::shared_ptr<Vugl::CommandBuffer> guiSecondary;
 
     {
       auto lock = game->overlay->getLock();
-      secondary = game->renderListFactory->createRenderList(frameIndex, renderPass);
+      battlefieldSecondary = game->mapRenderer->createRenderList(frameIndex, renderPass);
+      guiSecondary = game->renderListFactory->createRenderList(frameIndex, renderPass);
     }
 
     if (game->terminate) {
@@ -213,7 +222,8 @@ void Game::draw(void *obj) {
     }
 
     primary.beginRendering(renderPass, clearColors);
-    primary.executeSecondary(*secondary);
+    primary.executeSecondary(*battlefieldSecondary);
+    primary.executeSecondary(*guiSecondary);
     primary.closeRendering();
 
     frame.submitAndPresent(primary);
