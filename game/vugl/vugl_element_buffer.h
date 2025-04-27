@@ -19,6 +19,7 @@ class ElementBuffer
     VkResult vkLastResult;
     ResourceAllocator& resourceAllocator;
     uint32_t binding;
+    bool bigIndex;
 
     VkBuffer vkStagingBuffer;
     VkBuffer vkBuffer;
@@ -45,6 +46,8 @@ class ElementBuffer
     VkResult recordBindCommands (VkCommandBuffer vkCommandBuffer, uint32_t i) override;
     VkResult recordUploadCommands (VkCommandBuffer vkCommandBuffer) override;
 
+    void setBigIndexBuffer(bool);
+
     template <typename T, typename U>
     void writeData (const std::vector<T>& vertexData, const std::vector<U>& indexData) {
       this->vkStagingVBSize = sizeof(T) * vertexData.size();
@@ -70,7 +73,7 @@ class ElementBuffer
       std::uninitialized_copy(
           indexData.cbegin()
         , indexData.cend()
-        , static_cast<T*>(mappedData) + vertexData.size()
+        , reinterpret_cast<U*>(static_cast<T*>(mappedData) + vertexData.size())
       );
 
       resourceAllocator.unmapMemory(vmaStagingAllocation);

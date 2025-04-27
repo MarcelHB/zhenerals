@@ -7,6 +7,7 @@ ElementBuffer::ElementBuffer (
   , uint32_t binding
 ) : resourceAllocator{allocator}
   , binding{binding}
+  , bigIndex{false}
   , vkLastResult{VK_SUCCESS}
   , vkStagingBuffer{VK_NULL_HANDLE}
   , vkBuffer{VK_NULL_HANDLE}
@@ -19,6 +20,7 @@ ElementBuffer::ElementBuffer (
 ElementBuffer::ElementBuffer (ElementBuffer && other)
   : resourceAllocator{other.resourceAllocator}
   , binding(other.binding)
+  , bigIndex{other.bigIndex}
   , vkLastResult{other.vkLastResult}
   , vkStagingBuffer{other.vkStagingBuffer}
   , vkBuffer{other.vkBuffer}
@@ -65,7 +67,12 @@ VkResult ElementBuffer::recordBindCommands (VkCommandBuffer vkCommandBuffer, uin
   vkCmdBindVertexBuffers(vkCommandBuffer, binding, 1, &vkBuffer, &offset);
 
   if (vkStagingIBSize > 0) {
-    vkCmdBindIndexBuffer(vkCommandBuffer, vkBuffer, vkStagingVBSize, VK_INDEX_TYPE_UINT16);
+    vkCmdBindIndexBuffer(
+        vkCommandBuffer
+      , vkBuffer
+      , vkStagingVBSize
+      , bigIndex ? VK_INDEX_TYPE_UINT32 : VK_INDEX_TYPE_UINT16
+    );
   }
 
   return VK_SUCCESS;
@@ -97,6 +104,10 @@ VkResult ElementBuffer::recordUploadCommands (VkCommandBuffer vkCommandBuffer) {
   vkCmdCopyBuffer(vkCommandBuffer, vkStagingBuffer, vkBuffer, 1, &vkBufferCopy);
 
   return VK_SUCCESS;
+}
+
+void ElementBuffer::setBigIndexBuffer (bool big) {
+  bigIndex = big;
 }
 
 };
