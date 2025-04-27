@@ -194,6 +194,7 @@ class Map {
 
     Map(MapBuilder&&);
 
+    float getCenterHeight(size_t, size_t);
     float getHeight(size_t, size_t, uint8_t);
     const std::vector<uint8_t>& getHeightMap() const;
     const std::vector<VertexData>& getVertexData() const;
