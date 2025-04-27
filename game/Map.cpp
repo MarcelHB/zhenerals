@@ -1,3 +1,5 @@
+#include <algorithm>
+
 #include "common.h"
 #include "Map.h"
 
@@ -7,7 +9,24 @@ Map::Map(MapBuilder&& builder)
   : size(builder.size)
   , heightMap(std::move(builder.heightMap))
 {
-  tesselateHeightMap();
+  prepareTextureIndex(builder.textureClasses);
+  tesselateHeightMap(builder.textureClasses, builder.tileIndices);
+}
+
+void Map::prepareTextureIndex(std::vector<TextureClass>& textureClasses) {
+  std::sort(
+      textureClasses.begin()
+    , textureClasses.end()
+    , [](const TextureClass& a, const TextureClass& b) {
+        return a.firstTile < b.firstTile;
+      }
+  );
+
+  texturesIndex.resize(textureClasses.size());
+
+  for (size_t i = 0; i < textureClasses.size(); ++i) {
+    texturesIndex[i] = textureClasses[i].name;
+  }
 }
 
 const std::vector<uint8_t>& Map::getHeightMap() const {
@@ -26,7 +45,10 @@ const std::vector<uint32_t>& Map::getVertexIndices() const {
   return vertexIndices;
 }
 
-void Map::tesselateHeightMap() {
+void Map::tesselateHeightMap(
+    const std::vector<TextureClass>& textureClasses
+  , const std::vector<uint16_t>& tileIndex
+) {
   TRACY(ZoneScoped);
 
   std::vector<bool> isFour {};
@@ -77,18 +99,24 @@ void Map::tesselateHeightMap() {
         auto centerHeight = (h1 + h2 + h3 + h4) / 4.0f;
         auto centerIdx = i4++;
 
-        auto& centerPos = verticesAndNormals[centerIdx].position;
+        auto& centerVertex = verticesAndNormals[centerIdx];
+        auto& centerPos = centerVertex.position;
         centerPos.x = x + 0.5f;
         centerPos.y = centerHeight;
         centerPos.z = y + 0.5f;
+
+        setVertexUV(centerVertex, textureClasses, tileIndex[y * size.x + x], 0.5f, 0.5f);
       }
 
       // top left
       auto topLeftIdx = numFour + y * size.x + x;
-      auto& topLeftPos = verticesAndNormals[topLeftIdx].position;
+      auto& topLeftVertex = verticesAndNormals[topLeftIdx];
+      auto& topLeftPos = topLeftVertex.position;
       topLeftPos.x = x;
       topLeftPos.y = h1;
       topLeftPos.z = y;
+
+      setVertexUV(topLeftVertex, textureClasses, tileIndex[y * size.x + x]);
     }
   }
 
@@ -97,10 +125,13 @@ void Map::tesselateHeightMap() {
     auto bottomIdx = numFour + size.x * size.y + x;
     auto height = getHeight(x, size.y - 1, 2);
 
-    auto& topLeftPos = verticesAndNormals[bottomIdx].position;
-    topLeftPos.x = x;
-    topLeftPos.y = height;
-    topLeftPos.z = size.y;
+    auto& bottomVertex = verticesAndNormals[bottomIdx];
+    auto& bottomPos = bottomVertex.position;
+    bottomPos.x = x;
+    bottomPos.y = height;
+    bottomPos.z = size.y;
+
+    setVertexUV(bottomVertex, textureClasses, tileIndex[(size.y - 1) * size.x + x]);
   }
 
   // right
@@ -108,10 +139,13 @@ void Map::tesselateHeightMap() {
     auto rightIdx = numFour + size.x * size.y + size.x + 1 + y;
     auto height = getHeight(size.x - 1, y, 1);
 
-    auto& rightPos = verticesAndNormals[rightIdx].position;
+    auto& rightVertex = verticesAndNormals[rightIdx];
+    auto& rightPos = rightVertex.position;
     rightPos.x = size.x;
     rightPos.y = height;
     rightPos.z = y;
+
+    setVertexUV(rightVertex, textureClasses, tileIndex[y * size.x + (size.x - 1)]);
   }
 
   /*
@@ -334,6 +368,33 @@ float Map::getHeight(size_t x, size_t y, uint8_t corner) {
       return (h1 + h2 + h3) / 3.0f;
     }
   }
+}
+
+void Map::setVertexUV(
+   Map::VertexData& vertexData
+ , const std::vector<TextureClass>& textureClasses
+ , uint16_t vertexIndex
+ , float xOffset
+ , float yOffset
+) {
+  size_t textureIndex = 0;
+
+  for (; textureIndex < textureClasses.size(); ++textureIndex) {
+    if (textureClasses[textureIndex].firstTile >= vertexIndex) {
+      break;
+    }
+  }
+
+  auto& textureClass = textureClasses[textureIndex];
+  auto textureTileIndex = vertexIndex - textureClass.firstTile;
+  auto x = textureTileIndex % textureClass.width;
+  auto y = textureTileIndex / textureClass.width;
+
+  auto unit = 1.0f / textureClass.width;
+
+  vertexData.uv.x = x * unit + xOffset * unit;
+  vertexData.uv.y = x * unit + xOffset * unit;
+  vertexData.textureIdx = textureIndex;
 }
 
 }
