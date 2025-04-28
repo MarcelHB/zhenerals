@@ -289,7 +289,7 @@ void RenderListFactory::createRectangularRenderList(
 
     textureBundle.descriptorSet->assignUniformBuffer(*textureBundle.matrices);
     if (textureBundle.texture) {
-      textureBundle.descriptorSet->assignSampler(*textureBundle.texture);
+      textureBundle.descriptorSet->assignCombinedSampler(*textureBundle.texture);
       vuglContext.uploadResource(*textureBundle.texture);
     }
 
@@ -559,7 +559,7 @@ void RenderListFactory::prepareTextHolderDescriptorSet(
 
   auto descriptorSet = std::make_shared<Vugl::DescriptorSet>(fontPipeline->createDescriptorSet());
   descriptorSet->assignUniformBuffer(*fontMatrix);
-  descriptorSet->assignSampler(*texture);
+  descriptorSet->assignCombinedSampler(*texture);
   descriptorSet->updateDevice();
 
   bundle.descriptorSet = std::move(descriptorSet);

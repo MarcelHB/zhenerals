@@ -16,7 +16,7 @@ namespace Vugl {
 class DescriptorSet : public BindableResource {
   private:
     enum class DescriptorType {
-        SAMPLER
+        COMBINED_SAMPLER
       , STORAGE_IMAGE
       , UBO
       , DYNAMIC_UBO
@@ -34,7 +34,7 @@ class DescriptorSet : public BindableResource {
     VkDescriptorPool vkDescriptorPool;
     std::vector<VkDescriptorSet> vkDescriptorSets;
 
-    std::vector<std::reference_wrapper<const Sampler>> assignedSamplers;
+    std::vector<std::reference_wrapper<const Sampler>> assignedCombinedSamplers;
     std::vector<std::reference_wrapper<const DeviceSampler>> assignedStorageImages;
     std::vector<std::reference_wrapper<const UniformBuffer>> assignedUniformBuffers;
     size_t nullSamplers;
@@ -51,7 +51,7 @@ class DescriptorSet : public BindableResource {
     );
     ~DescriptorSet ();
 
-    void assignSampler (const Sampler&);
+    void assignCombinedSampler (const Sampler&);
     void assignNullSampler ();
     void assignStorageImage (const DeviceSampler&);
     void assignUniformBuffer (const UniformBuffer&, bool dynamic = false);

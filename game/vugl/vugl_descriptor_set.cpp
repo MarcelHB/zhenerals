@@ -17,7 +17,7 @@ DescriptorSet::DescriptorSet (
   , vkLastResult{VK_SUCCESS}
   , vkDescriptorPool{VK_NULL_HANDLE}
   , vkDescriptorSets{}
-  , assignedSamplers{}
+  , assignedCombinedSamplers{}
   , assignedUniformBuffers{}
   , nullSamplers{0}
   , bindings{}
@@ -34,7 +34,7 @@ DescriptorSet::DescriptorSet (DescriptorSet && other)
   , vkLastResult{other.vkLastResult}
   , vkDescriptorPool{other.vkDescriptorPool}
   , vkDescriptorSets{std::move(other.vkDescriptorSets)}
-  , assignedSamplers{std::move(other.assignedSamplers)}
+  , assignedCombinedSamplers{std::move(other.assignedCombinedSamplers)}
   , assignedUniformBuffers{std::move(other.assignedUniformBuffers)}
   , nullSamplers{other.nullSamplers}
   , bindings{std::move(other.bindings)}
@@ -54,13 +54,13 @@ void DescriptorSet::destroy () {
   vkDestroyDescriptorPool(vkDevice, vkDescriptorPool, nullptr);
   this->vkDescriptorPool = VK_NULL_HANDLE;
 
-  assignedSamplers.clear();
+  assignedCombinedSamplers.clear();
   bindings.resize(0);
 }
 
-void DescriptorSet::assignSampler (const Sampler& sampler) {
-  assignedSamplers.emplace_back(std::cref(sampler));
-  bindings.emplace_back(DescriptorType::SAMPLER, assignedSamplers.size() - 1);
+void DescriptorSet::assignCombinedSampler (const Sampler& sampler) {
+  assignedCombinedSamplers.emplace_back(std::cref(sampler));
+  bindings.emplace_back(DescriptorType::COMBINED_SAMPLER, assignedCombinedSamplers.size() - 1);
 }
 
 void DescriptorSet::assignNullSampler () {
@@ -124,11 +124,11 @@ void DescriptorSet::updateDevice () {
   if (VK_NULL_HANDLE == vkDescriptorPool) {
     std::vector<VkDescriptorPoolSize> poolSizes{};
 
-    if (assignedSamplers.size() + nullSamplers > 0) {
+    if (assignedCombinedSamplers.size() + nullSamplers > 0) {
       poolSizes.resize(poolSizes.size() + 1);
       auto& vkSamplerDescPoolSize = poolSizes[poolSizes.size() - 1];
       vkSamplerDescPoolSize.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-      vkSamplerDescPoolSize.descriptorCount = numSwapchainImages * (assignedSamplers.size() + nullSamplers);
+      vkSamplerDescPoolSize.descriptorCount = numSwapchainImages * (assignedCombinedSamplers.size() + nullSamplers);
     }
 
     if (numUBOs > 0) {
@@ -196,7 +196,7 @@ void DescriptorSet::updateDevice () {
     numSwapchainImages * bindings.size()
   };
 
-  std::vector<VkDescriptorImageInfo> imageDescriptors{assignedSamplers.size()};
+  std::vector<VkDescriptorImageInfo> imageDescriptors{assignedCombinedSamplers.size()};
   std::vector<VkDescriptorImageInfo> storageImageDescriptors{assignedStorageImages.size()};
   std::vector<VkDescriptorBufferInfo> bufferDescriptors{(numUBOs + numDynamicUBOs)};
 
@@ -207,8 +207,8 @@ void DescriptorSet::updateDevice () {
     for (auto& binding : bindings) {
       auto& vkDescriptor = writeSets[i * bindings.size() + j];
 
-      if (std::get<0>(binding) == DescriptorType::SAMPLER) {
-        auto& sampler = assignedSamplers[std::get<1>(binding)].get();
+      if (std::get<0>(binding) == DescriptorType::COMBINED_SAMPLER) {
+        auto& sampler = assignedCombinedSamplers[std::get<1>(binding)].get();
 
         auto& vkImageInfo = imageDescriptors[iSamplers];
         vkImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
