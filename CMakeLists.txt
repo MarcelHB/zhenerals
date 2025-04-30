@@ -173,11 +173,11 @@ ADD_EXECUTABLE(zhen
   game/WindowFactory.cpp
 
   game/vugl/vma_loader.cpp
+  game/vugl/vugl_combined_sampler.cpp
   game/vugl/vugl_command_buffer.cpp
   game/vugl/vugl_compute_pipeline.cpp
   game/vugl/vugl_context.cpp
   game/vugl/vugl_descriptor_set.cpp
-  game/vugl/vugl_device_sampler.cpp
   game/vugl/vugl_element_buffer.cpp
   game/vugl/vugl_frame.cpp
   game/vugl/vugl_pipeline.cpp
@@ -185,7 +185,8 @@ ADD_EXECUTABLE(zhen
   game/vugl/vugl_render_pass.cpp
   game/vugl/vugl_render_pass_setup.cpp
   game/vugl/vugl_resource_allocator.cpp
-  game/vugl/vugl_upload_sampler.cpp
+  game/vugl/vugl_sampler.cpp
+  game/vugl/vugl_texture.cpp
   game/vugl/vugl_uniform_buffer.cpp
 )
 

@@ -22,8 +22,8 @@ class TextureCache {
       , size_t capacity = 128
     );
 
-    std::shared_ptr<Vugl::UploadSampler> getFontTexture(uint8_t, bool bold = false);
-    std::shared_ptr<Vugl::UploadSampler> getTexture(const std::string&);
+    std::shared_ptr<Vugl::CombinedSampler> getFontTexture(uint8_t, bool bold = false);
+    std::shared_ptr<Vugl::CombinedSampler> getTexture(const std::string&);
 
   private:
     size_t capacity;
@@ -31,8 +31,8 @@ class TextureCache {
     ResourceLoader& textureLoader;
     Font::FontManager& fontManager;
 
-    std::map<std::string, std::shared_ptr<Vugl::UploadSampler>> textures;
-    std::unordered_map<Font::FontKey, std::shared_ptr<Vugl::UploadSampler>> fontTextures;
+    std::map<std::string, std::shared_ptr<Vugl::CombinedSampler>> textures;
+    std::unordered_map<Font::FontKey, std::shared_ptr<Vugl::CombinedSampler>> fontTextures;
 
     using TextureMapIt = decltype(textures)::const_iterator;
     std::priority_queue<

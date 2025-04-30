@@ -18,8 +18,10 @@ DescriptorSet::DescriptorSet (
   , vkDescriptorPool{VK_NULL_HANDLE}
   , vkDescriptorSets{}
   , assignedCombinedSamplers{}
+  , assignedSamplers{}
+  , assignedStorageImages{}
+  , assignedTextures{}
   , assignedUniformBuffers{}
-  , nullSamplers{0}
   , bindings{}
 {
   vkLastResult = VK_SUCCESS;
@@ -35,8 +37,10 @@ DescriptorSet::DescriptorSet (DescriptorSet && other)
   , vkDescriptorPool{other.vkDescriptorPool}
   , vkDescriptorSets{std::move(other.vkDescriptorSets)}
   , assignedCombinedSamplers{std::move(other.assignedCombinedSamplers)}
+  , assignedSamplers{std::move(other.assignedSamplers)}
+  , assignedStorageImages{std::move(other.assignedStorageImages)}
+  , assignedTextures{std::move(other.assignedTextures)}
   , assignedUniformBuffers{std::move(other.assignedUniformBuffers)}
-  , nullSamplers{other.nullSamplers}
   , bindings{std::move(other.bindings)}
 {
   other.vkDescriptorPool = VK_NULL_HANDLE;
@@ -58,18 +62,29 @@ void DescriptorSet::destroy () {
   bindings.resize(0);
 }
 
-void DescriptorSet::assignCombinedSampler (const Sampler& sampler) {
+void DescriptorSet::assignCombinedSampler (const CombinedSampler& sampler) {
   assignedCombinedSamplers.emplace_back(std::cref(sampler));
   bindings.emplace_back(DescriptorType::COMBINED_SAMPLER, assignedCombinedSamplers.size() - 1);
 }
 
-void DescriptorSet::assignNullSampler () {
-  nullSamplers += 1;
+void DescriptorSet::assignSampler (const Sampler& sampler) {
+  assignedSamplers.emplace_back(std::cref(sampler));
+  bindings.emplace_back(DescriptorType::SAMPLER, assignedSamplers.size() - 1);
 }
 
-void DescriptorSet::assignStorageImage (const DeviceSampler& image) {
+void DescriptorSet::assignStorageImage (const Texture& image) {
   assignedStorageImages.emplace_back(std::cref(image));
   bindings.emplace_back(DescriptorType::STORAGE_IMAGE, assignedStorageImages.size() - 1);
+}
+
+void DescriptorSet::assignTexture (const Texture& sampler, std::optional<uint32_t> bindingOpt) {
+  assignedTextures.emplace_back(std::cref(sampler));
+  bindings.emplace_back(DescriptorType::SAMPLED_IMAGE, assignedTextures.size() - 1);
+
+  if (bindingOpt) {
+    auto result = textureGrouping.emplace(std::make_pair(*bindingOpt, std::vector<std::reference_wrapper<const Texture>>{}));
+    result.first->second.emplace_back(std::cref(sampler));
+  }
 }
 
 void DescriptorSet::assignUniformBuffer (const UniformBuffer& uniformBuffer, bool dynamic) {
@@ -124,11 +139,11 @@ void DescriptorSet::updateDevice () {
   if (VK_NULL_HANDLE == vkDescriptorPool) {
     std::vector<VkDescriptorPoolSize> poolSizes{};
 
-    if (assignedCombinedSamplers.size() + nullSamplers > 0) {
+    if (assignedCombinedSamplers.size() > 0) {
       poolSizes.resize(poolSizes.size() + 1);
       auto& vkSamplerDescPoolSize = poolSizes[poolSizes.size() - 1];
       vkSamplerDescPoolSize.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-      vkSamplerDescPoolSize.descriptorCount = numSwapchainImages * (assignedCombinedSamplers.size() + nullSamplers);
+      vkSamplerDescPoolSize.descriptorCount = numSwapchainImages * (assignedCombinedSamplers.size());
     }
 
     if (numUBOs > 0) {
@@ -145,11 +160,25 @@ void DescriptorSet::updateDevice () {
       vkDescPoolSize.descriptorCount = numSwapchainImages * numDynamicUBOs;
     }
 
+    if (assignedSamplers.size() > 0) {
+      poolSizes.resize(poolSizes.size() + 1);
+      auto& vkSamplerDescPoolSize = poolSizes[poolSizes.size() - 1];
+      vkSamplerDescPoolSize.type = VK_DESCRIPTOR_TYPE_SAMPLER;
+      vkSamplerDescPoolSize.descriptorCount = numSwapchainImages * (assignedSamplers.size());
+    }
+
+    if (assignedTextures.size() > 0) {
+      poolSizes.resize(poolSizes.size() + 1);
+      auto& vkDescPoolSize = poolSizes[poolSizes.size() - 1];
+      vkDescPoolSize.type = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
+      vkDescPoolSize.descriptorCount = numSwapchainImages * assignedTextures.size();
+    }
+
     if (assignedStorageImages.size() > 0) {
       poolSizes.resize(poolSizes.size() + 1);
       auto& vkDescPoolSize = poolSizes[poolSizes.size() - 1];
       vkDescPoolSize.type = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
-      vkDescPoolSize.descriptorCount = assignedStorageImages.size(); // CS pipe so far
+      vkDescPoolSize.descriptorCount = numSwapchainImages * assignedStorageImages.size();
     }
 
     VkDescriptorPoolCreateInfo vkDescPoolCreateInfo = {};
@@ -196,13 +225,15 @@ void DescriptorSet::updateDevice () {
     numSwapchainImages * bindings.size()
   };
 
-  std::vector<VkDescriptorImageInfo> imageDescriptors{assignedCombinedSamplers.size()};
+  std::vector<VkDescriptorImageInfo> combinedSamplerDescriptors{assignedCombinedSamplers.size()};
+  std::vector<VkDescriptorImageInfo> samplerDescriptors{assignedSamplers.size()};
+  std::vector<VkDescriptorImageInfo> sampledImageDescriptors{assignedTextures.size()};
   std::vector<VkDescriptorImageInfo> storageImageDescriptors{assignedStorageImages.size()};
   std::vector<VkDescriptorBufferInfo> bufferDescriptors{(numUBOs + numDynamicUBOs)};
 
   for (size_t i = 0; i < numSwapchainImages; ++i) {
     size_t j = 0;
-    size_t iSamplers = 0, iBuffers = 0, iStorageImages = 0;
+    size_t iCombSamplers = 0, iSamplers = 0, iBuffers = 0, iSampledImages = 0, iStorageImages = 0;
 
     for (auto& binding : bindings) {
       auto& vkDescriptor = writeSets[i * bindings.size() + j];
@@ -210,7 +241,7 @@ void DescriptorSet::updateDevice () {
       if (std::get<0>(binding) == DescriptorType::COMBINED_SAMPLER) {
         auto& sampler = assignedCombinedSamplers[std::get<1>(binding)].get();
 
-        auto& vkImageInfo = imageDescriptors[iSamplers];
+        auto& vkImageInfo = combinedSamplerDescriptors[iCombSamplers];
         vkImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
         vkImageInfo.imageView = sampler.getVkImageView();
         vkImageInfo.sampler = sampler.getVkSampler();
@@ -221,7 +252,23 @@ void DescriptorSet::updateDevice () {
         vkDescriptor.dstArrayElement = 0;
         vkDescriptor.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
         vkDescriptor.descriptorCount = 1;
-        vkDescriptor.pBufferInfo = nullptr;
+        vkDescriptor.pBufferInfo = VK_NULL_HANDLE;
+        vkDescriptor.pImageInfo = &vkImageInfo;
+
+        iCombSamplers += 1;
+      } else if (std::get<0>(binding) == DescriptorType::SAMPLER) {
+        auto& sampler = assignedSamplers[std::get<1>(binding)].get();
+
+        auto& vkImageInfo = samplerDescriptors[iCombSamplers];
+        vkImageInfo.sampler = sampler.getVkSampler();
+
+        vkDescriptor.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+        vkDescriptor.dstSet = vkDescriptorSets[i];
+        vkDescriptor.dstBinding = j;
+        vkDescriptor.dstArrayElement = 0;
+        vkDescriptor.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLER;
+        vkDescriptor.descriptorCount = 1;
+        vkDescriptor.pBufferInfo = VK_NULL_HANDLE;
         vkDescriptor.pImageInfo = &vkImageInfo;
 
         iSamplers += 1;
@@ -238,10 +285,41 @@ void DescriptorSet::updateDevice () {
         vkDescriptor.dstArrayElement = 0;
         vkDescriptor.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
         vkDescriptor.descriptorCount = 1;
-        vkDescriptor.pBufferInfo = nullptr;
+        vkDescriptor.pBufferInfo = VK_NULL_HANDLE;
         vkDescriptor.pImageInfo = &vkImageInfo;
 
         iStorageImages += 1;
+      } else if (std::get<0>(binding) == DescriptorType::SAMPLED_IMAGE) {
+        auto lookup = textureGrouping.find(j);
+        if (lookup == textureGrouping.cend()) {
+          auto& texture = assignedTextures[std::get<1>(binding)].get();
+
+          auto& vkImageInfo = sampledImageDescriptors[iSampledImages];
+          vkImageInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
+          vkImageInfo.imageView = texture.getVkImageView();
+
+          vkDescriptor.descriptorCount = 1;
+          vkDescriptor.pImageInfo = &vkImageInfo;
+          iSampledImages += 1;
+        } else {
+          auto& list = lookup->second;
+          vkDescriptor.descriptorCount = list.size();
+          vkDescriptor.pImageInfo = &(sampledImageDescriptors[iSampledImages]);
+
+          for (auto& texture : list) {
+            auto& vkImageInfo = sampledImageDescriptors[iSampledImages];
+            vkImageInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
+            vkImageInfo.imageView = texture.get().getVkImageView();
+            iSampledImages += 1;
+          }
+        }
+
+        vkDescriptor.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+        vkDescriptor.dstSet = vkDescriptorSets[i];
+        vkDescriptor.dstBinding = j;
+        vkDescriptor.dstArrayElement = 0;
+        vkDescriptor.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
+        vkDescriptor.pBufferInfo = VK_NULL_HANDLE;
       } else if (std::get<0>(binding) == DescriptorType::UBO
           || std::get<0>(binding) == DescriptorType::DYNAMIC_UBO) {
         auto& uniformBuffer = assignedUniformBuffers[std::get<1>(binding)].get();
@@ -271,7 +349,7 @@ void DescriptorSet::updateDevice () {
         }
         vkDescriptor.descriptorCount = uniformBuffer.getNumOfDescriptors();
         vkDescriptor.pBufferInfo = &(bufferDescriptors[iBuffers]);
-        vkDescriptor.pImageInfo = nullptr;
+        vkDescriptor.pImageInfo = VK_NULL_HANDLE;
 
         iBuffers += uniformBuffer.getNumOfDescriptors();
       }

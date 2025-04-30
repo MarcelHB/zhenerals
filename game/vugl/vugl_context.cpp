@@ -488,10 +488,6 @@ ComputePipeline Context::createComputePipeline (const PipelineSetup& setup) {
   return {setup, vkDevice, resourceAllocator};
 }
 
-DeviceSampler Context::createDeviceSampler (uint32_t dimension, VkFormat vkFormat) {
-  return {vkDevice, resourceAllocator, dimension, vkFormat};
-}
-
 ElementBuffer Context::createElementBuffer (uint32_t binding) {
   return {resourceAllocator, binding};
 }
@@ -521,11 +517,11 @@ RenderPass Context::createRenderPass (
   };
 }
 
-UploadSampler Context::createUploadSampler () {
-  return UploadSampler{vkDevice, resourceAllocator};
+CombinedSampler Context::createCombinedSampler () {
+  return CombinedSampler{vkDevice, resourceAllocator};
 }
 
-UploadSampler Context::createUploadSampler (const VkSamplerCreateInfo& createInfo) {
+CombinedSampler Context::createCombinedSampler (const VkSamplerCreateInfo& createInfo) {
   return {vkDevice, createInfo, resourceAllocator};
 }
 

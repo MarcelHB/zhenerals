@@ -62,7 +62,7 @@ struct UIFontMatrix {
 };
 
 struct TextureBundle {
-  std::shared_ptr<Vugl::UploadSampler> texture;
+  std::shared_ptr<Vugl::CombinedSampler> texture;
   std::shared_ptr<Vugl::UniformBuffer> matrices;
   std::shared_ptr<Vugl::DescriptorSet> descriptorSet;
 
@@ -151,7 +151,7 @@ class RenderListFactory {
     std::shared_ptr<Vugl::Pipeline> fontPipeline;
     std::unordered_map<
         ZH::GFX::Font::FontKey
-      , std::shared_ptr<Vugl::UploadSampler>
+      , std::shared_ptr<Vugl::CombinedSampler>
     > fontTextures;
     std::shared_ptr<Vugl::UniformBuffer> fontMatrix;
 

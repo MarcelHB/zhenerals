@@ -31,7 +31,7 @@ TextureCache::TextureCache(
   usage = decltype(usage) {queueOrder};
 }
 
-std::shared_ptr<Vugl::UploadSampler> TextureCache::getFontTexture(uint8_t size, bool bold) {
+std::shared_ptr<Vugl::CombinedSampler> TextureCache::getFontTexture(uint8_t size, bool bold) {
   Font::FontKey key {size, bold};
   auto lookup = fontTextures.find(key);
   if (lookup != fontTextures.cend()) {
@@ -44,7 +44,7 @@ std::shared_ptr<Vugl::UploadSampler> TextureCache::getFontTexture(uint8_t size, 
   }
 
   auto& texture = font->getTexture()->get();
-  auto uploadSampler = vuglContext.createUploadSampler();
+  auto uploadSampler = vuglContext.createCombinedSampler();
   auto textureSize = texture.getSize();
 
   uploadSampler.createTexture(
@@ -54,14 +54,14 @@ std::shared_ptr<Vugl::UploadSampler> TextureCache::getFontTexture(uint8_t size, 
   );
 
   auto cachedSampler =
-    std::make_shared<Vugl::UploadSampler>(std::move(uploadSampler));
+    std::make_shared<Vugl::CombinedSampler>(std::move(uploadSampler));
 
   auto result = fontTextures.emplace(key, cachedSampler);
 
   return cachedSampler;
 }
 
-std::shared_ptr<Vugl::UploadSampler> TextureCache::getTexture(const std::string& key) {
+std::shared_ptr<Vugl::CombinedSampler> TextureCache::getTexture(const std::string& key) {
   TRACY(ZoneScoped);
 
   std::optional<ResourceLoader::MemoryStream> lookup;
@@ -102,7 +102,7 @@ std::shared_ptr<Vugl::UploadSampler> TextureCache::getTexture(const std::string&
     return {};
   }
 
-  auto uploadSampler = vuglContext.createUploadSampler();
+  auto uploadSampler = vuglContext.createCombinedSampler();
   auto size = texture->getSize();
 
   uploadSampler.createTexture(
@@ -117,7 +117,7 @@ std::shared_ptr<Vugl::UploadSampler> TextureCache::getTexture(const std::string&
   }
 
   auto cachedSampler =
-    std::make_shared<Vugl::UploadSampler>(std::move(uploadSampler));
+    std::make_shared<Vugl::CombinedSampler>(std::move(uploadSampler));
 
   if (textures.size() >= capacity) {
     tryCleanUpCache();

@@ -9,6 +9,7 @@
 
 #include "vk_mem_alloc.h"
 
+#include "vugl_combined_sampler.h"
 #include "vugl_compute_pipeline.h"
 #include "vugl_dynamic.h"
 #include "vugl_element_buffer.h"
@@ -16,7 +17,6 @@
 #include "vugl_pipeline.h"
 #include "vugl_resource_allocator.h"
 #include "vugl_uniform_buffer.h"
-#include "vugl_upload_sampler.h"
 #include "vugl_uploadable_resource.h"
 
 #define CHECK_VK_RESULT(expr) \
@@ -114,12 +114,11 @@ class Context {
 
     CommandBuffer createCommandBuffer (size_t frameIndex, bool secondary = false);
     ComputePipeline createComputePipeline (const PipelineSetup&);
-    DeviceSampler createDeviceSampler (uint32_t dimension, VkFormat vkFormat);
     ElementBuffer createElementBuffer (uint32_t binding);
     Pipeline createPipeline (const PipelineSetup&, VkRenderPass renderPass);
     RenderPass createRenderPass (const RenderPassSetup&);
-    UploadSampler createUploadSampler ();
-    UploadSampler createUploadSampler (const VkSamplerCreateInfo&);
+    CombinedSampler createCombinedSampler ();
+    CombinedSampler createCombinedSampler (const VkSamplerCreateInfo&);
     UniformBuffer createUniformBuffer (VkDeviceSize totalSize, uint32_t numDescriptors = 1);
     UniformBuffer createUniformBuffer (VkDeviceSize totalSize, uint32_t numDescriptors, uint32_t numBuffers);
     void recreateSwapchainResources(const VkViewport& viewport);

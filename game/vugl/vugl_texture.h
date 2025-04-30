@@ -1,42 +1,48 @@
-#ifndef H_VUGL_UPLOAD_SAMPLER
-#define H_VUGL_UPLOAD_SAMPLER
+#ifndef H_VUGL_TEXTURE
+#define H_VUGL_TEXTURE
 
 #include <memory>
 
 #include <vulkan/vulkan.h>
 
-#include "vugl_uploadable_resource.h"
 #include "vugl_resource_allocator.h"
-#include "vugl_sampler.h"
+#include "vugl_uploadable_resource.h"
 
 namespace Vugl {
 
-class UploadSampler : public UploadableResource, public Sampler {
+class Texture : public UploadableResource {
   private:
     ResourceAllocator& allocator;
+
     VkDevice vkDevice;
     VkResult vkLastResult;
 
-    VkSampler vkSampler;
+    VkExtent2D extent;
 
     VkBuffer vkStagingBuffer;
     VmaAllocation vmaStagingBufferAllocation;
     VkImage vkTexture;
     VmaAllocation vmaTextureAllocation;
     VkImageView vkTextureView;
-
-    VkExtent2D extent;
-
-    void createSampler (const VkSamplerCreateInfo& createInfo);
   public:
-    UploadSampler (const UploadSampler&) = delete;
-    UploadSampler& operator= (const UploadSampler&) = delete;
-    UploadSampler& operator= (UploadSampler&&) = delete;
+    Texture (Texture &&);
+    Texture (VkDevice vkDevice, ResourceAllocator& allocator);
+    ~Texture();
 
-    UploadSampler (UploadSampler &&);
-    UploadSampler (VkDevice vkDevice, ResourceAllocator& allocator);
-    UploadSampler (VkDevice vkDevice, const VkSamplerCreateInfo& createInfo, ResourceAllocator& allocator);
-    ~UploadSampler();
+    Texture (const Texture&) = delete;
+    Texture& operator= (const Texture&) = delete;
+    Texture& operator= (Texture&&) = delete;
+
+    void deleteGPUData () override;
+    void deleteHostData () override;
+    void destroy ();
+
+    VkExtent2D getExtent () const;
+    VkResult getLastResult () const;
+    VkImage getVkImage () const;
+    VkImageView getVkImageView () const;
+
+    VkResult recordUploadCommands (VkCommandBuffer vkCommandBuffer) override;
 
     template <typename T>
     void createTexture (
@@ -102,18 +108,6 @@ class UploadSampler : public UploadableResource, public Sampler {
           , &(this->vkTextureView)
         );
     }
-
-    void deleteGPUData () override;
-    void deleteHostData () override;
-    void destroy ();
-
-    VkExtent2D getExtent () const;
-    VkResult getLastResult () const;
-    VkSampler getVkSampler () const override;
-    VkImage getVkImage () const override;
-    VkImageView getVkImageView () const override;
-
-    VkResult recordUploadCommands (VkCommandBuffer vkCommandBuffer) override;
 
     template<typename T>
     void updateTexture (const std::vector<T>& data) {

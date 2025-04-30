@@ -1,12 +1,11 @@
-#include "vugl_upload_sampler.h"
+#include "vugl_texture.h"
 
 namespace Vugl {
 
-UploadSampler::UploadSampler (UploadSampler && other)
+Texture::Texture (Texture && other)
   : allocator{other.allocator}
   , vkDevice{other.vkDevice}
   , vkLastResult{other.vkLastResult}
-  , vkSampler{other.vkSampler}
   , vkStagingBuffer{other.vkStagingBuffer}
   , vmaStagingBufferAllocation{other.vmaStagingBufferAllocation}
   , vkTexture{other.vkTexture}
@@ -14,7 +13,6 @@ UploadSampler::UploadSampler (UploadSampler && other)
   , vkTextureView{other.vkTextureView}
   , extent{other.extent}
 {
-  other.vkSampler = VK_NULL_HANDLE;
   other.vkStagingBuffer = VK_NULL_HANDLE;
   other.vmaStagingBufferAllocation = VK_NULL_HANDLE;
   other.vkTexture = VK_NULL_HANDLE;
@@ -22,84 +20,23 @@ UploadSampler::UploadSampler (UploadSampler && other)
   other.vkTextureView = VK_NULL_HANDLE;
 }
 
-UploadSampler::UploadSampler (VkDevice vkDevice, ResourceAllocator& allocator)
+Texture::Texture (VkDevice vkDevice, ResourceAllocator& allocator)
   : allocator{allocator}
   , vkDevice{vkDevice}
   , vkLastResult{VK_SUCCESS}
-  , vkSampler{VK_NULL_HANDLE}
   , vkStagingBuffer{VK_NULL_HANDLE}
   , vmaStagingBufferAllocation{VK_NULL_HANDLE}
   , vkTexture{VK_NULL_HANDLE}
   , vmaTextureAllocation{VK_NULL_HANDLE}
   , vkTextureView{VK_NULL_HANDLE}
   , extent{}
-{
-  VkSamplerCreateInfo vkSamplerCreateInfo = {};
-  vkSamplerCreateInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
-  vkSamplerCreateInfo.magFilter = VK_FILTER_LINEAR;
-  vkSamplerCreateInfo.minFilter = VK_FILTER_LINEAR;
-  vkSamplerCreateInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-  vkSamplerCreateInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-  vkSamplerCreateInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-  vkSamplerCreateInfo.anisotropyEnable = VK_FALSE;
-  vkSamplerCreateInfo.maxAnisotropy = 16.0f;
-  vkSamplerCreateInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
-  vkSamplerCreateInfo.unnormalizedCoordinates = VK_FALSE;
-  vkSamplerCreateInfo.compareEnable = VK_FALSE;
-  vkSamplerCreateInfo.compareOp = VK_COMPARE_OP_ALWAYS;
-  vkSamplerCreateInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
-  vkSamplerCreateInfo.mipLodBias = 0.0f;
-  vkSamplerCreateInfo.minLod = 0.0f;
-  vkSamplerCreateInfo.maxLod = 0.0f;
+{}
 
-  createSampler(vkSamplerCreateInfo);
-}
-
-UploadSampler::UploadSampler (VkDevice vkDevice, const VkSamplerCreateInfo& createInfo, ResourceAllocator& allocator)
-  : allocator{allocator}
-  , vkDevice{vkDevice}
-  , vkLastResult{VK_SUCCESS}
-  , vkSampler{VK_NULL_HANDLE}
-  , vkStagingBuffer{VK_NULL_HANDLE}
-  , vmaStagingBufferAllocation{VK_NULL_HANDLE}
-  , vkTexture{VK_NULL_HANDLE}
-  , vmaTextureAllocation{VK_NULL_HANDLE}
-  , vkTextureView{VK_NULL_HANDLE}
-  , extent{}
-{
-  createSampler(createInfo);
-}
-
-UploadSampler::~UploadSampler () {
+Texture::~Texture () {
   destroy();
 }
 
-void UploadSampler::createSampler (const VkSamplerCreateInfo& createInfo) {
-  this->vkLastResult =
-    vkCreateSampler(
-        vkDevice
-      , &createInfo
-      , nullptr
-      , &(this->vkSampler)
-    );
-}
-
-void UploadSampler::deleteGPUData () {
-  allocator.destroyVkImage(vkTexture, vmaTextureAllocation);
-  this->vkTexture = VK_NULL_HANDLE;
-  this->vmaTextureAllocation = VK_NULL_HANDLE;
-}
-
-void UploadSampler::deleteHostData () {
-  allocator.destroyVkBuffer(vkStagingBuffer, vmaStagingBufferAllocation);
-  this->vkStagingBuffer = VK_NULL_HANDLE;
-  this->vmaStagingBufferAllocation = VK_NULL_HANDLE;
-}
-
-void UploadSampler::destroy () {
-  vkDestroySampler(vkDevice, vkSampler, nullptr);
-  this->vkSampler = VK_NULL_HANDLE;
-
+void Texture::destroy () {
   vkDestroyImageView(vkDevice, vkTextureView, nullptr);
   this->vkTextureView = VK_NULL_HANDLE;
 
@@ -107,27 +44,35 @@ void UploadSampler::destroy () {
   deleteHostData();
 }
 
-VkExtent2D UploadSampler::getExtent () const {
+void Texture::deleteGPUData () {
+  allocator.destroyVkImage(vkTexture, vmaTextureAllocation);
+  this->vkTexture = VK_NULL_HANDLE;
+  this->vmaTextureAllocation = VK_NULL_HANDLE;
+}
+
+void Texture::deleteHostData () {
+  allocator.destroyVkBuffer(vkStagingBuffer, vmaStagingBufferAllocation);
+  this->vkStagingBuffer = VK_NULL_HANDLE;
+  this->vmaStagingBufferAllocation = VK_NULL_HANDLE;
+}
+
+VkExtent2D Texture::getExtent () const {
   return extent;
 }
 
-VkResult UploadSampler::getLastResult () const {
+VkResult Texture::getLastResult () const {
   return vkLastResult;
 }
 
-VkSampler UploadSampler::getVkSampler () const {
-  return vkSampler;
-}
-
-VkImage UploadSampler::getVkImage () const {
+VkImage Texture::getVkImage () const {
   return vkTexture;
 }
 
-VkImageView UploadSampler::getVkImageView () const {
+VkImageView Texture::getVkImageView () const {
   return vkTextureView;
 }
 
-VkResult UploadSampler::recordUploadCommands (VkCommandBuffer vkCommandBuffer) {
+VkResult Texture::recordUploadCommands (VkCommandBuffer vkCommandBuffer) {
   VkPipelineStageFlags vkSrcStageFlags;
   VkPipelineStageFlags vkDstStageFlags;
 
