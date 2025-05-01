@@ -61,6 +61,59 @@ std::shared_ptr<Vugl::CombinedSampler> TextureCache::getFontTextureSampler(uint8
   return cachedSampler;
 }
 
+std::shared_ptr<Vugl::Texture> TextureCache::getTexture(const std::string& key) {
+  TRACY(ZoneScoped);
+
+  std::optional<ResourceLoader::MemoryStream> lookup;
+
+  for (auto& prefix : texturePrefixes) {
+    std::string path {prefix};
+    path.append(key);
+
+    lookup = textureLoader.getFileStream(path, true);
+    if (lookup) {
+      break;
+    }
+  }
+
+  if (!lookup) {
+    WARN_ZH("TextureCache", "Did not find texture: {}", key);
+    return {};
+  }
+
+  std::shared_ptr<HostTexture> hostTexture;
+  if (key.ends_with(".tga")) {
+    auto stream = lookup->getStream();
+    TGAFile tga {stream};
+
+    hostTexture = tga.getTexture();
+  } else {
+    WARN_ZH("TextureCache", "Requesting unsupported texture: {}", key);
+    return {};
+  }
+
+  if (!hostTexture) {
+    WARN_ZH("TextureCache", "Failed to load texture: {}", key);
+    return {};
+  }
+
+  auto texture = vuglContext.createTexture();
+  auto size = hostTexture->getSize();
+
+  texture.createTexture(
+      hostTexture->getData()
+    , VkExtent2D {size.x, size.y}
+    , mappedFormat(hostTexture->getFormat())
+  );
+
+  if (texture.getLastResult() != VK_SUCCESS) {
+    WARN_ZH("TextureCache", "Failed to create Vk texture: {}", key);
+    return {};
+  }
+
+  return std::make_shared<Vugl::Texture>(std::move(texture));
+}
+
 std::shared_ptr<Vugl::CombinedSampler> TextureCache::getTextureSampler(const std::string& key) {
   TRACY(ZoneScoped);
 
