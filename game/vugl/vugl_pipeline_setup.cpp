@@ -227,12 +227,20 @@ void PipelineSetup::setVSCode (std::vector<char>&& code) {
   vkVSModuleCreateInfo.pCode = reinterpret_cast<const uint32_t*>(VSCode.data());
 }
 
-void PipelineSetup::reserveSampler (VkShaderStageFlags shaderStageFlags) {
+void PipelineSetup::reserveCombinedSampler (VkShaderStageFlags shaderStageFlags) {
   reserveDescriptor(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, shaderStageFlags);
+}
+
+void PipelineSetup::reserveSampler (VkShaderStageFlags shaderStageFlags) {
+  reserveDescriptor(VK_DESCRIPTOR_TYPE_SAMPLER, shaderStageFlags);
 }
 
 void PipelineSetup::reserveStorageImage (VkShaderStageFlags shaderStageFlags) {
   reserveDescriptor(VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, shaderStageFlags);
+}
+
+void PipelineSetup::reserveTexture (VkShaderStageFlags shaderStageFlags, size_t num) {
+  reserveDescriptor(VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, shaderStageFlags, num);
 }
 
 void PipelineSetup::reserveUniformBuffer (VkShaderStageFlags shaderStageFlags, bool dynamic) {
@@ -243,11 +251,11 @@ void PipelineSetup::reserveUniformBuffer (VkShaderStageFlags shaderStageFlags, b
   }
 }
 
-void PipelineSetup::reserveDescriptor (VkDescriptorType type, VkShaderStageFlags shaderStageFlags) {
+void PipelineSetup::reserveDescriptor (VkDescriptorType type, VkShaderStageFlags shaderStageFlags, size_t num) {
   VkDescriptorSetLayoutBinding vkDescriptorSetLayoutBinding = {};
   vkDescriptorSetLayoutBinding.binding = vkDescriptorSetLayoutBindings.size();
   vkDescriptorSetLayoutBinding.descriptorType = type;
-  vkDescriptorSetLayoutBinding.descriptorCount = 1;
+  vkDescriptorSetLayoutBinding.descriptorCount = num;
   vkDescriptorSetLayoutBinding.stageFlags = shaderStageFlags;
   vkDescriptorSetLayoutBindings.emplace_back(vkDescriptorSetLayoutBinding);
 

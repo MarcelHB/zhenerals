@@ -79,11 +79,13 @@ void DescriptorSet::assignStorageImage (const Texture& image) {
 
 void DescriptorSet::assignTexture (const Texture& sampler, std::optional<uint32_t> bindingOpt) {
   assignedTextures.emplace_back(std::cref(sampler));
-  bindings.emplace_back(DescriptorType::SAMPLED_IMAGE, assignedTextures.size() - 1);
 
   if (bindingOpt) {
     auto result = textureGrouping.emplace(std::make_pair(*bindingOpt, std::vector<std::reference_wrapper<const Texture>>{}));
     result.first->second.emplace_back(std::cref(sampler));
+    if (result.second) {
+      bindings.emplace_back(DescriptorType::SAMPLED_IMAGE, assignedTextures.size() - 1);
+    }
   }
 }
 

@@ -525,6 +525,18 @@ CombinedSampler Context::createCombinedSampler (const VkSamplerCreateInfo& creat
   return {vkDevice, createInfo, resourceAllocator};
 }
 
+Sampler Context::createSampler () {
+  return Sampler{vkDevice};
+}
+
+Sampler Context::createSampler (const VkSamplerCreateInfo& createInfo) {
+  return {vkDevice, createInfo};
+}
+
+Texture Context::createTexture () {
+  return {vkDevice, resourceAllocator};
+}
+
 UniformBuffer Context::createUniformBuffer (
     VkDeviceSize totalSize
   , uint32_t numDescriptors

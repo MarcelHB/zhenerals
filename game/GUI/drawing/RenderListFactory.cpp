@@ -447,7 +447,7 @@ bool RenderListFactory::preparePipelines(Vugl::RenderPass& renderPass) {
   texturePipelineSetup.setVSCode(readFile("shaders/ui.vert.spv"));
   texturePipelineSetup.setFSCode(readFile("shaders/ui_texture.frag.spv"));
   texturePipelineSetup.reserveUniformBuffer(VK_SHADER_STAGE_VERTEX_BIT);
-  texturePipelineSetup.reserveSampler(VK_SHADER_STAGE_FRAGMENT_BIT);
+  texturePipelineSetup.reserveCombinedSampler(VK_SHADER_STAGE_FRAGMENT_BIT);
   texturePipelineSetup.addVertexInput(VK_FORMAT_R32G32B32_SFLOAT, 0, 12, 0);
   texturePipelineSetup.addVertexInput(VK_FORMAT_R32G32_SFLOAT, 12, 8, 0);
 
@@ -475,7 +475,7 @@ bool RenderListFactory::preparePipelines(Vugl::RenderPass& renderPass) {
   fontPipelineSetup.setVSCode(readFile("shaders/ui_font.vert.spv"));
   fontPipelineSetup.setFSCode(readFile("shaders/ui_font.frag.spv"));
   fontPipelineSetup.reserveUniformBuffer(VK_SHADER_STAGE_VERTEX_BIT);
-  fontPipelineSetup.reserveSampler(VK_SHADER_STAGE_FRAGMENT_BIT);
+  fontPipelineSetup.reserveCombinedSampler(VK_SHADER_STAGE_FRAGMENT_BIT);
   fontPipelineSetup.addVertexInput(VK_FORMAT_R32G32_SFLOAT, 0, 8, 0);
   fontPipelineSetup.addVertexInput(VK_FORMAT_R32G32_SFLOAT, 8, 8, 0);
   fontPipelineSetup.enablePushConstants(VK_SHADER_STAGE_FRAGMENT_BIT, sizeof(glm::vec4));

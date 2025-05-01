@@ -63,8 +63,10 @@ class PipelineSetup {
     void adjustViewport (const VkViewport& vkViewport);
     void enablePushConstants (VkShaderStageFlags shaderStageFlags, size_t size);
 
+    void reserveCombinedSampler (VkShaderStageFlags shaderStageFlags);
     void reserveSampler (VkShaderStageFlags shaderStageFlags);
     void reserveStorageImage (VkShaderStageFlags shaderStageFlags);
+    void reserveTexture (VkShaderStageFlags shaderStageFlags, size_t num = 1);
     void reserveUniformBuffer (VkShaderStageFlags shaderStageFlags, bool dynamic = false);
 
     void setCSCode (std::vector<char>&& code);
@@ -72,7 +74,7 @@ class PipelineSetup {
     void setVSCode (std::vector<char>&& code);
 
   private:
-    void reserveDescriptor (VkDescriptorType type, VkShaderStageFlags shaderStageFlags);
+    void reserveDescriptor (VkDescriptorType type, VkShaderStageFlags shaderStageFlags, size_t num = 1);
 };
 
 };

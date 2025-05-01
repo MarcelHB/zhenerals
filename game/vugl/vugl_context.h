@@ -16,6 +16,7 @@
 #include "vugl_frame.h"
 #include "vugl_pipeline.h"
 #include "vugl_resource_allocator.h"
+#include "vugl_texture.h"
 #include "vugl_uniform_buffer.h"
 #include "vugl_uploadable_resource.h"
 
@@ -119,6 +120,9 @@ class Context {
     RenderPass createRenderPass (const RenderPassSetup&);
     CombinedSampler createCombinedSampler ();
     CombinedSampler createCombinedSampler (const VkSamplerCreateInfo&);
+    Sampler createSampler ();
+    Sampler createSampler (const VkSamplerCreateInfo&);
+    Texture createTexture ();
     UniformBuffer createUniformBuffer (VkDeviceSize totalSize, uint32_t numDescriptors = 1);
     UniformBuffer createUniformBuffer (VkDeviceSize totalSize, uint32_t numDescriptors, uint32_t numBuffers);
     void recreateSwapchainResources(const VkViewport& viewport);
