@@ -269,7 +269,7 @@ void RenderListFactory::createRectangularRenderList(
   }
 
   if (texture && !textureBundle.texture) {
-    textureBundle.texture = textureCache.getTexture(texture->texture);
+    textureBundle.texture = textureCache.getTextureSampler(texture->texture);
     textureBundle.position = texture->topLeft;
     textureBundle.size = Size (
         static_cast<Size::value_type>(texture->bottomRight.x - texture->topLeft.x)
@@ -549,7 +549,7 @@ void RenderListFactory::prepareTextHolderDescriptorSet(
     startPos.y += config.bbox.size.y / 2 - maxAbove0 / 2;
   }
 
-  auto texture = textureCache.getFontTexture(config.font.size, config.font.bold);
+  auto texture = textureCache.getFontTextureSampler(config.font.size, config.font.bold);
   if (!texture) {
     return;
   }
@@ -633,7 +633,7 @@ OptionalRef<TextCacheEntry> RenderListFactory::createTextElements(
   , const TextRenderConfig& config
 ) {
   auto atlas = fontManager.getFont(config.font.size, config.font.bold);
-  auto texture = textureCache.getFontTexture(config.font.size, config.font.bold);
+  auto texture = textureCache.getFontTextureSampler(config.font.size, config.font.bold);
 
   size_t height = 0;
   size_t numGlyphs = 0;
@@ -726,7 +726,7 @@ bool RenderListFactory::switchToFont(uint8_t size , bool bold) {
   if (lookup != fontTextures.cend()) {
     return true;
   } else {
-    auto texture = textureCache.getFontTexture(size, bold);
+    auto texture = textureCache.getFontTextureSampler(size, bold);
     if (!texture) {
       return false;
     }

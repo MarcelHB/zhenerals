@@ -22,8 +22,8 @@ class TextureCache {
       , size_t capacity = 128
     );
 
-    std::shared_ptr<Vugl::CombinedSampler> getFontTexture(uint8_t, bool bold = false);
-    std::shared_ptr<Vugl::CombinedSampler> getTexture(const std::string&);
+    std::shared_ptr<Vugl::CombinedSampler> getFontTextureSampler(uint8_t, bool bold = false);
+    std::shared_ptr<Vugl::CombinedSampler> getTextureSampler(const std::string&);
 
   private:
     size_t capacity;

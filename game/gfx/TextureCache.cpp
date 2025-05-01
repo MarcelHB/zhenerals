@@ -31,7 +31,7 @@ TextureCache::TextureCache(
   usage = decltype(usage) {queueOrder};
 }
 
-std::shared_ptr<Vugl::CombinedSampler> TextureCache::getFontTexture(uint8_t size, bool bold) {
+std::shared_ptr<Vugl::CombinedSampler> TextureCache::getFontTextureSampler(uint8_t size, bool bold) {
   Font::FontKey key {size, bold};
   auto lookup = fontTextures.find(key);
   if (lookup != fontTextures.cend()) {
@@ -61,7 +61,7 @@ std::shared_ptr<Vugl::CombinedSampler> TextureCache::getFontTexture(uint8_t size
   return cachedSampler;
 }
 
-std::shared_ptr<Vugl::CombinedSampler> TextureCache::getTexture(const std::string& key) {
+std::shared_ptr<Vugl::CombinedSampler> TextureCache::getTextureSampler(const std::string& key) {
   TRACY(ZoneScoped);
 
   std::optional<ResourceLoader::MemoryStream> lookup;
