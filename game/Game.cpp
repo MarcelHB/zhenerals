@@ -138,6 +138,7 @@ bool Game::init() {
         window.getVuglContext()
       , *mainMenuMap
       , *textureCache
+      , terrains
     );
 
   drawThread = std::thread(Game::draw, this);

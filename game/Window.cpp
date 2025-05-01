@@ -15,6 +15,7 @@ namespace ZH {
 
 const std::vector<const char*> vkDeviceExtensionsList {
     VK_KHR_SWAPCHAIN_EXTENSION_NAME
+  , "VK_EXT_descriptor_indexing"
 };
 
 const std::vector<const char*> vkInstanceLayersList {
@@ -71,13 +72,18 @@ bool Window::init() {
   VkPhysicalDeviceFeatures vkDeviceFeatures = {};
   vkDeviceFeatures.fillModeNonSolid = true;
 
+  VkPhysicalDeviceDescriptorIndexingFeaturesEXT nextDeviceFeatures = {};
+  nextDeviceFeatures.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_INDEXING_FEATURES_EXT;
+  nextDeviceFeatures.runtimeDescriptorArray = VK_TRUE;
+  nextDeviceFeatures.shaderSampledImageArrayNonUniformIndexing = VK_TRUE;
+
   CHECK_SDL(SDL_Vulkan_CreateSurface(sdlWindow, vuglContext->getInstance(), &vkSurface));
   vuglContext->setSurface(
       vkSurface
     , viewport
     , vkDeviceExtensionsList
     , vkDeviceFeatures
-    , nullptr
+    , &nextDeviceFeatures
   );
 
   return true;

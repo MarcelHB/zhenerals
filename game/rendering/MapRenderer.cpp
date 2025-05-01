@@ -13,9 +13,11 @@ MapRenderer::MapRenderer(
     Vugl::Context& vuglContext
   , Battlefield& battlefield
   , GFX::TextureCache& textureCache
+  , const TerrainINI::Terrains& terrains
 ) : vuglContext(vuglContext)
   , textureCache(textureCache)
   , battlefield(battlefield)
+  , terrains(terrains)
 {}
 
 std::shared_ptr<Vugl::CommandBuffer> MapRenderer::createRenderList(size_t frameIdx, Vugl::RenderPass& renderPass) {
@@ -26,7 +28,8 @@ std::shared_ptr<Vugl::CommandBuffer> MapRenderer::createRenderList(size_t frameI
     return {};
   }
 
-  if (!terrainPipeline && !prepareTerrainPipeline(renderPass)) {
+  auto map = battlefield.getMap();
+  if (!terrainPipeline && !prepareTerrainPipeline(renderPass, map->getTexturesIndex())) {
     WARN_ZH("MapRenderer", "Could not setup up terrain rendering");
     return {};
   }
@@ -60,7 +63,6 @@ std::shared_ptr<Vugl::CommandBuffer> MapRenderer::createRenderList(size_t frameI
   commandBuffer.bindResource(*terrainDescriptorSet);
   commandBuffer.bindResource(*terrainVertices);
 
-  auto map = battlefield.getMap();
   auto numIndices = map->getVertexIndices().size();
   auto numVertices = map->getVertexData().size();
 
@@ -78,14 +80,18 @@ std::shared_ptr<Vugl::CommandBuffer> MapRenderer::createRenderList(size_t frameI
   return std::make_shared<Vugl::CommandBuffer>(std::move(commandBuffer));
 }
 
-bool MapRenderer::prepareTerrainPipeline(Vugl::RenderPass& renderPass) {
+bool MapRenderer::prepareTerrainPipeline(
+    Vugl::RenderPass& renderPass
+  , const std::vector<std::string>& texturesIndex
+) {
   Vugl::PipelineSetup pipelineSetup {vuglContext.getViewport(), vuglContext.getVkSamplingFlag()};
   pipelineSetup.vkPipelineInputAssemblyStateCreateInfo.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
   pipelineSetup.vkPipelineDepthStencilCreateInfo.depthTestEnable = VK_TRUE;
-  pipelineSetup.vkPipelineRasterizationStateCreateInfo.polygonMode = VK_POLYGON_MODE_LINE;
   pipelineSetup.setVSCode(readFile("shaders/terrain.vert.spv"));
   pipelineSetup.setFSCode(readFile("shaders/terrain.frag.spv"));
   pipelineSetup.reserveUniformBuffer(VK_SHADER_STAGE_VERTEX_BIT);
+  pipelineSetup.reserveSampler(VK_SHADER_STAGE_FRAGMENT_BIT);
+  pipelineSetup.reserveTexture(VK_SHADER_STAGE_FRAGMENT_BIT, texturesIndex.size());
   pipelineSetup.addVertexInput(VK_FORMAT_R32G32B32_SFLOAT, 0, 12, 0);
   pipelineSetup.addVertexInput(VK_FORMAT_R32G32B32_SFLOAT, 12, 12, 0);
   pipelineSetup.addVertexInput(VK_FORMAT_R32G32_SFLOAT, 24, 8, 0);
@@ -99,10 +105,30 @@ bool MapRenderer::prepareTerrainPipeline(Vugl::RenderPass& renderPass) {
   }
 
   terrainUniformBuffer =
-    std::make_unique<Vugl::UniformBuffer>(vuglContext.createUniformBuffer(sizeof(TerrainScene)));
+    std::make_shared<Vugl::UniformBuffer>(vuglContext.createUniformBuffer(sizeof(TerrainScene)));
   terrainDescriptorSet =
-    std::make_unique<Vugl::DescriptorSet>(terrainPipeline->createDescriptorSet());
+    std::make_shared<Vugl::DescriptorSet>(terrainPipeline->createDescriptorSet());
+  terrainTextureSampler =
+    std::make_shared<Vugl::Sampler>(vuglContext.createSampler());
   terrainDescriptorSet->assignUniformBuffer(*terrainUniformBuffer);
+  terrainDescriptorSet->assignSampler(*terrainTextureSampler);
+
+  terrainTextures.reserve(texturesIndex.size());
+  for (auto& keyName : texturesIndex) {
+    auto terrainLookup = terrains.find(keyName);
+    if (terrainLookup == terrains.cend()) {
+      WARN_ZH("MapRenderer", "Terrain not found");
+      continue;
+    }
+
+    auto texture = terrainTextures.emplace_back(textureCache.getTexture(terrainLookup->second.textureName));
+    if (!texture) {
+      WARN_ZH("MapRenderer", "Terrain texture not found");
+      continue;
+    }
+    terrainDescriptorSet->assignTexture(*texture, 2);
+    vuglContext.uploadResource(*texture);
+  }
   terrainDescriptorSet->updateDevice();
 
   return true;

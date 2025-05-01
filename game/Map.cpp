@@ -33,8 +33,8 @@ const std::vector<uint8_t>& Map::getHeightMap() const {
   return heightMap;
 }
 
-Size Map::getSize() const {
-  return size;
+const std::vector<std::string>& Map::getTexturesIndex() const {
+  return texturesIndex;
 }
 
 const std::vector<Map::VertexData>& Map::getVertexData() const {
@@ -43,6 +43,10 @@ const std::vector<Map::VertexData>& Map::getVertexData() const {
 
 const std::vector<uint32_t>& Map::getVertexIndices() const {
   return vertexIndices;
+}
+
+Size Map::getSize() const {
+  return size;
 }
 
 void Map::tesselateHeightMap(
@@ -383,6 +387,10 @@ void Map::setVertexUV(
     if (textureClasses[textureIndex].firstTile >= vertexIndex) {
       break;
     }
+  }
+
+  if (textureIndex >= textureClasses.size()) {
+    textureIndex = textureClasses.size() - 1;
   }
 
   auto& textureClass = textureClasses[textureIndex];
