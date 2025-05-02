@@ -46,8 +46,7 @@ CSFFile::StringMap CSFFile::getStrings() {
       return map;
     }
 
-    readBuffer[labelLength] = 0;
-    std::string label{readBuffer.data()};
+    std::string label{readBuffer.data(), labelLength};
 
     for (uint32_t i = 0; i < numStrings; ++i) {
       read4()
