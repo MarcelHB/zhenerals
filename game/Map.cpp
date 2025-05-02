@@ -127,7 +127,7 @@ void Map::tesselateHeightMap(
   // bottom
   for (size_t x = 0; x <= size.x; ++x) {
     auto bottomIdx = numFour + size.x * size.y + x;
-    auto height = getHeight(x, size.y - 1, 2);
+    auto height = getHeight(std::min(x, size.x - size_t{1}), size.y - 1, 2);
 
     auto& bottomVertex = verticesAndNormals[bottomIdx];
     auto& bottomPos = bottomVertex.position;
@@ -135,7 +135,7 @@ void Map::tesselateHeightMap(
     bottomPos.y = height;
     bottomPos.z = size.y;
 
-    setVertexUV(bottomVertex, textureClasses, tileIndex[(size.y - 1) * size.x + x]);
+    setVertexUV(bottomVertex, textureClasses, tileIndex[(size.y - 1) * size.x + std::min(x, size.x - size_t{1})]);
   }
 
   // right
