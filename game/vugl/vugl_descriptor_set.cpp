@@ -297,7 +297,7 @@ void DescriptorSet::updateDevice () {
           auto& texture = assignedTextures[std::get<1>(binding)].get();
 
           auto& vkImageInfo = sampledImageDescriptors[iSampledImages];
-          vkImageInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
+          vkImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
           vkImageInfo.imageView = texture.getVkImageView();
 
           vkDescriptor.descriptorCount = 1;
@@ -310,7 +310,7 @@ void DescriptorSet::updateDevice () {
 
           for (auto& texture : list) {
             auto& vkImageInfo = sampledImageDescriptors[iSampledImages];
-            vkImageInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
+            vkImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
             vkImageInfo.imageView = texture.get().getVkImageView();
             iSampledImages += 1;
           }

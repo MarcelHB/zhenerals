@@ -10,5 +10,5 @@ layout(binding = 2) uniform texture2D textures[];
 layout(location = 0) out vec4 outColor;
 
 void main() {
-  outColor = texture(sampler2D(textures[textureIdx], textureSampler), uv);
+  outColor = texture(sampler2D(textures[nonuniformEXT(textureIdx)], textureSampler), uv);
 }
