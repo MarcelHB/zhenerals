@@ -226,6 +226,7 @@ void Map::setVertexUV(
  , float yOffset
 ) {
   size_t textureIndex = 0;
+  vertexIndex /= 4;
 
   for (; textureIndex < textureClasses.size(); ++textureIndex) {
     if (textureClasses[textureIndex].firstTile > vertexIndex) {
@@ -237,8 +238,7 @@ void Map::setVertexUV(
   }
 
   auto& textureClass = textureClasses[textureIndex];
-  auto textureTileIndex =
-    std::min(uint32_t{vertexIndex}, textureClass.firstTile + textureClass.numTiles - 1) - textureClass.firstTile;
+  auto textureTileIndex = vertexIndex - textureClass.firstTile;
   auto x = textureTileIndex % textureClass.width;
   auto y = textureTileIndex / textureClass.width;
 
