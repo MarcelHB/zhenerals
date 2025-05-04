@@ -56,4 +56,15 @@ TEST(TGAFileTest, parsing24bit) {
   EXPECT_EQ('\xFF', data[19]);
 }
 
+TEST(TGAFileTest, parsingHeader) {
+  std::ifstream stream {"tests/resources/TGAFile/pixels24.tga", std::ios::binary};
+  TGAFile unit {stream};
+
+  auto size = unit.getSize();
+  ASSERT_TRUE(size);
+
+  EXPECT_EQ(2, size->x);
+  EXPECT_EQ(4, size->y);
+}
+
 }

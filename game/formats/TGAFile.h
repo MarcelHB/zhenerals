@@ -3,6 +3,7 @@
 
 #include <istream>
 #include <memory>
+#include <optional>
 
 #include "../gfx/HostTexture.h"
 
@@ -12,9 +13,15 @@ class TGAFile {
   public:
     TGAFile(std::istream&);
 
+    std::optional<Size> getSize();
     std::shared_ptr<GFX::HostTexture> getTexture();
   private:
     std::istream& stream;
+    bool headerParsed = false;
+    Size size;
+    uint8_t bitsPerPixel = 0;
+
+    bool parseHeader();
 };
 
 }
