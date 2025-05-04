@@ -348,10 +348,16 @@ ADD_UNIT_TEST(WNDFile
 )
 
 ADD_GAME_TEST(MAPFile
+  game/Battlefield.cpp
+  game/BattlefieldFactory.cpp
+  game/gfx/HostTexture.cpp
   game/InflatingStream.cpp
   game/Map.cpp
   game/formats/Dict.cpp
   game/formats/MAPFile.cpp
+  game/formats/TGAFile.cpp
+  game/inis/INIFile.cpp
+  game/inis/TerrainINI.cpp
   game/Script.cpp
   game/tests/GameTest_Map.cpp
 )

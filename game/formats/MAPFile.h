@@ -14,7 +14,7 @@ class MAPFile {
   public:
     MAPFile(InflatingStream&);
 
-    std::shared_ptr<Map> parseMap();
+    std::shared_ptr<MapBuilder> parseMap();
   private:
     struct ChunkMetaData {
       uint32_t id;

@@ -8,7 +8,7 @@ namespace ZH {
 MAPFile::MAPFile(InflatingStream& instream) : stream(instream)
 {}
 
-std::shared_ptr<Map> MAPFile::parseMap() {
+std::shared_ptr<MapBuilder> MAPFile::parseMap() {
   TRACY(ZoneScoped);
 
   MapBuilder mapBuilder;
@@ -53,7 +53,7 @@ std::shared_ptr<Map> MAPFile::parseMap() {
     parseNextChunk(mapBuilder);
   }
 
-  return std::make_shared<Map>(std::move(mapBuilder));
+  return std::make_shared<MapBuilder>(std::move(mapBuilder));
 }
 
 size_t MAPFile::parseNextChunk(MapBuilder& mapBuilder) {

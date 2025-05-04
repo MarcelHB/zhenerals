@@ -9,7 +9,9 @@
 #include "Color.h"
 #include "Dimensions.h"
 #include "formats/Dict.h"
+#include "ResourceLoader.h"
 #include "Script.h"
+#include "inis/TerrainINI.h"
 
 namespace ZH {
 

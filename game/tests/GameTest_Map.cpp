@@ -4,7 +4,7 @@
 
 #include "../Config.h"
 #include "../ResourceLoader.h"
-#include "../formats/MAPFile.h"
+#include "../BattlefieldFactory.h"
 
 namespace ZH {
 
@@ -14,21 +14,23 @@ void dumpHeightMap(const Map&);
 
 TEST(MapTest, parsing) {
   Config config;
-  ResourceLoader rl {{"MapsZH.big"}, config.baseDir};
+  ResourceLoader mapsLoader {{"MapsZH.big"}, config.baseDir};
 
-  auto streamOpt = rl.getFileStream("maps\\shellmapmd\\shellmapmd.map");
-  ASSERT_TRUE(streamOpt);
+  BattlefieldFactory factory {mapsLoader};
+  auto battlefield = factory.load("shellmapmd");
+  ASSERT_TRUE(battlefield);
 
-  auto stream = streamOpt->getStream();
-  InflatingStream inflatingStream {stream};
-  MAPFile unit {inflatingStream};
-  auto map = unit.parseMap();
+  auto map = battlefield->getMap();
 
   auto size = map->getSize();
   EXPECT_EQ(315, size.x);
   EXPECT_EQ(315, size.y);
 
+  EXPECT_EQ(99225, map->getHeightMap().size());
   //dumpHeightMap(*map);
+  EXPECT_EQ(16, map->getTexturesIndex().size());
+  EXPECT_EQ(396900, map->getVertexData().size());
+  EXPECT_EQ(595350, map->getVertexIndices().size());
 }
 
 void dumpHeightMap(const Map& map) {

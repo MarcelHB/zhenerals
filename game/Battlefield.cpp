@@ -4,8 +4,8 @@
 
 namespace ZH {
 
-Battlefield::Battlefield(std::shared_ptr<Map>&& _map)
-  : map(std::move(_map))
+Battlefield::Battlefield(std::shared_ptr<Map> map)
+  : map(map)
 {
   auto size = map->getSize();
   cameraTarget =

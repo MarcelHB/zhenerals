@@ -7,7 +7,7 @@ namespace ZH {
 
 class Battlefield {
   public:
-    Battlefield(std::shared_ptr<Map>&&);
+    Battlefield(std::shared_ptr<Map>);
 
     glm::mat4 getCameraMatrix();
     std::shared_ptr<Map> getMap() const;

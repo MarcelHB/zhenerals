@@ -1,7 +1,11 @@
 #include <algorithm>
 
+#include "fmt/core.h"
+
 #include "common.h"
+#include "Logging.h"
 #include "Map.h"
+#include "formats/TGAFile.h"
 
 namespace ZH {
 
