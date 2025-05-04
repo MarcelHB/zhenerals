@@ -69,6 +69,7 @@ void Map::tesselateHeightMap(
         auto height = getHeight(x, y, i);
         auto& vertex = verticesAndNormals[baseIdx + i];
         auto& position = vertex.position;
+        auto& normal = vertex.normal;
 
         float xOffset = 0.0f;
         float yOffset = 0.0f;
@@ -93,6 +94,18 @@ void Map::tesselateHeightMap(
       vertexIndices[vertexIdx + 3] = baseIdx + 1;
       vertexIndices[vertexIdx + 4] = baseIdx + 3;
       vertexIndices[vertexIdx + 5] = baseIdx + 2;
+
+      auto normal =
+        glm::normalize(
+          glm::cross(
+              verticesAndNormals[baseIdx + 2].position - verticesAndNormals[baseIdx].position
+            , verticesAndNormals[baseIdx + 1].position - verticesAndNormals[baseIdx].position
+          )
+        );
+
+      for (uint8_t i = 0; i < 4; ++i) {
+        verticesAndNormals[baseIdx + i].normal = normal;
+      }
     }
   }
 }

@@ -7,6 +7,7 @@ namespace ZH {
 
 struct TerrainScene {
   alignas(16) glm::mat4 mvp;
+  alignas(16) glm::vec3 sunLight;
 };
 
 MapRenderer::MapRenderer(
@@ -54,10 +55,27 @@ std::shared_ptr<Vugl::CommandBuffer> MapRenderer::createRenderList(size_t frameI
     commandBuffer.beginDebugLabel("Terrain");
   }
 
+  auto size = map->getSize();
   // Terrain
-  auto terrainMvp =
+  auto lightTarget =
+    glm::vec3 {
+        size.x / 2.0f
+      , 0
+      , size.y / 2.0f
+    };
+
+  auto lightPos =
+    glm::vec3 {
+        size.x * 0.25f
+      , 255 * -0.5f
+      , size.y * 0.75f
+    };
+
+  TerrainScene scene;
+  scene.mvp =
     projectMatrix * battlefield.getCameraMatrix();
-  terrainUniformBuffer->writeData(terrainMvp, frameIdx);
+  scene.sunLight = glm::normalize(lightTarget - lightPos);
+  terrainUniformBuffer->writeData(scene, frameIdx);
 
   commandBuffer.bindResource(*terrainPipeline);
   commandBuffer.bindResource(*terrainDescriptorSet);
@@ -89,7 +107,7 @@ bool MapRenderer::prepareTerrainPipeline(
   pipelineSetup.vkPipelineDepthStencilCreateInfo.depthTestEnable = VK_TRUE;
   pipelineSetup.setVSCode(readFile("shaders/terrain.vert.spv"));
   pipelineSetup.setFSCode(readFile("shaders/terrain.frag.spv"));
-  pipelineSetup.reserveUniformBuffer(VK_SHADER_STAGE_VERTEX_BIT);
+  pipelineSetup.reserveUniformBuffer(VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT);
   pipelineSetup.reserveSampler(VK_SHADER_STAGE_FRAGMENT_BIT);
   pipelineSetup.reserveTexture(VK_SHADER_STAGE_FRAGMENT_BIT, texturesIndex.size());
   pipelineSetup.addVertexInput(VK_FORMAT_R32G32B32_SFLOAT, 0, 12, 0);
