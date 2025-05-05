@@ -243,10 +243,10 @@ void Map::setVertexUV(
  , float yOffset
 ) {
   size_t textureIndex = 0;
-  vertexIndex /= 4;
+  auto vertexClassIndex = vertexIndex / 4;
 
   for (; textureIndex < textureClasses.size(); ++textureIndex) {
-    if (textureClasses[textureIndex].firstTile > vertexIndex) {
+    if (textureClasses[textureIndex].firstTile > vertexClassIndex) {
       break;
     }
   }
@@ -255,14 +255,22 @@ void Map::setVertexUV(
   }
 
   auto& textureClass = textureClasses[textureIndex];
-  auto textureTileIndex = vertexIndex - textureClass.firstTile;
+  auto textureTileIndex = vertexClassIndex - textureClass.firstTile;
   auto x = textureTileIndex % textureClass.width;
   auto y = textureTileIndex / textureClass.width;
 
-  auto unit = 1.0f / textureClass.width;
+  auto unit = 1.0 / textureClass.width;
+  // That only works for heigt map r/n
+  float x2Offset = 0.0f, y2Offset = 0.0f;
+  if (vertexIndex & 1) {
+    x2Offset = unit * 0.5f;
+  }
+  if (vertexIndex & 2) {
+    y2Offset = unit * 0.5f;
+  }
 
-  vertexData.uv.x = x * unit + xOffset * unit;
-  vertexData.uv.y = y * unit + yOffset * unit;
+  vertexData.uv.x = x2Offset + x * unit + xOffset * unit * 0.5f;
+  vertexData.uv.y = y2Offset + y * unit + yOffset * unit * 0.5f;
   vertexData.textureIdx = textureIndex;
 }
 
