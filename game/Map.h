@@ -223,7 +223,8 @@ class Map {
     );
     void tesselateHeightMap(
         const std::vector<TextureClass>&
-      , const std::vector<uint16_t>&
+      , const std::vector<uint16_t>& tileIndices
+      , const std::vector<uint8_t>& flipStates
     );
 };
 

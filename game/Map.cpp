@@ -14,7 +14,11 @@ Map::Map(MapBuilder&& builder)
   , heightMap(std::move(builder.heightMap))
 {
   prepareTextureIndex(builder.textureClasses);
-  tesselateHeightMap(builder.textureClasses, builder.tileIndices);
+  tesselateHeightMap(
+      builder.textureClasses
+    , builder.tileIndices
+    , builder.flipStates
+  );
 }
 
 void Map::prepareTextureIndex(std::vector<TextureClass>& textureClasses) {
@@ -56,6 +60,7 @@ Size Map::getSize() const {
 void Map::tesselateHeightMap(
     const std::vector<TextureClass>& textureClasses
   , const std::vector<uint16_t>& tileIndex
+  , const std::vector<uint8_t>& flipStates
 ) {
   TRACY(ZoneScoped);
 
@@ -64,6 +69,8 @@ void Map::tesselateHeightMap(
 
   auto numVertices = size.x * size.y * 6;
   vertexIndices.resize(numVertices);
+
+  auto statesWidthBytes = (size.x + 7) / 8;
 
   for (size_t y = 0; y < size.y; ++y) {
     for (size_t x = 0; x < size.x; ++x) {
@@ -91,11 +98,19 @@ void Map::tesselateHeightMap(
         setVertexUV(vertex, textureClasses, tileIndex[y * size.x + x], xOffset, yOffset);
       }
 
+      bool flipped = flipStates[y * statesWidthBytes + (x >> 3)] & (1 << (x & 0x7));
+
       size_t vertexIdx = (y * size.x + x) * 6;
       vertexIndices[vertexIdx] = baseIdx;
       vertexIndices[vertexIdx + 1] = baseIdx + 1;
-      vertexIndices[vertexIdx + 2] = baseIdx + 2;
-      vertexIndices[vertexIdx + 3] = baseIdx + 1;
+      // EVAL
+      if (!flipped) {
+        vertexIndices[vertexIdx + 2] = baseIdx + 2;
+        vertexIndices[vertexIdx + 3] = baseIdx + 1;
+      } else {
+        vertexIndices[vertexIdx + 2] = baseIdx + 3;
+        vertexIndices[vertexIdx + 3] = baseIdx;
+      }
       vertexIndices[vertexIdx + 4] = baseIdx + 3;
       vertexIndices[vertexIdx + 5] = baseIdx + 2;
 
