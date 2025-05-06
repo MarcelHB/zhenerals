@@ -299,14 +299,14 @@ size_t MAPFile::parseBlendTiles(MapBuilder& mapBuilder, const ChunkMetaData& met
 
   read4()
   auto numBlendedTiles = buffer4;
-  mapBuilder.blendTileInfos.resize(numBlendedTiles);
+  mapBuilder.blendTileInfo.resize(numBlendedTiles);
 
-  uint32_t numCliffInfos = 1;
+  uint32_t numCliffInfo = 1;
   if (metaData.version >= 5) {
     read4()
-    numCliffInfos = buffer4;
+    numCliffInfo = buffer4;
   }
-  mapBuilder.cliffInfos.resize(numCliffInfos);
+  mapBuilder.cliffInfo.resize(numCliffInfo);
 
   read4()
   auto numTextureClasses = std::min(buffer4, 256u);
@@ -357,43 +357,44 @@ size_t MAPFile::parseBlendTiles(MapBuilder& mapBuilder, const ChunkMetaData& met
 
   // EVAL see where 0 ends up
   for (uint32_t i = 1; i < numBlendedTiles; ++i) {
-    auto& bti = mapBuilder.blendTileInfos[i];
+    auto& bti = mapBuilder.blendTileInfo[i];
 
     read4()
     bti.blendIdx = buffer4;
 
     read1()
-    bti.horizontal = buffer1;
+    bti.horizontal = buffer1 > 0;
 
     read1()
-    bti.vertical = buffer1;
+    bti.vertical = buffer1 > 0;
 
     read1()
-    bti.rightDiagonal = buffer1;
+    bti.rightDiagonal = buffer1 > 0;
 
     read1()
-    bti.leftDiagonal = buffer1;
+    bti.leftDiagonal = buffer1 > 0;
 
     read1()
-    bti.inverted = buffer1 > 0;
+    bti.inverted = buffer1;
 
-    bti.inverted = false;
     if (metaData.version >= 3) {
       read1()
-      bti.inverted = buffer1 > 0;
+      bti.longDiagonal = buffer1 > 0;
     }
 
     if (metaData.version >= 4) {
       read4()
-      bti.customBlendEdgeClass = buffer4;
+      if (buffer4 != static_cast<uint32_t>(-1)) {
+        bti.customBlendEdgeClass = buffer4;
+      }
     }
 
     read4() // something flag
   }
 
   if (metaData.version >= 5) {
-    for (uint32_t i = 0; i < numCliffInfos; ++i) {
-      auto& ci = mapBuilder.cliffInfos[i];
+    for (uint32_t i = 0; i < numCliffInfo; ++i) {
+      auto& ci = mapBuilder.cliffInfo[i];
 
       read4()
       ci.tileIndex = buffer4;
@@ -927,9 +928,9 @@ size_t MAPFile::parseSidesList(MapBuilder& mapBuilder, const ChunkMetaData& meta
 
     read4()
     auto numBuildListElements = buffer4;
-    side.buildInfos.resize(numBuildListElements);
+    side.buildInfo.resize(numBuildListElements);
 
-    for (auto& bi : side.buildInfos) {
+    for (auto& bi : side.buildInfo) {
       readString()
       bi.buildingName = *stringOpt.second;
 

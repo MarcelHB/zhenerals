@@ -37,11 +37,11 @@ struct TextureClass {
 
 struct BlendTileInfo {
   size_t blendIdx = 0;
-  uint8_t horizontal = 0;
-  uint8_t vertical = 0;
-  uint8_t rightDiagonal = 0;
-  uint8_t leftDiagonal = 0;
-  bool inverted = false;
+  bool horizontal = 0;
+  bool vertical = 0;
+  bool rightDiagonal = 0;
+  bool leftDiagonal = 0;
+  uint8_t inverted = 0;
   bool longDiagonal = false;
   std::optional<uint32_t> customBlendEdgeClass;
 };
@@ -70,7 +70,7 @@ struct BuildInfo {
 
 struct SideInfo {
   Dict properties;
-  std::vector<BuildInfo> buildInfos;
+  std::vector<BuildInfo> buildInfo;
 };
 
 struct MapScriptParam {
@@ -169,8 +169,8 @@ struct MapBuilder {
 
   std::vector<TextureClass> textureClasses;
   std::vector<TextureClass> edgeTextureClasses;
-  std::vector<BlendTileInfo> blendTileInfos;
-  std::vector<CliffInfo> cliffInfos;
+  std::vector<BlendTileInfo> blendTileInfo;
+  std::vector<CliffInfo> cliffInfo;
 
   std::vector<SideInfo> sides;
   std::vector<TeamInfo> teams;
