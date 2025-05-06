@@ -127,6 +127,63 @@ void Map::tesselateHeightMap(
       }
     }
   }
+
+  // bend the normals -- it doesn't work well for everything that is more an edge/corner
+  // than a curve, but to be EVAL if relevant at all
+  for (size_t y = 0; y < size.y; ++y) {
+    for (size_t x = 0; x < size.x; ++x) {
+      // top
+      if (y == 0 && x < size.x - 1) {
+        auto&& normal1 = verticesAndNormals[y * size.x * 4 + x * 4 + 1].normal;
+        auto&& normal2 = verticesAndNormals[y * size.x * 4 + (x + 1) * 4].normal;
+
+        auto normal = glm::normalize(normal1 + normal2);
+        normal1 = normal;
+        normal2 = normal;
+      }
+      // bottom
+      if (y == size.y - 1 && x < size.x - 1) {
+        auto&& normal1 = verticesAndNormals[y * size.x * 4 + x * 4 + 3].normal;
+        auto&& normal2 = verticesAndNormals[y * size.x * 4 + (x + 1) * 4 + 2].normal;
+
+        auto normal = glm::normalize(normal1 + normal2);
+        normal1 = normal;
+        normal2 = normal;
+      }
+
+      // left
+      if (x == 0 && y < size.y - 1) {
+        auto&& normal1 = verticesAndNormals[y * size.x * 4 + x * 4 + 2].normal;
+        auto&& normal2 = verticesAndNormals[(y + 1) * size.x * 4 + x * 4].normal;
+
+        auto normal = glm::normalize(normal1 + normal2);
+        normal1 = normal;
+        normal2 = normal;
+      }
+      // right
+      if (x == size.x - 1 && y < size.y - 1) {
+        auto&& normal1 = verticesAndNormals[y * size.x * 4 + x * 4 + 3].normal;
+        auto&& normal2 = verticesAndNormals[(y + 1) * size.x * 4 + x * 4 + 1].normal;
+
+        auto normal = glm::normalize(normal1 + normal2);
+        normal1 = normal;
+        normal2 = normal;
+      }
+
+      if (x < size.x - 1 && y < size.y - 1) {
+        auto&& normal1 = verticesAndNormals[y * size.x * 4 + x * 4 + 3].normal;
+        auto&& normal2 = verticesAndNormals[y * size.x * 4 + (x + 1) * 4 + 2].normal;
+        auto&& normal3 = verticesAndNormals[(y + 1) * size.x * 4 + x * 4 + 1].normal;
+        auto&& normal4 = verticesAndNormals[(y + 1) * size.x * 4 + (x + 1) * 4].normal;
+
+        auto normal = glm::normalize(normal1 + normal2 + normal3 + normal4);
+        normal1 = normal;
+        normal2 = normal;
+        normal3 = normal;
+        normal4 = normal;
+      }
+    }
+  }
 }
 
 float Map::getCenterHeight(size_t x, size_t y) {
