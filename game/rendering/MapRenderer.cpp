@@ -114,6 +114,8 @@ bool MapRenderer::prepareTerrainPipeline(
   pipelineSetup.addVertexInput(VK_FORMAT_R32G32B32_SFLOAT, 12, 12, 0);
   pipelineSetup.addVertexInput(VK_FORMAT_R32G32_SFLOAT, 24, 8, 0);
   pipelineSetup.addVertexInput(VK_FORMAT_R32_UINT, 32, 4, 0);
+  pipelineSetup.addVertexInput(VK_FORMAT_R32_UINT, 36, 4, 0);
+  pipelineSetup.addVertexInput(VK_FORMAT_R32_SFLOAT, 40, 4, 0);
 
   terrainPipeline =
     std::make_unique<Vugl::Pipeline>(vuglContext.createPipeline(pipelineSetup, renderPass.getVkRenderPass()));

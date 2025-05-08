@@ -193,6 +193,8 @@ class Map {
       glm::vec3 normal;
       glm::vec2 uv;
       uint32_t textureIdx;
+      uint32_t textureIdx2;
+      float uvAlpha;
     };
 
     Map(MapBuilder&&);
@@ -214,17 +216,21 @@ class Map {
     std::vector<uint32_t> vertexIndices;
 
     void prepareTextureIndex(std::vector<TextureClass>&);
-    void setVertexUV(
+    bool setVertexUV(
         VertexData&
-      , const std::vector<TextureClass>&
       , uint16_t tileIdx
-      , float xOffset = 0.0f
-      , float yOffset = 0.0f
+      , const std::vector<TextureClass>&
+      , uint16_t mainTextureIdx
+      , uint16_t blendTextureIdx
+      , OptionalCRef<BlendTileInfo> blendInfo
+      , uint8_t corner
     );
     void tesselateHeightMap(
         const std::vector<TextureClass>&
       , const std::vector<uint16_t>& tileIndices
       , const std::vector<uint8_t>& flipStates
+      , const std::vector<uint16_t>& blendTileIndices
+      , const std::vector<BlendTileInfo>& blendTileInfo
     );
 };
 

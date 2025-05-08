@@ -18,6 +18,8 @@ Map::Map(MapBuilder&& builder)
       builder.textureClasses
     , builder.tileIndices
     , builder.flipStates
+    , builder.blendTileIndices
+    , builder.blendTileInfo
   );
 }
 
@@ -61,6 +63,8 @@ void Map::tesselateHeightMap(
     const std::vector<TextureClass>& textureClasses
   , const std::vector<uint16_t>& tileIndex
   , const std::vector<uint8_t>& flipStates
+  , const std::vector<uint16_t>& blendTileIndices
+  , const std::vector<BlendTileInfo>& blendTileInfo
 ) {
   TRACY(ZoneScoped);
 
@@ -74,16 +78,50 @@ void Map::tesselateHeightMap(
 
   for (size_t y = 0; y < size.y; ++y) {
     for (size_t x = 0; x < size.x; ++x) {
-      size_t baseIdx = (y * size.x + x) * 4;
+      uint16_t tileTextureIndex = tileIndex[y * size.x + x];
 
+      uint16_t mainTextureIndex = 0;
+      uint16_t blendTextureIndex = 0;
+      auto textureClassIndex = tileTextureIndex / 4;
+
+      for (; mainTextureIndex < textureClasses.size(); ++mainTextureIndex) {
+        if (textureClasses[mainTextureIndex].firstTile > textureClassIndex) {
+          break;
+        }
+      }
+
+      if (mainTextureIndex > 0) {
+        mainTextureIndex -= 1;
+      }
+
+      auto blendTileIdx = blendTileIndices[y * size.x + x];
+      OptionalCRef<BlendTileInfo> blendTileInfoOpt;
+      if (blendTileIdx > 0) {
+        blendTileInfoOpt = {std::cref(blendTileInfo[blendTileIdx])};
+      }
+
+      if (blendTileInfoOpt) {
+        textureClassIndex = blendTileInfoOpt->get().blendIdx / 4;
+        for (; blendTextureIndex < textureClasses.size(); ++blendTextureIndex) {
+          if (textureClasses[blendTextureIndex].firstTile > textureClassIndex) {
+            break;
+          }
+        }
+
+        if (blendTextureIndex > 0) {
+          blendTextureIndex -= 1;
+        }
+      }
+
+      bool flip = false;
+      size_t baseIdx = (y * size.x + x) * 4;
       for (uint8_t i = 0; i < 4; ++i) {
         auto height = getHeight(x, y, i);
         auto& vertex = verticesAndNormals[baseIdx + i];
         auto& position = vertex.position;
         auto& normal = vertex.normal;
 
-        float xOffset = 0.0f;
-        float yOffset = 0.0f;
+        float xOffset = 0.0f, yOffset = 0.0f;
         if (i == 1 || i == 3) {
           xOffset = 1.0f;
         }
@@ -95,10 +133,18 @@ void Map::tesselateHeightMap(
         position.y = height;
         position.z = y + yOffset;
 
-        setVertexUV(vertex, textureClasses, tileIndex[y * size.x + x], xOffset, yOffset);
+        flip |= setVertexUV(
+            vertex
+          , tileTextureIndex
+          , textureClasses
+          , mainTextureIndex
+          , blendTextureIndex
+          , blendTileInfoOpt
+          , i
+        );
       }
 
-      bool flipped = flipStates[y * statesWidthBytes + (x >> 3)] & (1 << (x & 0x7));
+      bool flipped = flip || flipStates[y * statesWidthBytes + (x >> 3)] & (1 << (x & 0x7));
 
       size_t vertexIdx = (y * size.x + x) * 6;
       vertexIndices[vertexIdx] = baseIdx;
@@ -307,43 +353,102 @@ float Map::getHeight(size_t x, size_t y, uint8_t corner) {
   }
 }
 
-void Map::setVertexUV(
+bool Map::setVertexUV(
    Map::VertexData& vertexData
+ , uint16_t tileTextureIndex
  , const std::vector<TextureClass>& textureClasses
- , uint16_t vertexIndex
- , float xOffset
- , float yOffset
+,  uint16_t mainTextureIndex
+,  uint16_t blendTextureIndex
+ , OptionalCRef<BlendTileInfo> blendInfoOpt
+ , uint8_t corner
 ) {
-  size_t textureIndex = 0;
-  auto vertexClassIndex = vertexIndex / 4;
+  auto textureClassIndex = tileTextureIndex / 4;
 
-  for (; textureIndex < textureClasses.size(); ++textureIndex) {
-    if (textureClasses[textureIndex].firstTile > vertexClassIndex) {
-      break;
-    }
-  }
-  if (textureIndex > 0) {
-    textureIndex -= 1;
-  }
-
-  auto& textureClass = textureClasses[textureIndex];
-  auto textureTileIndex = vertexClassIndex - textureClass.firstTile;
+  auto& textureClass = textureClasses[mainTextureIndex];
+  auto textureTileIndex = textureClassIndex - textureClass.firstTile;
   auto x = textureTileIndex % textureClass.width;
   auto y = textureTileIndex / textureClass.width;
+
+  float xOffset = 0.0f, yOffset = 0.0f;
+  if (corner == 1 || corner == 3) {
+    xOffset = 1.0f;
+  }
+  if (corner == 2 || corner == 3) {
+    yOffset = 1.0f;
+  }
 
   auto unit = 1.0 / textureClass.width;
   // That only works for heigt map r/n
   float x2Offset = 0.0f, y2Offset = 0.0f;
-  if (vertexIndex & 1) {
+  if (tileTextureIndex & 1) {
     x2Offset = unit * 0.5f;
   }
-  if (vertexIndex & 2) {
+  if (tileTextureIndex & 2) {
     y2Offset = unit * 0.5f;
   }
 
   vertexData.uv.x = x2Offset + x * unit + xOffset * unit * 0.5f;
   vertexData.uv.y = y2Offset + y * unit + yOffset * unit * 0.5f;
-  vertexData.textureIdx = textureIndex;
+  vertexData.textureIdx = mainTextureIndex;
+  vertexData.textureIdx2 = blendTextureIndex;
+  vertexData.uvAlpha = 0.0f;
+
+  if (blendInfoOpt) {
+    auto& bi = blendInfoOpt->get();
+    if (bi.horizontal
+          && (
+            ((bi.inverted & 0x1) && (corner == 0 || corner == 2))
+              || (!(bi.inverted & 0x1) && (corner == 1 || corner == 3))
+            )
+    ) {
+      vertexData.uvAlpha = 1.0f;
+      return bi.inverted & 0x2;
+    } else if (bi.vertical
+        && (
+          ((bi.inverted & 0x1) && (corner == 0 || corner == 1))
+            || (!(bi.inverted & 0x1) && (corner == 2 || corner == 3))
+          )
+    ) {
+      vertexData.uvAlpha = 1.0f;
+      return bi.inverted & 0x2;
+    } else if (bi.rightDiagonal
+        && (bi.inverted & 0x1)
+        && (
+          bi.longDiagonal && (corner == 0 || corner == 1 || corner == 3)
+          || (!bi.longDiagonal && (corner == 1))
+        )
+    ) {
+      vertexData.uvAlpha = 1.0f;
+      return true;
+    }else if (bi.rightDiagonal
+        && !(bi.inverted & 0x1)
+        && (
+          bi.longDiagonal && (corner == 1 || corner == 2 || corner == 3)
+          || (!bi.longDiagonal && (corner == 3))
+        )
+    ) {
+      vertexData.uvAlpha = 1.0f;
+    } else if (bi.leftDiagonal
+        && (bi.inverted & 0x1)
+        && (
+          bi.longDiagonal && (corner == 0 || corner == 1 || corner == 2)
+          || (!bi.longDiagonal && (corner == 0))
+        )
+    ) {
+      vertexData.uvAlpha = 1.0f;
+    } else if (bi.leftDiagonal
+        && !(bi.inverted & 0x1)
+        && (
+          bi.longDiagonal && (corner == 0 || corner == 2 || corner == 3)
+          || (!bi.longDiagonal && (corner == 2))
+        )
+    ) {
+      vertexData.uvAlpha = 1.0f;
+      return true;
+    }
+  }
+
+  return false;
 }
 
 }
