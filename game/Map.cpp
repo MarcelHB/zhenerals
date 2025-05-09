@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <omp.h>
 
 #include "fmt/core.h"
 
@@ -76,100 +77,104 @@ void Map::tesselateHeightMap(
 
   auto statesWidthBytes = (size.x + 7) / 8;
 
-  for (size_t y = 0; y < size.y; ++y) {
-    for (size_t x = 0; x < size.x; ++x) {
-      uint16_t tileTextureIndex = tileIndex[y * size.x + x];
+#pragma omp parallel num_threads(4)
+  {
+    TRACY(ZoneScoped);
+#pragma omp for
+    for (size_t y = 0; y < size.y; ++y) {
+      for (size_t x = 0; x < size.x; ++x) {
+        uint16_t tileTextureIndex = tileIndex[y * size.x + x];
 
-      uint16_t mainTextureIndex = 0;
-      uint16_t blendTextureIndex = 0;
-      auto textureClassIndex = tileTextureIndex / 4;
+        uint16_t mainTextureIndex = 0;
+        uint16_t blendTextureIndex = 0;
+        auto textureClassIndex = tileTextureIndex / 4;
 
-      for (; mainTextureIndex < textureClasses.size(); ++mainTextureIndex) {
-        if (textureClasses[mainTextureIndex].firstTile > textureClassIndex) {
-          break;
-        }
-      }
-
-      if (mainTextureIndex > 0) {
-        mainTextureIndex -= 1;
-      }
-
-      auto blendTileIdx = blendTileIndices[y * size.x + x];
-      OptionalCRef<BlendTileInfo> blendTileInfoOpt;
-      if (blendTileIdx > 0) {
-        blendTileInfoOpt = {std::cref(blendTileInfo[blendTileIdx])};
-      }
-
-      if (blendTileInfoOpt) {
-        textureClassIndex = blendTileInfoOpt->get().blendIdx / 4;
-        for (; blendTextureIndex < textureClasses.size(); ++blendTextureIndex) {
-          if (textureClasses[blendTextureIndex].firstTile > textureClassIndex) {
+        for (; mainTextureIndex < textureClasses.size(); ++mainTextureIndex) {
+          if (textureClasses[mainTextureIndex].firstTile > textureClassIndex) {
             break;
           }
         }
 
-        if (blendTextureIndex > 0) {
-          blendTextureIndex -= 1;
-        }
-      }
-
-      bool flip = false;
-      size_t baseIdx = (y * size.x + x) * 4;
-      for (uint8_t i = 0; i < 4; ++i) {
-        auto height = getHeight(x, y, i);
-        auto& vertex = verticesAndNormals[baseIdx + i];
-        auto& position = vertex.position;
-        auto& normal = vertex.normal;
-
-        float xOffset = 0.0f, yOffset = 0.0f;
-        if (i == 1 || i == 3) {
-          xOffset = 1.0f;
-        }
-        if (i == 2 || i == 3) {
-          yOffset = 1.0f;
+        if (mainTextureIndex > 0) {
+          mainTextureIndex -= 1;
         }
 
-        position.x = x + xOffset;
-        position.y = height;
-        position.z = y + yOffset;
+        auto blendTileIdx = blendTileIndices[y * size.x + x];
+        OptionalCRef<BlendTileInfo> blendTileInfoOpt;
+        if (blendTileIdx > 0) {
+          blendTileInfoOpt = {std::cref(blendTileInfo[blendTileIdx])};
+        }
 
-        flip |= setVertexUV(
-            vertex
-          , tileTextureIndex
-          , textureClasses
-          , mainTextureIndex
-          , blendTextureIndex
-          , blendTileInfoOpt
-          , i
-        );
-      }
+        if (blendTileInfoOpt) {
+          textureClassIndex = blendTileInfoOpt->get().blendIdx / 4;
+          for (; blendTextureIndex < textureClasses.size(); ++blendTextureIndex) {
+            if (textureClasses[blendTextureIndex].firstTile > textureClassIndex) {
+              break;
+            }
+          }
 
-      bool flipped = flip || flipStates[y * statesWidthBytes + (x >> 3)] & (1 << (x & 0x7));
+          if (blendTextureIndex > 0) {
+            blendTextureIndex -= 1;
+          }
+        }
 
-      size_t vertexIdx = (y * size.x + x) * 6;
-      vertexIndices[vertexIdx] = baseIdx;
-      vertexIndices[vertexIdx + 1] = baseIdx + 1;
-      // EVAL
-      if (!flipped) {
-        vertexIndices[vertexIdx + 2] = baseIdx + 2;
-        vertexIndices[vertexIdx + 3] = baseIdx + 1;
-      } else {
-        vertexIndices[vertexIdx + 2] = baseIdx + 3;
-        vertexIndices[vertexIdx + 3] = baseIdx;
-      }
-      vertexIndices[vertexIdx + 4] = baseIdx + 3;
-      vertexIndices[vertexIdx + 5] = baseIdx + 2;
+        bool flip = false;
+        size_t baseIdx = (y * size.x + x) * 4;
+        for (uint8_t i = 0; i < 4; ++i) {
+          auto height = getHeight(x, y, i);
+          auto& vertex = verticesAndNormals[baseIdx + i];
+          auto& position = vertex.position;
+          auto& normal = vertex.normal;
 
-      auto normal =
-        glm::normalize(
-          glm::cross(
-              verticesAndNormals[baseIdx + 2].position - verticesAndNormals[baseIdx].position
-            , verticesAndNormals[baseIdx + 1].position - verticesAndNormals[baseIdx].position
-          )
-        );
+          float xOffset = 0.0f, yOffset = 0.0f;
+          if (i == 1 || i == 3) {
+            xOffset = 1.0f;
+          }
+          if (i == 2 || i == 3) {
+            yOffset = 1.0f;
+          }
 
-      for (uint8_t i = 0; i < 4; ++i) {
-        verticesAndNormals[baseIdx + i].normal = normal;
+          position.x = x + xOffset;
+          position.y = height;
+          position.z = y + yOffset;
+
+          flip |= setVertexUV(
+              vertex
+            , tileTextureIndex
+            , textureClasses
+            , mainTextureIndex
+            , blendTextureIndex
+            , blendTileInfoOpt
+            , i
+          );
+        }
+
+        bool flipped = flip || flipStates[y * statesWidthBytes + (x >> 3)] & (1 << (x & 0x7));
+
+        size_t vertexIdx = (y * size.x + x) * 6;
+        vertexIndices[vertexIdx] = baseIdx;
+        vertexIndices[vertexIdx + 1] = baseIdx + 1;
+        if (!flipped) {
+          vertexIndices[vertexIdx + 2] = baseIdx + 2;
+          vertexIndices[vertexIdx + 3] = baseIdx + 1;
+        } else {
+          vertexIndices[vertexIdx + 2] = baseIdx + 3;
+          vertexIndices[vertexIdx + 3] = baseIdx;
+        }
+        vertexIndices[vertexIdx + 4] = baseIdx + 3;
+        vertexIndices[vertexIdx + 5] = baseIdx + 2;
+
+        auto normal =
+          glm::normalize(
+            glm::cross(
+                verticesAndNormals[baseIdx + 2].position - verticesAndNormals[baseIdx].position
+              , verticesAndNormals[baseIdx + 1].position - verticesAndNormals[baseIdx].position
+            )
+          );
+
+        for (uint8_t i = 0; i < 4; ++i) {
+          verticesAndNormals[baseIdx + i].normal = normal;
+        }
       }
     }
   }
@@ -420,7 +425,7 @@ bool Map::setVertexUV(
     ) {
       vertexData.uvAlpha = 1.0f;
       return true;
-    }else if (bi.rightDiagonal
+    } else if (bi.rightDiagonal
         && !(bi.inverted & 0x1)
         && (
           bi.longDiagonal && (corner == 1 || corner == 2 || corner == 3)
