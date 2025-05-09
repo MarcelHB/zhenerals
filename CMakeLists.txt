@@ -115,6 +115,11 @@ FUNCTION(ADD_GAME_TEST game_test_name)
   ENDIF()
 ENDFUNCTION()
 
+CHECK_CXX_COMPILER_FLAG("-fopenmp" HAS_OPENMP)
+IF (${HAS_OPENMP})
+  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")
+ENDIF()
+
 # main executable
 ADD_EXECUTABLE(zhen
   game/audio/Backend.cpp
