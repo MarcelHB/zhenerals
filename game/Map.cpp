@@ -394,6 +394,9 @@ bool Map::setVertexUV(
 
   vertexData.uv.x = x2Offset + x * unit + xOffset * unit * 0.5f;
   vertexData.uv.y = y2Offset + y * unit + yOffset * unit * 0.5f;
+  vertexData.uvCloud.x = vertexData.position.x / 128.0f;
+  vertexData.uvCloud.y = vertexData.position.z / 128.0f;
+
   vertexData.textureIdx = mainTextureIndex;
   vertexData.textureIdx2 = blendTextureIndex;
   vertexData.uvAlpha = 0.0f;

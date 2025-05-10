@@ -107,15 +107,19 @@ bool MapRenderer::prepareTerrainPipeline(
   pipelineSetup.vkPipelineDepthStencilCreateInfo.depthTestEnable = VK_TRUE;
   pipelineSetup.setVSCode(readFile("shaders/terrain.vert.spv"));
   pipelineSetup.setFSCode(readFile("shaders/terrain.frag.spv"));
+
   pipelineSetup.reserveUniformBuffer(VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT);
   pipelineSetup.reserveSampler(VK_SHADER_STAGE_FRAGMENT_BIT);
   pipelineSetup.reserveTexture(VK_SHADER_STAGE_FRAGMENT_BIT, texturesIndex.size());
+  pipelineSetup.reserveTexture(VK_SHADER_STAGE_FRAGMENT_BIT);
+
   pipelineSetup.addVertexInput(VK_FORMAT_R32G32B32_SFLOAT, 0, 12, 0);
   pipelineSetup.addVertexInput(VK_FORMAT_R32G32B32_SFLOAT, 12, 12, 0);
   pipelineSetup.addVertexInput(VK_FORMAT_R32G32_SFLOAT, 24, 8, 0);
   pipelineSetup.addVertexInput(VK_FORMAT_R32_UINT, 32, 4, 0);
   pipelineSetup.addVertexInput(VK_FORMAT_R32_UINT, 36, 4, 0);
   pipelineSetup.addVertexInput(VK_FORMAT_R32_SFLOAT, 40, 4, 0);
+  pipelineSetup.addVertexInput(VK_FORMAT_R32G32_SFLOAT, 44, 8, 0);
 
   terrainPipeline =
     std::make_unique<Vugl::Pipeline>(vuglContext.createPipeline(pipelineSetup, renderPass.getVkRenderPass()));
@@ -149,6 +153,11 @@ bool MapRenderer::prepareTerrainPipeline(
     terrainDescriptorSet->assignTexture(*texture, 2);
     vuglContext.uploadResource(*texture);
   }
+
+  cloudTexture = textureCache.getTexture("tscloudmed.dds");
+  terrainDescriptorSet->assignTexture(*cloudTexture);
+  vuglContext.uploadResource(*cloudTexture);
+
   terrainDescriptorSet->updateDevice();
 
   return true;

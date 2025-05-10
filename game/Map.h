@@ -195,6 +195,7 @@ class Map {
       uint32_t textureIdx;
       uint32_t textureIdx2;
       float uvAlpha;
+      glm::vec2 uvCloud;
     };
 
     Map(MapBuilder&&);

@@ -86,6 +86,8 @@ void DescriptorSet::assignTexture (const Texture& sampler, std::optional<uint32_
     if (result.second) {
       bindings.emplace_back(DescriptorType::SAMPLED_IMAGE, assignedTextures.size() - 1);
     }
+  } else {
+    bindings.emplace_back(DescriptorType::SAMPLED_IMAGE, assignedTextures.size() - 1);
   }
 }
 

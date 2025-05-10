@@ -5,6 +5,7 @@ layout(location = 2) in vec2 uvIn;
 layout(location = 3) in uint textureIdxIn;
 layout(location = 4) in uint textureIdx2In;
 layout(location = 5) in float uvAlphaIn;
+layout(location = 6) in vec2 uvCloudIn;
 
 layout(binding = 0) uniform Scene {
   mat4 mvpMatrix;
@@ -15,6 +16,7 @@ layout(location = 0) flat out uvec2 textureIdxOut;
 layout(location = 1) out vec2 uvOut;
 layout(location = 2) out vec3 normalOut;
 layout(location = 3) out float uvAlphaOut;
+layout(location = 4) out vec2 uvCloudOut;
 
 void main() {
   textureIdxOut.x = textureIdxIn;
@@ -23,6 +25,7 @@ void main() {
   uvOut = uvIn;
   normalOut = normalIn;
   uvAlphaOut = uvAlphaIn;
+  uvCloudOut = uvCloudIn;
 
   gl_Position = scene.mvpMatrix * vec4(position, 1.0);
 }

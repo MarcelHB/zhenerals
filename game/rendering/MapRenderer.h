@@ -31,6 +31,7 @@ class MapRenderer {
     std::shared_ptr<Vugl::ElementBuffer> terrainVertices;
     std::shared_ptr<Vugl::Sampler> terrainTextureSampler;
     std::vector<std::shared_ptr<Vugl::Texture>> terrainTextures;
+    std::shared_ptr<Vugl::Texture> cloudTexture;
 
     bool prepareTerrainPipeline(Vugl::RenderPass&, const std::vector<std::string>&);
     bool prepareTerrainVertices();

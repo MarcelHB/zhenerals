@@ -5,6 +5,7 @@ layout(location = 0) flat in uvec2 textureIdx;
 layout(location = 1) in vec2 uv;
 layout(location = 2) in vec3 normal;
 layout(location = 3) in float uvAlpha;
+layout(location = 4) in vec2 uvCloud;
 
 layout(binding = 0) uniform Scene {
   mat4 mvpMatrix;
@@ -13,6 +14,7 @@ layout(binding = 0) uniform Scene {
 
 layout(binding = 1) uniform sampler textureSampler;
 layout(binding = 2) uniform texture2D textures[];
+layout(binding = 3) uniform texture2D cloudTexture;
 
 layout(location = 0) out vec4 outColor;
 
@@ -22,5 +24,12 @@ void main() {
 
   vec4 color2 = texture(sampler2D(textures[nonuniformEXT(textureIdx.y)], textureSampler), uv);
 
-  outColor = color * brightness * (1.0 - uvAlpha) + color2 * brightness * uvAlpha;
+  vec4 valueCloud = texture(sampler2D(cloudTexture, textureSampler), uvCloud);
+  float cloudGray = clamp(((valueCloud.r + valueCloud.g + valueCloud.b) / 3.0) * 1.25, 0.0, 1.0);
+  vec4 brightnessCloud = vec4(cloudGray, cloudGray, cloudGray, 1.0);
+
+  outColor =
+    (color * brightness * (1.0 - uvAlpha)
+      + color2 * brightness * uvAlpha)
+      * brightnessCloud;
 }
