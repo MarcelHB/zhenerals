@@ -134,6 +134,7 @@ ADD_EXECUTABLE(zhen
   game/formats/AudioFile.cpp
   game/formats/BIGFile.cpp
   game/formats/CSFFile.cpp
+  game/formats/DDSFile.cpp
   game/formats/MAPFile.cpp
   game/formats/Dict.cpp
   game/formats/TGAFile.cpp
@@ -283,6 +284,13 @@ ADD_UNIT_TEST(BIGFile
 ADD_UNIT_TEST(CSFFile
   game/formats/CSFFile.cpp
   game/tests/Test_CSFFile.cpp
+)
+
+ADD_UNIT_TEST(DDSFile
+  game/Logging.cpp
+  game/gfx/HostTexture.cpp
+  game/formats/DDSFile.cpp
+  game/tests/Test_DDSFile.cpp
 )
 
 ADD_UNIT_TEST(Dict

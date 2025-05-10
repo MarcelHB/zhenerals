@@ -1,5 +1,6 @@
 #include "../common.h"
 #include "../Logging.h"
+#include "../formats/DDSFile.h"
 #include "../formats/TGAFile.h"
 #include "HostTexture.h"
 #include "TextureCache.h"
@@ -82,11 +83,16 @@ std::shared_ptr<Vugl::Texture> TextureCache::getTexture(const std::string& key) 
   }
 
   std::shared_ptr<HostTexture> hostTexture;
+  auto stream = lookup->getStream();
+
   if (key.ends_with(".tga")) {
-    auto stream = lookup->getStream();
     TGAFile tga {stream};
 
     hostTexture = tga.getTexture();
+  } else if (key.ends_with(".dds")) {
+    DDSFile dds {stream};
+
+    hostTexture = dds.getTexture();
   } else {
     WARN_ZH("TextureCache", "Requesting unsupported texture: {}", key);
     return {};
