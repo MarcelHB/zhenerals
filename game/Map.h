@@ -186,6 +186,13 @@ struct MapBuilder {
   Lights objectLights;
 };
 
+enum class Daytime {
+    MORNING
+  , AFTERNOON
+  , EVENING
+  , NIGHT
+};
+
 class Map {
   public:
     struct VertexData {

@@ -76,7 +76,10 @@ ENDIF()
 
 FUNCTION(ADD_UNIT_TEST unit_name)
   IF (BUILD_TESTING)
-    ADD_EXECUTABLE(Test_${unit_name} ${ARGN})
+    ADD_EXECUTABLE(Test_${unit_name}
+      ${ARGN}
+      game/Logging.cpp
+    )
 
     TARGET_LINK_LIBRARIES(Test_${unit_name}
       GTest::gtest
@@ -166,6 +169,7 @@ ADD_EXECUTABLE(zhen
   game/inis/MappedImageINI.cpp
   game/inis/SoundEffectsINI.cpp
   game/inis/TerrainINI.cpp
+  game/inis/WaterINI.cpp
   game/Main.cpp
   game/Map.cpp
   game/MurmurHash.cpp
@@ -287,7 +291,6 @@ ADD_UNIT_TEST(CSFFile
 )
 
 ADD_UNIT_TEST(DDSFile
-  game/Logging.cpp
   game/gfx/HostTexture.cpp
   game/formats/DDSFile.cpp
   game/tests/Test_DDSFile.cpp
@@ -301,7 +304,6 @@ ADD_UNIT_TEST(Dict
 
 ADD_UNIT_TEST(Font
   game/common.cpp
-  game/Logging.cpp
   game/gfx/HostTexture.cpp
   game/gfx/font/Atlas.cpp
   game/gfx/font/FontManager.cpp
@@ -323,7 +325,6 @@ ADD_UNIT_TEST(MappedImageINI
 
 ADD_UNIT_TEST(ResourceLoader
   game/formats/BIGFile.cpp
-  game/Logging.cpp
   game/ResourceLoader.cpp
   game/tests/Test_ResourceLoader.cpp
 )
@@ -342,9 +343,14 @@ ADD_UNIT_TEST(TerrainINI
 
 ADD_UNIT_TEST(TGAFile
   game/gfx/HostTexture.cpp
-  game/Logging.cpp
   game/formats/TGAFile.cpp
   game/tests/Test_TGAFile.cpp
+)
+
+ADD_UNIT_TEST(WaterINI
+  game/inis/INIFile.cpp
+  game/inis/WaterINI.cpp
+  game/tests/Test_WaterINI.cpp
 )
 
 ADD_UNIT_TEST(WNDFile

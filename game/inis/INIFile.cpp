@@ -1,3 +1,4 @@
+#include "../Logging.h"
 #include "INIFile.h"
 
 namespace ZH {
@@ -80,6 +81,61 @@ std::string INIFile::getTokenInLine() {
   } while (!stream.eof());
 
   return {readBuffer.cbegin(), readBuffer.cend()};
+}
+
+std::unordered_map<std::string, std::string> INIFile::parseAttributes() {
+  std::unordered_map<std::string, std::string> attributes;
+
+  advanceStreamInLine();
+  auto token = getTokenInLine();
+  if (token != "=") {
+    return attributes;
+  }
+
+  advanceStreamInLine();
+  token = getTokenInLine();
+  while (!token.empty()) {
+    auto splitPos = token.find(":");
+    if (splitPos == std::string::npos) {
+      return attributes;
+    }
+
+    auto key = token.substr(0, splitPos);
+    auto value = token.substr(splitPos + 1);
+
+    attributes.emplace(std::move(key), std::move(value));
+
+    advanceStreamInLine();
+    token = getTokenInLine();
+  }
+
+  return attributes;
+}
+
+bool INIFile::parseBool() {
+  advanceStream();
+  auto token = getToken();
+  if (token == "yes") {
+    return true;
+  } else if (token == "no") {
+    return false;
+  }
+
+  WARN_ZH("INIFile", "Unknown boolean {}, returning false.", token);
+  return false;
+}
+
+std::optional<float> INIFile::parseFloat() {
+  advanceStream();
+  auto token = getToken();
+  if (token != "=") {
+    return {};
+  }
+
+  advanceStream();
+  token = getToken();
+
+  return stof(token);
 }
 
 std::optional<uint16_t> INIFile::parseInteger() {
@@ -198,6 +254,18 @@ std::optional<uint8_t> INIFile::parsePercent() {
   }
 
   return value;
+}
+
+std::string INIFile::parseString() {
+  advanceStream();
+
+  auto token = getToken();
+  if (token != "=") {
+    return {};
+  }
+
+  advanceStream();
+  return getToken();
 }
 
 std::vector<std::string> INIFile::parseStringList() {
