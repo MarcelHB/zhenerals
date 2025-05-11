@@ -667,8 +667,8 @@ size_t MAPFile::parsePolygonTriggers(MapBuilder& mapBuilder, const ChunkMetaData
 
     for (auto& pt : trigger.points) {
       for (uint8_t j = 0; j < 3; ++j) {
-        readf()
-        pt[j] = bufferf;
+        read4()
+        pt[j] = buffer4;
       }
     }
 
