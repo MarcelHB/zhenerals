@@ -65,13 +65,17 @@ size_t MAPFile::parseNextChunk(MapBuilder& mapBuilder) {
   auto typeLookup = mapBuilder.chunkLabels.find(metaDataOpt->id);
   if (typeLookup == mapBuilder.chunkLabels.cend()) {
     stream.seekg(metaDataOpt->payloadSize, std::ios::cur);
-    return metaDataOpt->payloadSize;
+    return metaDataOpt->payloadSize + 10;
   }
 
   size_t bytesRead = parseChunk(mapBuilder, typeLookup->second, *metaDataOpt);
-  stream.seekg(metaDataOpt->payloadSize - bytesRead, std::ios::cur);
+  if (bytesRead > metaDataOpt->payloadSize) {
+    WARN_ZH("MAPFile", "Chunk {} exceeding size: {} vs. {}", typeLookup->second, bytesRead, metaDataOpt->payloadSize);
+  } else {
+    stream.seekg(metaDataOpt->payloadSize - bytesRead, std::ios::cur);
+  }
 
-  return metaDataOpt->payloadSize;
+  return metaDataOpt->payloadSize + 10;
 }
 
 std::optional<MAPFile::ChunkMetaData> MAPFile::getChunkMetaData() {
@@ -393,7 +397,7 @@ size_t MAPFile::parseBlendTiles(MapBuilder& mapBuilder, const ChunkMetaData& met
   }
 
   if (metaData.version >= 5) {
-    for (uint32_t i = 0; i < numCliffInfo; ++i) {
+    for (uint32_t i = 1; i < numCliffInfo; ++i) {
       auto& ci = mapBuilder.cliffInfo[i];
 
       read4()
