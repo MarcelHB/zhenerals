@@ -271,7 +271,7 @@ std::string INIFile::parseString() {
   }
 
   advanceStream();
-  return getToken();
+  return getTokenInLine();
 }
 
 std::vector<std::string> INIFile::parseStringList() {
