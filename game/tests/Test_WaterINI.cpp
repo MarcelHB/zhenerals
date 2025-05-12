@@ -68,7 +68,7 @@ TEST(WaterINI, parsing) {
   EXPECT_EQ(1.0, t.transparentWaterMinOpacity);
   EXPECT_EQ(2.0, t.transparentWaterDepth);
   EXPECT_EQ("swamp.tga", t.standingWaterTexture);
-  EXPECT_FALSE(t.additiveBlending);
+  EXPECT_TRUE(t.additiveBlending);
 
   color = t.standingWaterColor;
   EXPECT_EQ(254, color.r);

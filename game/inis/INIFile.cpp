@@ -115,6 +115,12 @@ std::unordered_map<std::string, std::string> INIFile::parseAttributes() {
 bool INIFile::parseBool() {
   advanceStream();
   auto token = getToken();
+  if (token != "=") {
+    return {};
+  }
+
+  advanceStream();
+  token = getTokenInLine();
   if (token == "yes") {
     return true;
   } else if (token == "no") {
