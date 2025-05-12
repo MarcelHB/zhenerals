@@ -15,10 +15,12 @@ MapRenderer::MapRenderer(
   , Battlefield& battlefield
   , GFX::TextureCache& textureCache
   , const TerrainINI::Terrains& terrains
+  , const WaterINI::WaterSettings& waterSettings
 ) : vuglContext(vuglContext)
   , textureCache(textureCache)
   , battlefield(battlefield)
   , terrains(terrains)
+  , waterSettings(waterSettings)
 {}
 
 std::shared_ptr<Vugl::CommandBuffer> MapRenderer::createRenderList(size_t frameIdx, Vugl::RenderPass& renderPass) {

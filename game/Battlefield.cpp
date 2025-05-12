@@ -31,6 +31,10 @@ glm::mat4 Battlefield::getCameraMatrix() {
   );
 }
 
+Daytime Battlefield::getDaytime() const {
+  return Daytime::AFTERNOON;
+}
+
 std::shared_ptr<Map> Battlefield::getMap() const {
   return map;
 }

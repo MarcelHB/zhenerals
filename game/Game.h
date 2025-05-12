@@ -12,6 +12,7 @@
 #include "Config.h"
 #include "EventDispatcher.h"
 #include "inis/TerrainINI.h"
+#include "inis/WaterINI.h"
 #include "ResourceLoader.h"
 #include "StringLoader.h"
 #include "Window.h"
@@ -63,6 +64,7 @@ class Game {
     std::shared_ptr<GUI::Drawing::RenderListFactory> renderListFactory;
 
     TerrainINI::Terrains terrains;
+    WaterINI::WaterSettings waterSettings;
 
     Window& window;
 

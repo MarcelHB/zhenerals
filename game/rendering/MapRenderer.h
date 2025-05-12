@@ -5,6 +5,7 @@
 #include "../vugl/vugl_context.h"
 #include "../gfx/TextureCache.h"
 #include "../inis/TerrainINI.h"
+#include "../inis/WaterINI.h"
 
 namespace ZH {
 
@@ -15,6 +16,7 @@ class MapRenderer {
       , Battlefield&
       , GFX::TextureCache&
       , const TerrainINI::Terrains& terrains
+      , const WaterINI::WaterSettings& waterSettings
     );
     MapRenderer(const MapRenderer&) = delete;
 
@@ -24,6 +26,7 @@ class MapRenderer {
     GFX::TextureCache& textureCache;
     Battlefield& battlefield;
     const TerrainINI::Terrains& terrains;
+    const WaterINI::WaterSettings& waterSettings;
 
     std::shared_ptr<Vugl::DescriptorSet> terrainDescriptorSet;
     std::shared_ptr<Vugl::Pipeline> terrainPipeline;

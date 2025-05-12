@@ -10,6 +10,7 @@ class Battlefield {
     Battlefield(std::shared_ptr<Map>);
 
     glm::mat4 getCameraMatrix();
+    Daytime getDaytime() const;
     std::shared_ptr<Map> getMap() const;
   private:
     std::shared_ptr<Map> map;
