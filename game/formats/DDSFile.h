@@ -17,6 +17,7 @@ class DDSFile {
     std::istream& stream;
 
     std::vector<char> decodeDXT1(Size);
+    std::vector<char> decodeDXT5(Size);
 };
 
 }
