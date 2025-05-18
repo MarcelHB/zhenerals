@@ -210,20 +210,25 @@ class Map {
     float getCenterHeight(size_t, size_t);
     float getHeight(size_t, size_t, uint8_t);
     const std::vector<uint8_t>& getHeightMap() const;
+    Size getSize() const;
     const std::vector<std::string>& getTexturesIndex() const;
     const std::vector<VertexData>& getVertexData() const;
     const std::vector<uint32_t>& getVertexIndices() const;
-
-    Size getSize() const;
+    const std::vector<uint16_t>& getWater() const;
+    const glm::mat4& getWorldToGridMatrix() const;
   private:
     Size size;
+    uint32_t padding;
+    glm::mat4 worldToGridMatrix;
     std::vector<uint8_t> heightMap;
     std::vector<std::string> texturesIndex;
 
     std::vector<VertexData> verticesAndNormals;
     std::vector<uint32_t> vertexIndices;
+    std::vector<uint16_t> waterState;
 
     void prepareTextureIndex(std::vector<TextureClass>&);
+    void prepareWaters(const std::vector<PolygonTrigger>&);
     bool setVertexUV(
         VertexData&
       , uint16_t tileIdx

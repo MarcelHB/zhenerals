@@ -1,19 +1,35 @@
 #include <algorithm>
+#include <fstream>
 #include <omp.h>
+
+#include <glm/gtc/matrix_transform.hpp>
 
 #include "fmt/core.h"
 
 #include "common.h"
+#include "Geometry.h"
 #include "Logging.h"
 #include "Map.h"
 #include "formats/TGAFile.h"
 
 namespace ZH {
 
+static constexpr float HEIGHT_SCALE = 0.0625f;
+
 Map::Map(MapBuilder&& builder)
   : size(builder.size)
+  , padding(builder.borderSize)
   , heightMap(std::move(builder.heightMap))
 {
+  worldToGridMatrix =
+    glm::scale(
+        glm::translate(
+          glm::mat4(1.0),
+          glm::vec3(padding, padding, 0.0f)
+        )
+      , glm::vec3(0.1f, 0.1f, HEIGHT_SCALE)
+    );
+
   prepareTextureIndex(builder.textureClasses);
   tesselateHeightMap(
       builder.textureClasses
@@ -22,6 +38,33 @@ Map::Map(MapBuilder&& builder)
     , builder.blendTileIndices
     , builder.blendTileInfo
   );
+  prepareWaters(builder.polygonTriggers);
+}
+
+void Map::prepareWaters(const std::vector<PolygonTrigger>& polygonTriggers) {
+  TRACY(ZoneScoped);
+
+  for (auto& pt : polygonTriggers) {
+    if (!pt.water || pt.points.empty()) {
+      continue;
+    }
+
+    if (waterState.size() == 0) {
+      waterState.resize(size.x * size.y, 0);
+    }
+
+    auto waterPoints = getPointsInPolygon(size, pt.points, worldToGridMatrix);
+    auto waterHeight = static_cast<uint16_t>(pt.points[0].z);
+
+    for (size_t y = 0; y < size.y; ++y) {
+      for (size_t x = 0; x < size.x; ++x) {
+        auto idx = y * size.x + x;
+        if (waterState[idx] == 0 && waterPoints[idx] > 0) {
+          waterState[idx] = waterHeight - std::min(waterHeight, static_cast<uint16_t>(heightMap[idx] * HEIGHT_SCALE * 10));
+        }
+      }
+    }
+  }
 }
 
 void Map::prepareTextureIndex(std::vector<TextureClass>& textureClasses) {
@@ -54,6 +97,10 @@ const std::vector<Map::VertexData>& Map::getVertexData() const {
 
 const std::vector<uint32_t>& Map::getVertexIndices() const {
   return vertexIndices;
+}
+
+const std::vector<uint16_t>& Map::getWater() const {
+  return waterState;
 }
 
 Size Map::getSize() const {
@@ -248,7 +295,7 @@ float Map::getCenterHeight(size_t x, size_t y) {
 
 float Map::getHeight(size_t x, size_t y, uint8_t corner) {
   auto getHeight = [this](size_t x, size_t y) {
-    return heightMap[y * size.x + x] * 0.075f;
+    return heightMap[y * size.x + x] * HEIGHT_SCALE;
   };
 
   // bottom-right
