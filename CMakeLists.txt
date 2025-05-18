@@ -317,6 +317,10 @@ IF (BUILD_TESTING)
   )
 ENDIF()
 
+ADD_UNIT_TEST(Geometry
+  game/tests/Test_Geometry.cpp
+)
+
 ADD_UNIT_TEST(MappedImageINI
   game/inis/INIFile.cpp
   game/inis/MappedImageINI.cpp
