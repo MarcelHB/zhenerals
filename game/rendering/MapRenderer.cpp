@@ -10,6 +10,10 @@ struct TerrainScene {
   alignas(16) glm::vec3 sunLight;
 };
 
+struct WaterScene {
+  alignas(16) glm::mat4 mvp;
+};
+
 MapRenderer::MapRenderer(
     Vugl::Context& vuglContext
   , Battlefield& battlefield
@@ -35,6 +39,21 @@ std::shared_ptr<Vugl::CommandBuffer> MapRenderer::createRenderList(size_t frameI
   if (!terrainPipeline && !prepareTerrainPipeline(renderPass, map->getTexturesIndex())) {
     WARN_ZH("MapRenderer", "Could not setup up terrain rendering");
     return {};
+  }
+
+  if (!map->getWater().empty() && !waterSetupAttempted) {
+    waterSetupAttempted = true;
+    if (!waterVertices && !prepareWaterVertices()) {
+      WARN_ZH("MapRenderer", "Could not set up water");
+      return {};
+    }
+
+    if (!waterPipeline && !prepareWaterPipeline(renderPass)) {
+      WARN_ZH("MapRenderer", "Could not setup up water rendering");
+      return {};
+    }
+
+    hasWater = true;
   }
 
   auto commandBuffer = vuglContext.createCommandBuffer(frameIdx, true);
@@ -84,8 +103,6 @@ std::shared_ptr<Vugl::CommandBuffer> MapRenderer::createRenderList(size_t frameI
   commandBuffer.bindResource(*terrainVertices);
 
   auto numIndices = map->getVertexIndices().size();
-  auto numVertices = map->getVertexData().size();
-
   commandBuffer.draw([numIndices](VkCommandBuffer vkCommandBuffer, uint32_t) {
     vkCmdDrawIndexed(vkCommandBuffer, numIndices, 1, 0, 0, 0);
     return VK_SUCCESS;
@@ -93,6 +110,30 @@ std::shared_ptr<Vugl::CommandBuffer> MapRenderer::createRenderList(size_t frameI
 
   if (vuglContext.isDebuggingAllowed()) {
     commandBuffer.endDebugLabel();
+  }
+
+  if (hasWater) {
+    if (vuglContext.isDebuggingAllowed()) {
+      commandBuffer.beginDebugLabel("Water");
+    }
+
+    WaterScene scene;
+    scene.mvp = projectMatrix * battlefield.getCameraMatrix();
+    waterUniformBuffer->writeData(scene, frameIdx);
+
+    commandBuffer.bindResource(*waterPipeline);
+    commandBuffer.bindResource(*waterDescriptorSet);
+    commandBuffer.bindResource(*waterVertices);
+
+    auto numVertices = map->getWaterVertices().size();
+    commandBuffer.draw([numVertices](VkCommandBuffer vkCommandBuffer, uint32_t) {
+      vkCmdDraw(vkCommandBuffer, numVertices, 1, 0, 0);
+      return VK_SUCCESS;
+    });
+
+    if (vuglContext.isDebuggingAllowed()) {
+      commandBuffer.endDebugLabel();
+    }
   }
 
   commandBuffer.closeRendering();
@@ -157,6 +198,10 @@ bool MapRenderer::prepareTerrainPipeline(
   }
 
   cloudTexture = textureCache.getTexture("tscloudmed.dds");
+  if (!cloudTexture) {
+    return false;
+  }
+
   terrainDescriptorSet->assignTexture(*cloudTexture);
   vuglContext.uploadResource(*cloudTexture);
 
@@ -172,12 +217,74 @@ bool MapRenderer::prepareTerrainVertices() {
 
   terrainVertices->setBigIndexBuffer(true);
   terrainVertices->writeData(map->getVertexData(), map->getVertexIndices());
-
   if (terrainVertices->getLastResult() != VK_SUCCESS) {
     return false;
   }
 
   vuglContext.uploadResource(*terrainVertices);
+
+  return true;
+}
+
+bool MapRenderer::prepareWaterPipeline(Vugl::RenderPass& renderPass) {
+  Vugl::PipelineSetup pipelineSetup {vuglContext.getViewport(), vuglContext.getVkSamplingFlag()};
+  pipelineSetup.vkPipelineInputAssemblyStateCreateInfo.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+  pipelineSetup.vkPipelineDepthStencilCreateInfo.depthTestEnable = VK_TRUE;
+  pipelineSetup.vkPipelineColorBlendAttachmentState.blendEnable = VK_TRUE;
+  pipelineSetup.vkPipelineColorBlendAttachmentState.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
+  pipelineSetup.vkPipelineColorBlendAttachmentState.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+  pipelineSetup.setVSCode(readFile("shaders/water.vert.spv"));
+  pipelineSetup.setFSCode(readFile("shaders/water.frag.spv"));
+
+  pipelineSetup.reserveUniformBuffer(VK_SHADER_STAGE_VERTEX_BIT);
+  pipelineSetup.reserveSampler(VK_SHADER_STAGE_FRAGMENT_BIT);
+  pipelineSetup.reserveTexture(VK_SHADER_STAGE_FRAGMENT_BIT);
+  pipelineSetup.reserveTexture(VK_SHADER_STAGE_FRAGMENT_BIT);
+
+  pipelineSetup.addVertexInput(VK_FORMAT_R32G32B32_SFLOAT, 0, 12, 0);
+  pipelineSetup.addVertexInput(VK_FORMAT_R32G32_SFLOAT, 12, 8, 0);
+  pipelineSetup.addVertexInput(VK_FORMAT_R32_SFLOAT, 20, 4, 0);
+  pipelineSetup.addVertexInput(VK_FORMAT_R32G32_SFLOAT, 24, 8, 0);
+
+  waterPipeline =
+    std::make_unique<Vugl::Pipeline>(vuglContext.createPipeline(pipelineSetup, renderPass.getVkRenderPass()));
+
+  if (waterPipeline->getLastResult() != VK_SUCCESS) {
+    return false;
+  }
+
+  waterUniformBuffer =
+    std::make_shared<Vugl::UniformBuffer>(vuglContext.createUniformBuffer(sizeof(WaterScene)));
+  waterDescriptorSet =
+    std::make_shared<Vugl::DescriptorSet>(waterPipeline->createDescriptorSet());
+  waterDescriptorSet->assignUniformBuffer(*waterUniformBuffer);
+  waterDescriptorSet->assignSampler(*terrainTextureSampler);
+
+  waterTexture = textureCache.getTexture("twwater01.dds");
+  if (!waterTexture) {
+    return false;
+  }
+
+  vuglContext.uploadResource(*waterTexture);
+  waterDescriptorSet->assignTexture(*waterTexture);
+  waterDescriptorSet->assignTexture(*cloudTexture);
+
+  waterDescriptorSet->updateDevice();
+
+  return true;
+}
+
+bool MapRenderer::prepareWaterVertices() {
+  waterVertices =
+    std::make_shared<Vugl::ElementBuffer>(vuglContext.createElementBuffer(0));
+  auto map = battlefield.getMap();
+
+  waterVertices->writeData(map->getWaterVertices(), std::vector<uint16_t>{});
+  if (waterVertices->getLastResult() != VK_SUCCESS) {
+    return false;
+  }
+
+  vuglContext.uploadResource(*waterVertices);
 
   return true;
 }

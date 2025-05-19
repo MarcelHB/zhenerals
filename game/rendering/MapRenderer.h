@@ -28,16 +28,27 @@ class MapRenderer {
     const TerrainINI::Terrains& terrains;
     const WaterINI::WaterSettings& waterSettings;
 
+    bool hasWater = false;
+    bool waterSetupAttempted = false;
+    std::shared_ptr<Vugl::Texture> cloudTexture;
+
     std::shared_ptr<Vugl::DescriptorSet> terrainDescriptorSet;
     std::shared_ptr<Vugl::Pipeline> terrainPipeline;
     std::shared_ptr<Vugl::UniformBuffer> terrainUniformBuffer;
     std::shared_ptr<Vugl::ElementBuffer> terrainVertices;
     std::shared_ptr<Vugl::Sampler> terrainTextureSampler;
     std::vector<std::shared_ptr<Vugl::Texture>> terrainTextures;
-    std::shared_ptr<Vugl::Texture> cloudTexture;
+
+    std::shared_ptr<Vugl::DescriptorSet> waterDescriptorSet;
+    std::shared_ptr<Vugl::Pipeline> waterPipeline;
+    std::shared_ptr<Vugl::Texture> waterTexture;
+    std::shared_ptr<Vugl::UniformBuffer> waterUniformBuffer;
+    std::shared_ptr<Vugl::ElementBuffer> waterVertices;
 
     bool prepareTerrainPipeline(Vugl::RenderPass&, const std::vector<std::string>&);
     bool prepareTerrainVertices();
+    bool prepareWaterPipeline(Vugl::RenderPass&);
+    bool prepareWaterVertices();
 };
 
 }

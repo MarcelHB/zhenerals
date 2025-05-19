@@ -235,7 +235,9 @@ void Game::draw(void *obj) {
     }
 
     primary.beginRendering(renderPass, clearColors);
-    primary.executeSecondary(*battlefieldSecondary);
+    if (battlefieldSecondary) {
+      primary.executeSecondary(*battlefieldSecondary);
+    }
     primary.executeSecondary(*guiSecondary);
     primary.closeRendering();
 

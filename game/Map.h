@@ -205,6 +205,18 @@ class Map {
       glm::vec2 uvCloud;
     };
 
+    struct WaterVertexData {
+      glm::vec3 position;
+      glm::vec2 uv;
+      float opacity;
+      glm::vec2 uvCloud;
+    };
+
+    struct WaterState {
+      float depth = 0;
+      float surfaceHeight = 0;
+    };
+
     Map(MapBuilder&&);
 
     float getCenterHeight(size_t, size_t);
@@ -214,7 +226,8 @@ class Map {
     const std::vector<std::string>& getTexturesIndex() const;
     const std::vector<VertexData>& getVertexData() const;
     const std::vector<uint32_t>& getVertexIndices() const;
-    const std::vector<uint16_t>& getWater() const;
+    const std::vector<WaterState>& getWater() const;
+    const std::vector<WaterVertexData>& getWaterVertices() const;
     const glm::mat4& getWorldToGridMatrix() const;
   private:
     Size size;
@@ -224,8 +237,9 @@ class Map {
     std::vector<std::string> texturesIndex;
 
     std::vector<VertexData> verticesAndNormals;
+    std::vector<WaterVertexData> waterVertices;
     std::vector<uint32_t> vertexIndices;
-    std::vector<uint16_t> waterState;
+    std::vector<WaterState> waterState;
 
     void prepareTextureIndex(std::vector<TextureClass>&);
     void prepareWaters(const std::vector<PolygonTrigger>&);

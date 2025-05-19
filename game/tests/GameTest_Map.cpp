@@ -41,7 +41,7 @@ TEST(MapTest, parsing) {
   uint16_t maxWater = 0;
 
   for (size_t i = 0; i < water.size(); ++i) {
-    auto value = water[i];
+    auto value = static_cast<uint16_t>(water[i].depth);
     maxWater = std::max(value, maxWater);
     minWater = std::min(value, minWater);
   }
@@ -81,7 +81,7 @@ void dumpWaterMap(const Map& map, uint16_t maxWater) {
   for (size_t y = 0; y < size.y; ++y) {
     for (size_t x = 0; x < size.x; ++x) {
       auto v = *(data.data() + (y * size.x + x));
-      out << std::to_string(static_cast<uint16_t>(v)) << " ";
+      out << std::to_string(static_cast<uint16_t>(std::round(v.depth))) << " ";
     }
     out << std::endl;
   }

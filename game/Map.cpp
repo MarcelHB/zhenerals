@@ -44,13 +44,14 @@ Map::Map(MapBuilder&& builder)
 void Map::prepareWaters(const std::vector<PolygonTrigger>& polygonTriggers) {
   TRACY(ZoneScoped);
 
+  size_t numWaterTiles = 0;
   for (auto& pt : polygonTriggers) {
     if (!pt.water || pt.points.empty()) {
       continue;
     }
 
     if (waterState.size() == 0) {
-      waterState.resize(size.x * size.y, 0);
+      waterState.resize(size.x * size.y);
     }
 
     auto waterPoints = getPointsInPolygon(size, pt.points, worldToGridMatrix);
@@ -59,10 +60,59 @@ void Map::prepareWaters(const std::vector<PolygonTrigger>& polygonTriggers) {
     for (size_t y = 0; y < size.y; ++y) {
       for (size_t x = 0; x < size.x; ++x) {
         auto idx = y * size.x + x;
-        if (waterState[idx] == 0 && waterPoints[idx] > 0) {
-          waterState[idx] = waterHeight - std::min(waterHeight, static_cast<uint16_t>(heightMap[idx] * HEIGHT_SCALE * 10));
+        if (waterState[idx].depth == 0 && waterPoints[idx] > 0) {
+          waterState[idx].depth = waterHeight - std::min(static_cast<float>(waterHeight), heightMap[idx] * HEIGHT_SCALE * 10);
+          waterState[idx].surfaceHeight = waterHeight * 0.1f;
+          if (waterState[idx].depth > 0.0f) {
+            numWaterTiles++;
+          }
         }
       }
+    }
+  }
+
+  if (numWaterTiles == 0) {
+    return;
+  }
+
+  waterVertices.resize(numWaterTiles * 6);
+
+  size_t t = 0;
+  for (size_t y = 0; y < size.y; ++y) {
+    for (size_t x = 0; x < size.x; ++x) {
+      auto idx = y * size.x + x;
+      if (waterState[idx].depth == 0.0f) {
+        continue;
+      }
+
+      size_t vertexIndex = t * 6;
+      for (uint8_t i = 0; i < 6; ++i) {
+        auto height = waterState[idx].surfaceHeight;
+        auto& vertex = waterVertices[vertexIndex + i];
+        auto& position = vertex.position;
+
+        float xOffset = 0.0f, yOffset = 0.0f;
+        if (i == 1 || i == 3 || i == 5) {
+          xOffset = 1.0f;
+        }
+        if (i == 2 || i == 3 || i == 4) {
+          yOffset = 1.0f;
+        }
+
+        position.x = x + xOffset;
+        position.y = height;
+        position.z = y + yOffset;
+
+        // Assuming 4x4 for now, three non-opaque depth levels
+        vertex.uv.x = ((x % 4) + xOffset) * 0.25f;
+        vertex.uv.y = ((y % 4) + yOffset) * 0.25f;
+
+        vertex.opacity = std::min(1.0f, waterState[idx].depth / 4.0f);
+
+        vertex.uvCloud.x = position.x / 128.0f;
+        vertex.uvCloud.y = position.z / 128.0f;
+      }
+      t += 1;
     }
   }
 }
@@ -99,8 +149,12 @@ const std::vector<uint32_t>& Map::getVertexIndices() const {
   return vertexIndices;
 }
 
-const std::vector<uint16_t>& Map::getWater() const {
+const std::vector<Map::WaterState>& Map::getWater() const {
   return waterState;
+}
+
+const std::vector<Map::WaterVertexData>& Map::getWaterVertices() const {
+  return waterVertices;
 }
 
 Size Map::getSize() const {
