@@ -177,12 +177,8 @@ void Game::loop() {
 bool Game::processEvent(const SDL_Event& event) {
   TRACY(ZoneScoped);
   switch (event.type) {
-    case SDL_WINDOWEVENT:
-      switch (event.window.event) {
-        case SDL_WINDOWEVENT_CLOSE:
-          return false;
-      }
-      break;
+    case SDL_EVENT_WINDOW_CLOSE_REQUESTED:
+      return false;
   }
 
   if (event.type == eventDispatcher.mapEventToSDL(GameEvent::EXIT)) {

@@ -26,7 +26,7 @@ The source code is subject to GPLv2 unless specified otherwise.
 * CMake
 * FreeType2 development library
 * OpenAL development library
-* SDL2 development library
+* SDL3 development library
 * Vulkan development library
 * glslc
 

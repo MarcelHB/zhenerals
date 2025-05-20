@@ -3,7 +3,7 @@
 
 #include <thread>
 
-#include <SDL2/SDL.h>
+#include <SDL3/SDL.h>
 
 #include "audio/Backend.h"
 #include "audio/Playback.h"

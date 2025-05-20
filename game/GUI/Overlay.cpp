@@ -20,13 +20,13 @@ bool Overlay::processEvent(const SDL_Event& event) {
   }
 
   switch (event.type) {
-    case SDL_MOUSEBUTTONDOWN:
+    case SDL_EVENT_MOUSE_BUTTON_DOWN:
       onCursorClickDown();
       break;
-    case SDL_MOUSEBUTTONUP:
+    case SDL_EVENT_MOUSE_BUTTON_UP:
       onCursorClickUp();
       break;
-    case SDL_MOUSEMOTION:
+    case SDL_EVENT_MOUSE_MOTION:
       auto childPos = (*children.begin())->getPositionOffset();
       Point pos {event.motion.x - childPos.x, event.motion.y - childPos.y};
       Point movement {event.motion.xrel, event.motion.yrel};

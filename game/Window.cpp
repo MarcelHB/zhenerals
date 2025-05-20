@@ -4,7 +4,7 @@
 #include "Window.h"
 
 #define CHECK_SDL(expr) \
-  if ((expr) != SDL_TRUE) { \
+  if (!(expr)) { \
     LOG_ZH("Window/SDL", "error: {}", SDL_GetError());\
     return false; \
   }
@@ -35,23 +35,25 @@ Vugl::Context& Window::getVuglContext() {
 bool Window::init() {
   SDL_Init(SDL_INIT_EVENTS | SDL_INIT_VIDEO);
 
-  sdlWindow =
-    SDL_CreateWindow(
-        "Zhenerals"
-      , SDL_WINDOWPOS_CENTERED
-      , SDL_WINDOWPOS_CENTERED
-      , resolution.x
-      , resolution.y
-      , SDL_WINDOW_SHOWN | SDL_WINDOW_VULKAN
-    );
+  auto props = SDL_CreateProperties();
+  SDL_SetStringProperty(props, SDL_PROP_WINDOW_CREATE_TITLE_STRING, "Zhenerals");
+  SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_X_NUMBER, SDL_WINDOWPOS_CENTERED);
+  SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_Y_NUMBER, SDL_WINDOWPOS_CENTERED);
+  SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_WIDTH_NUMBER, resolution.x);
+  SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_HEIGHT_NUMBER, resolution.y);
+  SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_VULKAN_BOOLEAN, true);
+  sdlWindow = SDL_CreateWindowWithProperties(props);
+  SDL_DestroyProperties(props);
+
   CHECK_SDL(sdlWindow != nullptr);
   //SDL_Delay(4000); // For attaching tracy before all
 
-  std::vector<const char*> vkInstanceExtensionsList;
   uint32_t extCount = 0;
-  CHECK_SDL(SDL_Vulkan_GetInstanceExtensions(sdlWindow, &extCount, nullptr));
-  vkInstanceExtensionsList.resize(extCount);
-  CHECK_SDL(SDL_Vulkan_GetInstanceExtensions(sdlWindow, &extCount, vkInstanceExtensionsList.data()));
+  auto extensionsList = SDL_Vulkan_GetInstanceExtensions(&extCount);
+  std::vector<const char*> vkInstanceExtensionsList(extCount);
+  for (uint32_t i = 0; i < extCount; ++i) {
+    vkInstanceExtensionsList[i] = extensionsList[i];
+  }
 
 #if DEBUGGING
   vkInstanceExtensionsList.resize(extCount + 1);
@@ -77,7 +79,7 @@ bool Window::init() {
   nextDeviceFeatures.runtimeDescriptorArray = VK_TRUE;
   nextDeviceFeatures.shaderSampledImageArrayNonUniformIndexing = VK_TRUE;
 
-  CHECK_SDL(SDL_Vulkan_CreateSurface(sdlWindow, vuglContext->getInstance(), &vkSurface));
+  CHECK_SDL(SDL_Vulkan_CreateSurface(sdlWindow, vuglContext->getInstance(), nullptr, &vkSurface));
   vuglContext->setSurface(
       vkSurface
     , viewport
