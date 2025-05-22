@@ -77,6 +77,39 @@ void Map::prepareWaters(const std::vector<PolygonTrigger>& polygonTriggers) {
 
   waterVertices.resize(numWaterTiles * 6);
 
+  auto getWaterDepth = [this](size_t x, size_t y, uint8_t i) -> float {
+    float h[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+    h[0] = waterState[y * size.x + x].depth;
+
+    if (i == 0) {
+      h[1] = waterState[y * size.x + (x - 1)].depth;
+      h[2] = waterState[(y - 1) * size.x + (x - 1)].depth;
+      h[3] = waterState[(y - 1) * size.x + x].depth;
+    } else if (i == 1) {
+      h[1] = waterState[(y - 1) * size.x + x].depth;
+      h[2] = waterState[(y - 1) * size.x + (x + 1)].depth;
+      h[3] = waterState[y * size.x + (x + 1)].depth;
+    } else if (i == 3) {
+      h[1] = waterState[y * size.x + (x + 1)].depth;
+      h[2] = waterState[(y + 1) * size.x + (x + 1)].depth;
+      h[3] = waterState[(y + 1) * size.x + x].depth;
+    } else {
+      h[1] = waterState[(y + 1) * size.x + x].depth;
+      h[2] = waterState[(y + 1) * size.x + (x - 1)].depth;
+      h[3] = waterState[y * size.x + (x - 1)].depth;
+    }
+
+    float sum = 0.0f;
+    for (uint8_t j = 0; j < 4; j++) {
+      if (h[j] == 0.0f) {
+        return 0.0f;
+      }
+      sum += std::min(1.0f, h[j] / 4.0f);
+    }
+
+    return sum / 4.0f;
+  };
+
   size_t t = 0;
   for (size_t y = 0; y < size.y; ++y) {
     for (size_t x = 0; x < size.x; ++x) {
@@ -86,6 +119,11 @@ void Map::prepareWaters(const std::vector<PolygonTrigger>& polygonTriggers) {
       }
 
       size_t vertexIndex = t * 6;
+      /*
+       *  0-1/5
+       *  | / |
+       *  2/4-3
+       */
       for (uint8_t i = 0; i < 6; ++i) {
         auto height = waterState[idx].surfaceHeight;
         auto& vertex = waterVertices[vertexIndex + i];
@@ -107,11 +145,36 @@ void Map::prepareWaters(const std::vector<PolygonTrigger>& polygonTriggers) {
         vertex.uv.x = ((x % 4) + xOffset) * 0.25f;
         vertex.uv.y = ((y % 4) + yOffset) * 0.25f;
 
-        vertex.opacity = std::min(1.0f, waterState[idx].depth / 4.0f);
-
         vertex.uvCloud.x = position.x / 128.0f;
         vertex.uvCloud.y = position.z / 128.0f;
+
+        // softening depth levels/coast lines
+        if (i == 4 || i == 5) {
+          continue;
+        }
+
+        if (x == 0 || y == 0 || x == size.x - 1 || y == size.y - 1) {
+          vertex.opacity = 0.0f;
+        } else {
+          vertex.opacity = getWaterDepth(x, y, i);
+
+          if (i == 1) {
+            waterVertices[vertexIndex + 5].opacity = vertex.opacity;
+          } else if (i == 2) {
+            waterVertices[vertexIndex + 4].opacity = vertex.opacity;
+          }
+        }
       }
+
+      bool flip =
+        (waterVertices[vertexIndex + 1].opacity == 0.0f && waterVertices[vertexIndex + 2].opacity != 0.0f)
+          || (waterVertices[vertexIndex + 1].opacity != 0.0f && waterVertices[vertexIndex + 2].opacity == 0.0f);
+
+      if (flip) {
+        waterVertices[vertexIndex + 1] = waterVertices[vertexIndex + 3];
+        waterVertices[vertexIndex + 4] = waterVertices[vertexIndex];
+      }
+
       t += 1;
     }
   }
