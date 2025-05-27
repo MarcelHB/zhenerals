@@ -6,6 +6,10 @@
 #include <mutex>
 #include <string>
 
+#ifdef IN_TEST
+#include <iostream>
+#endif
+
 #include "fmt/std.h"
 
 namespace ZH {
@@ -39,8 +43,13 @@ void enqueueLogMessage(LogMessage&& logMessage);
 
 template<typename... ARGS>
 void log(LogLevel level, std::string section, fmt::format_string<ARGS...> message, ARGS&& ...args) {
+#ifdef IN_TEST
+  fmt::print(std::cout, message, std::forward<ARGS>(args)...);
+  fmt::print(std::cout, "\n");
+#else
   auto formattedMessage = fmt::format(message, std::forward<ARGS>(args)...);
   enqueueLogMessage(LogMessage {level, std::move(section), std::move(formattedMessage)});
+#endif
 }
 
 }

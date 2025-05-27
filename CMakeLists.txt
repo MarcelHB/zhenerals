@@ -87,7 +87,7 @@ FUNCTION(ADD_UNIT_TEST unit_name)
       fmt::fmt
     )
 
-    TARGET_COMPILE_DEFINITIONS(Test_${unit_name} PRIVATE NO_TRACY=1)
+    TARGET_COMPILE_DEFINITIONS(Test_${unit_name} PRIVATE NO_TRACY=1 IN_TEST=1)
 
     ADD_TEST(NAME Test_${unit_name}
       COMMAND $<TARGET_FILE:Test_${unit_name}>
@@ -110,7 +110,7 @@ FUNCTION(ADD_GAME_TEST game_test_name)
       fmt::fmt
     )
 
-    TARGET_COMPILE_DEFINITIONS(GameTest_${game_test_name} PRIVATE NO_TRACY=1)
+    TARGET_COMPILE_DEFINITIONS(GameTest_${game_test_name} PRIVATE NO_TRACY=1 IN_TEST=1)
 
     ADD_TEST(NAME GameTest_${game_test_name}
       COMMAND $<TARGET_FILE:GameTest_${game_test_name}>
