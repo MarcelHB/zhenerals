@@ -142,6 +142,7 @@ ADD_EXECUTABLE(zhen
   game/formats/Dict.cpp
   game/formats/TGAFile.cpp
   game/formats/WNDFile.cpp
+  game/formats/W3DFile.cpp
   game/gfx/HostTexture.cpp
   game/gfx/TextureCache.cpp
   game/gfx/TextureLookup.cpp
@@ -383,6 +384,11 @@ ADD_GAME_TEST(MAPFile
   game/inis/TerrainINI.cpp
   game/Script.cpp
   game/tests/GameTest_Map.cpp
+)
+
+ADD_GAME_TEST(W3DFile
+  game/formats/W3DFile.cpp
+  game/tests/GameTest_W3D.cpp
 )
 
 IF (BUILD_TESTING)
