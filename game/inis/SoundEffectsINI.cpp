@@ -57,7 +57,7 @@ bool SoundEffectsINI::parseSoundEffect(SoundEffects& effects) {
       }
       effect.volume = *valueOpt;
     } else if (token == "VolumeShift") {
-      auto valueOpt = parseSignedInteger();
+      auto valueOpt = parseSignedShort();
       if (!valueOpt) {
         return false;
       }
@@ -69,25 +69,25 @@ bool SoundEffectsINI::parseSoundEffect(SoundEffects& effects) {
       }
       effect.minVolume = *valueOpt;
     } else if (token == "PitchShift") {
-      auto valueOpt = parseSignedIntegerPair();
+      auto valueOpt = parseSignedShortPair();
       if (!valueOpt || valueOpt->first < -100 || valueOpt->second < valueOpt->first) {
         return false;
       }
       effect.pitchShift = *valueOpt;
     } else if (token == "Delay") {
-      auto valueOpt = parseIntegerPair();
+      auto valueOpt = parseShortPair();
       if (!valueOpt || valueOpt->second < valueOpt->first) {
         return false;
       }
       effect.delay = *valueOpt;
     } else if (token == "Limit") {
-      auto valueOpt = parseInteger();
+      auto valueOpt = parseShort();
       if (!valueOpt) {
         return false;
       }
       effect.limit = *valueOpt;
     } else if (token == "LoopCount") {
-      auto valueOpt = parseInteger();
+      auto valueOpt = parseShort();
       if (!valueOpt) {
         return false;
       }
@@ -99,13 +99,13 @@ bool SoundEffectsINI::parseSoundEffect(SoundEffects& effects) {
       }
       effect.priority = *valueOpt;
     } else if (token == "MinRange") {
-      auto valueOpt = parseInteger();
+      auto valueOpt = parseShort();
       if (!valueOpt) {
         return false;
       }
       effect.minRange = *valueOpt;
     } else if (token == "MaxRange") {
-      auto valueOpt = parseInteger();
+      auto valueOpt = parseShort();
       if (!valueOpt) {
         return false;
       }

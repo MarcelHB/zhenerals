@@ -54,7 +54,7 @@ void WaterINI::parseWaterSet(WaterSets& waterSets) {
     } else if (token == "TransparentDiffuseColor") {
       water.transparentDiffuseColor = parseRGBA();
     } else if (token == "WaterRepeatCount") {
-      water.waterRepeat = parseInteger().value_or(1);
+      water.waterRepeat = parseShort().value_or(1);
     } else if (token == "UScrollPerMS") {
       water.uPerMs = parseFloat().value_or(0.0f);
     } else if (token == "VScrollPerMS") {
@@ -90,16 +90,16 @@ Color WaterINI::parseRGBA() {
 
   auto values = parseAttributes();
   if (values.contains("R")) {
-    color.r = parseInteger(values["R"]).value_or(0);
+    color.r = std::min(parseInteger(values["R"]).value_or(0), 255u);
   }
   if (values.contains("G")) {
-    color.g = parseInteger(values["G"]).value_or(0);
+    color.g = std::min(parseInteger(values["G"]).value_or(0), 255u);
   }
   if (values.contains("B")) {
-    color.b = parseInteger(values["B"]).value_or(0);
+    color.b = std::min(parseInteger(values["B"]).value_or(0), 255u);
   }
   if (values.contains("A")) {
-    color.a = parseInteger(values["A"]).value_or(255);
+    color.a = std::min(parseInteger(values["A"]).value_or(255), 255u);
   }
 
   return color;

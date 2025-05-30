@@ -29,13 +29,20 @@ class INIFile {
     std::unordered_map<std::string, std::string> parseAttributes();
     bool parseBool();
     std::optional<float> parseFloat();
-    std::optional<uint16_t> parseInteger();
-    std::optional<uint16_t> parseInteger(const std::string&);
-    std::optional<int16_t> parseSignedInteger();
-    std::optional<int16_t> parseSignedInteger(const std::string&);
 
-    std::optional<std::pair<int16_t, int16_t>> parseSignedIntegerPair();
-    std::optional<std::pair<uint16_t, uint16_t>> parseIntegerPair();
+    std::optional<uint8_t> parseByte();
+    std::optional<int8_t> parseSignedByte();
+    // EVAL parse generic list
+    std::optional<uint16_t> parseShort(bool following = false);
+    std::optional<int16_t> parseSignedShort(bool following = false);
+
+    std::optional<uint32_t> parseInteger();
+    std::optional<uint32_t> parseInteger(const std::string&);
+    std::optional<int32_t> parseSignedInteger();
+    std::optional<int32_t> parseSignedInteger(const std::string&);
+
+    std::optional<std::pair<int16_t, int16_t>> parseSignedShortPair();
+    std::optional<std::pair<uint16_t, uint16_t>> parseShortPair();
 
     std::optional<uint8_t> parsePercent();
     std::string parseString();

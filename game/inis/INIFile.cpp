@@ -144,7 +144,83 @@ std::optional<float> INIFile::parseFloat() {
   return stof(token);
 }
 
-std::optional<uint16_t> INIFile::parseInteger() {
+std::optional<uint8_t> INIFile::parseByte() {
+  advanceStream();
+  auto token = getToken();
+  if (token != "=") {
+    return {};
+  }
+
+  advanceStream();
+  token = getToken();
+
+  auto value = parseInteger(token);
+  if (value > std::numeric_limits<uint8_t>::max()) {
+    return {};
+  }
+
+  return value;
+}
+
+std::optional<int8_t> INIFile::parseSignedByte() {
+  advanceStream();
+  auto token = getToken();
+  if (token != "=") {
+    return {};
+  }
+
+  advanceStream();
+  token = getToken();
+
+  auto value = parseInteger(token);
+  if (value < std::numeric_limits<int8_t>::min() || value > std::numeric_limits<int8_t>::max()) {
+    return {};
+  }
+
+  return value;
+}
+
+std::optional<uint16_t> INIFile::parseShort(bool following) {
+  if (!following) {
+    advanceStream();
+    auto token = getToken();
+    if (token != "=") {
+      return {};
+    }
+  }
+
+  advanceStream();
+  auto token = getToken();
+
+  auto value = parseInteger(token);
+  if (value > std::numeric_limits<uint16_t>::max()) {
+    return {};
+  }
+
+  return value;
+}
+
+std::optional<int16_t> INIFile::parseSignedShort(bool following) {
+  if (!following) {
+    advanceStream();
+    auto token = getToken();
+    if (token != "=") {
+      return {};
+    }
+  }
+
+  advanceStream();
+  auto token = getToken();
+
+  auto value = parseSignedInteger(token);
+  if (value < std::numeric_limits<int16_t>::min() && value > std::numeric_limits<int16_t>::max()) {
+    return {};
+  }
+
+  return value;
+}
+
+std::optional<uint32_t> INIFile::parseInteger() {
   advanceStream();
   auto token = getToken();
   if (token != "=") {
@@ -157,7 +233,7 @@ std::optional<uint16_t> INIFile::parseInteger() {
   return parseInteger(token);
 }
 
-std::optional<uint16_t> INIFile::parseInteger(const std::string& s) {
+std::optional<uint32_t> INIFile::parseInteger(const std::string& s) {
   try {
     return {std::stoul(s.c_str(), nullptr)};
   } catch (std::invalid_argument) {
@@ -167,7 +243,7 @@ std::optional<uint16_t> INIFile::parseInteger(const std::string& s) {
   }
 }
 
-std::optional<int16_t> INIFile::parseSignedInteger() {
+std::optional<int32_t> INIFile::parseSignedInteger() {
   advanceStream();
   auto token = getToken();
   if (token != "=") {
@@ -180,7 +256,7 @@ std::optional<int16_t> INIFile::parseSignedInteger() {
   return parseSignedInteger(token);
 }
 
-std::optional<int16_t> INIFile::parseSignedInteger(const std::string& s) {
+std::optional<int32_t> INIFile::parseSignedInteger(const std::string& s) {
   try {
     return {std::stol(s.c_str(), nullptr)};
   } catch (std::invalid_argument) {
@@ -190,25 +266,15 @@ std::optional<int16_t> INIFile::parseSignedInteger(const std::string& s) {
   }
 }
 
-std::optional<std::pair<int16_t, int16_t>> INIFile::parseSignedIntegerPair() {
-  advanceStream();
-  auto token = getToken();
-  if (token != "=") {
-    return {};
-  }
-
-  advanceStream();
-  token = getToken();
+std::optional<std::pair<int16_t, int16_t>> INIFile::parseSignedShortPair() {
   std::pair<int16_t, int16_t> pair;
-  auto valueOpt = parseSignedInteger(token);
+  auto valueOpt = parseSignedShort();
   if (!valueOpt) {
     return {};
   }
   pair.first = *valueOpt;
 
-  advanceStream();
-  token = getToken();
-  valueOpt = parseSignedInteger(token);
+  valueOpt = parseSignedShort(true);
   if (!valueOpt) {
     return {};
   }
@@ -217,25 +283,15 @@ std::optional<std::pair<int16_t, int16_t>> INIFile::parseSignedIntegerPair() {
   return std::make_optional(std::move(pair));
 }
 
-std::optional<std::pair<uint16_t, uint16_t>> INIFile::parseIntegerPair() {
-  advanceStream();
-  auto token = getToken();
-  if (token != "=") {
-    return {};
-  }
-
-  advanceStream();
-  token = getToken();
+std::optional<std::pair<uint16_t, uint16_t>> INIFile::parseShortPair() {
   std::pair<uint16_t, uint16_t> pair;
-  auto valueOpt = parseInteger(token);
+  auto valueOpt = parseShort();
   if (!valueOpt) {
     return {};
   }
   pair.first = *valueOpt;
 
-  advanceStream();
-  token = getToken();
-  valueOpt = parseInteger(token);
+  valueOpt = parseShort(true);
   if (!valueOpt) {
     return {};
   }
@@ -245,16 +301,7 @@ std::optional<std::pair<uint16_t, uint16_t>> INIFile::parseIntegerPair() {
 }
 
 std::optional<uint8_t> INIFile::parsePercent() {
-  advanceStream();
-  auto token = getToken();
-  if (token != "=") {
-    return {};
-  }
-
-  advanceStream();
-  token = getToken();
-
-  auto value = parseInteger(token);
+  auto value = parseShort();
   if (value && *value > 100) {
     value = {100};
   }
