@@ -114,16 +114,16 @@ std::unordered_map<std::string, std::string> INIFile::parseAttributes() {
 
 bool INIFile::parseBool() {
   advanceStream();
-  auto token = getToken();
+  auto token = getTokenInLine();
   if (token != "=") {
     return {};
   }
 
   advanceStream();
   token = getTokenInLine();
-  if (token == "yes") {
+  if (token == "yes" || token == "Yes") {
     return true;
-  } else if (token == "no") {
+  } else if (token == "no" || token == "No") {
     return false;
   }
 
@@ -133,26 +133,26 @@ bool INIFile::parseBool() {
 
 std::optional<float> INIFile::parseFloat() {
   advanceStream();
-  auto token = getToken();
+  auto token = getTokenInLine();
   if (token != "=") {
     return {};
   }
 
   advanceStream();
-  token = getToken();
+  token = getTokenInLine();
 
   return stof(token);
 }
 
 std::optional<uint8_t> INIFile::parseByte() {
   advanceStream();
-  auto token = getToken();
+  auto token = getTokenInLine();
   if (token != "=") {
     return {};
   }
 
   advanceStream();
-  token = getToken();
+  token = getTokenInLine();
 
   auto value = parseInteger(token);
   if (value > std::numeric_limits<uint8_t>::max()) {
@@ -164,13 +164,13 @@ std::optional<uint8_t> INIFile::parseByte() {
 
 std::optional<int8_t> INIFile::parseSignedByte() {
   advanceStream();
-  auto token = getToken();
+  auto token = getTokenInLine();
   if (token != "=") {
     return {};
   }
 
   advanceStream();
-  token = getToken();
+  token = getTokenInLine();
 
   auto value = parseInteger(token);
   if (value < std::numeric_limits<int8_t>::min() || value > std::numeric_limits<int8_t>::max()) {
@@ -183,14 +183,14 @@ std::optional<int8_t> INIFile::parseSignedByte() {
 std::optional<uint16_t> INIFile::parseShort(bool following) {
   if (!following) {
     advanceStream();
-    auto token = getToken();
+    auto token = getTokenInLine();
     if (token != "=") {
       return {};
     }
   }
 
   advanceStream();
-  auto token = getToken();
+  auto token = getTokenInLine();
 
   auto value = parseInteger(token);
   if (value > std::numeric_limits<uint16_t>::max()) {
@@ -203,14 +203,14 @@ std::optional<uint16_t> INIFile::parseShort(bool following) {
 std::optional<int16_t> INIFile::parseSignedShort(bool following) {
   if (!following) {
     advanceStream();
-    auto token = getToken();
+    auto token = getTokenInLine();
     if (token != "=") {
       return {};
     }
   }
 
   advanceStream();
-  auto token = getToken();
+  auto token = getTokenInLine();
 
   auto value = parseSignedInteger(token);
   if (value < std::numeric_limits<int16_t>::min() && value > std::numeric_limits<int16_t>::max()) {
@@ -222,13 +222,13 @@ std::optional<int16_t> INIFile::parseSignedShort(bool following) {
 
 std::optional<uint32_t> INIFile::parseInteger() {
   advanceStream();
-  auto token = getToken();
+  auto token = getTokenInLine();
   if (token != "=") {
     return {};
   }
 
   advanceStream();
-  token = getToken();
+  token = getTokenInLine();
 
   return parseInteger(token);
 }
@@ -245,13 +245,13 @@ std::optional<uint32_t> INIFile::parseInteger(const std::string& s) {
 
 std::optional<int32_t> INIFile::parseSignedInteger() {
   advanceStream();
-  auto token = getToken();
+  auto token = getTokenInLine();
   if (token != "=") {
     return {};
   }
 
   advanceStream();
-  token = getToken();
+  token = getTokenInLine();
 
   return parseSignedInteger(token);
 }
@@ -302,8 +302,9 @@ std::optional<std::pair<uint16_t, uint16_t>> INIFile::parseShortPair() {
 
 std::optional<uint8_t> INIFile::parsePercent() {
   auto value = parseShort();
-  if (value && *value > 100) {
-    value = {100};
+  if (!value || value > 100) {
+    WARN_ZH("INIFile", "Invalid percent value.");
+    return {};
   }
 
   return value;
@@ -312,7 +313,7 @@ std::optional<uint8_t> INIFile::parsePercent() {
 std::string INIFile::parseString() {
   advanceStream();
 
-  auto token = getToken();
+  auto token = getTokenInLine();
   if (token != "=") {
     return {};
   }
@@ -323,7 +324,7 @@ std::string INIFile::parseString() {
 
 std::vector<std::string> INIFile::parseStringList() {
   advanceStream();
-  auto token = getToken();
+  auto token = getTokenInLine();
   if (token != "=") {
     return {};
   }
@@ -339,6 +340,18 @@ std::vector<std::string> INIFile::parseStringList() {
   }
 
   return values;
+}
+
+bool INIFile::parseEmptyAttributeBlock() {
+  advanceStream();
+  auto token = consumeComment();
+
+  if (token == "End") {
+    return true;
+  } else {
+    WARN_ZH("INIFile", "Empty block actually not empty.");
+    return false;
+  }
 }
 
 }

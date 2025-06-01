@@ -45,7 +45,7 @@ bool SoundEffectsINI::parseSoundEffect(SoundEffects& effects) {
   }
 
   advanceStream();
-  auto key = getToken();
+  auto key = getTokenInLine();
   SoundEffect effect;
   token = consumeComment();
 
@@ -138,13 +138,13 @@ bool SoundEffectsINI::parseSoundEffect(SoundEffects& effects) {
 
 std::optional<SoundEffectPriority> SoundEffectsINI::parsePriority() {
   advanceStream();
-  auto token = getToken();
+  auto token = getTokenInLine();
   if (token != "=") {
     return {};
   }
 
   advanceStream();
-  token = getToken();
+  token = getTokenInLine();
 
   if (token == "lowest") {
     return {SoundEffectPriority::LOWEST};

@@ -386,6 +386,13 @@ ADD_GAME_TEST(MAPFile
   game/tests/GameTest_Map.cpp
 )
 
+ADD_GAME_TEST(ObjectsINI
+  game/inis/INIFile.cpp
+  game/inis/ObjectsINI.cpp
+  game/objects/Object.cpp
+  game/tests/GameTest_ObjectsINI.cpp
+)
+
 ADD_GAME_TEST(W3DFile
   game/formats/W3DFile.cpp
   game/tests/GameTest_W3D.cpp

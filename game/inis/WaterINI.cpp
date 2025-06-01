@@ -23,7 +23,7 @@ void WaterINI::parseWaterSet(WaterSets& waterSets) {
   Water water;
 
   advanceStream();
-  auto key = getToken();
+  auto key = getTokenInLine();
   auto token = consumeComment();
 
   while (token != "End" && !stream.eof()) {
@@ -107,7 +107,7 @@ Color WaterINI::parseRGBA() {
 
 void WaterINI::parseWaterTransparency(WaterTransparency& transparency) {
   advanceStream();
-  auto key = getToken();
+  auto key = getTokenInLine();
   auto token = consumeComment();
 
   while (token != "End" && !stream.eof()) {

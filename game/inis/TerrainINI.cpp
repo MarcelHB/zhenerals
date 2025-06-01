@@ -23,7 +23,7 @@ void TerrainINI::parseTerrain(Terrains& terrains) {
   }
 
   advanceStream();
-  auto key = getToken();
+  auto key = getTokenInLine();
   Terrain terrain;
   token = consumeComment();
 
@@ -37,13 +37,13 @@ void TerrainINI::parseTerrain(Terrains& terrains) {
       terrain.type = *typeOpt;
     } else if (token == "Texture") {
       advanceStream();
-      token = getToken();
+      token = getTokenInLine();
       if (token != "=") {
         return;
       }
 
       advanceStream();
-      token = getToken();
+      token = getTokenInLine();
       terrain.textureName = std::move(token);
     }
 
@@ -55,13 +55,13 @@ void TerrainINI::parseTerrain(Terrains& terrains) {
 
 std::optional<TerrainType> TerrainINI::parseType() {
   advanceStream();
-  auto token = getToken();
+  auto token = getTokenInLine();
   if (token != "=") {
     return {};
   }
 
   advanceStream();
-  token = getToken();
+  token = getTokenInLine();
 
   if (token == "NONE") {
     return TerrainType::NONE;

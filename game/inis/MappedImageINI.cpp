@@ -17,14 +17,14 @@ MappedImageINI::MappedImages MappedImageINI::parse() {
 
 bool MappedImageINI::parseCoords(INIImage& iniImage) {
   advanceStream();
-  auto token = getToken();
+  auto token = getTokenInLine();
   if (token != "=") {
     return false;
   }
 
   for (uint8_t i = 0; i < 4; ++i) {
     advanceStream();
-    token = getToken();
+    token = getTokenInLine();
     if (token.starts_with("Left:")) {
       iniImage.topLeft.x = parseIntegerFromCoord(token);
     } else if (token.starts_with("Top:")) {
@@ -64,7 +64,7 @@ bool MappedImageINI::parseMappedImage(MappedImages& mappedImages) {
   }
 
   advanceStream();
-  auto key = getToken();
+  auto key = getTokenInLine();
   INIImage iniImage;
   token = consumeComment();
 
@@ -91,9 +91,9 @@ bool MappedImageINI::parseMappedImage(MappedImages& mappedImages) {
       }
     } else if (token == "Status") {
       advanceStream();
-      getToken(); // =
+      getTokenInLine(); // =
       advanceStream();
-      getToken(); // NONE
+      getTokenInLine(); // NONE
     }
 
     token = consumeComment();
@@ -106,14 +106,14 @@ bool MappedImageINI::parseMappedImage(MappedImages& mappedImages) {
 
 bool MappedImageINI::parseTexture(INIImage& iniImage) {
   advanceStream();
-  auto token = getToken();
+  auto token = getTokenInLine();
 
   if (token != "=") {
     return false;
   }
 
   advanceStream();
-  iniImage.texture = getToken();
+  iniImage.texture = getTokenInLine();
 
   return true;
 }
