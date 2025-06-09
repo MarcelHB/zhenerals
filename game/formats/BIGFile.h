@@ -52,10 +52,10 @@ class BIGFile {
     uint32_t extract(const Iterator& it, char *data, uint32_t offset, uint32_t numBytes);
     Iterator find(const std::string&) const;
     const fs::path& getPath() const;
-  private:
-    IndexT index;
 
     static void normalizeEntryName(std::string&);
+  private:
+    IndexT index;
 };
 
 }
