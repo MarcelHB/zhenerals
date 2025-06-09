@@ -78,5 +78,13 @@ TEST_F(ResourceLoaderTest, findByPrefix) {
   EXPECT_EQ(unit->cend(), it);
 }
 
+TEST_F(ResourceLoaderTest, findByPrefixExactly) {
+  auto it = unit->findByPrefix("Data\\cdkey.txt");
+
+  EXPECT_EQ("data\\cdkey.txt", it.key());
+  ++it;
+  EXPECT_EQ(unit->cend(), it);
+}
+
 }
 

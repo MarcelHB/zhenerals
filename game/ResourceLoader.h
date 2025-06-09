@@ -60,9 +60,9 @@ class ResourceLoader {
     };
 
     Iterator cend() const;
-    Iterator findByPrefix(const std::string&);
+    Iterator findByPrefix(std::string);
 
-    std::optional<MemoryStream> getFileStream(const std::string&, bool silent = false);
+    std::optional<MemoryStream> getFileStream(std::string, bool silent = false);
   private:
     BIGFiles bigFiles;
     std::unordered_map<std::string, std::pair<std::reference_wrapper<BIGFile>, BIGFile::Iterator>> lookupCache;

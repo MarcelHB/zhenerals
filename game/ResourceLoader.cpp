@@ -21,14 +21,17 @@ ResourceLoader::Iterator ResourceLoader::cend() const {
   return {bigFiles.cend()};
 }
 
-ResourceLoader::Iterator ResourceLoader::findByPrefix(const std::string& prefix) {
+ResourceLoader::Iterator ResourceLoader::findByPrefix(std::string prefix) {
   openBIGFiles();
+  BIGFile::normalizeEntryName(prefix);
 
   return {prefix, bigFiles.cbegin(), bigFiles.cend()};
 }
 
-std::optional<ResourceLoader::MemoryStream> ResourceLoader::getFileStream(const std::string& resource, bool silent) {
+std::optional<ResourceLoader::MemoryStream> ResourceLoader::getFileStream(std::string resource, bool silent) {
   TRACY(ZoneScoped);
+
+  BIGFile::normalizeEntryName(resource);
 
   auto cacheIt = lookupCache.find(resource);
   if (cacheIt != lookupCache.cend()) {
