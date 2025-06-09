@@ -77,6 +77,10 @@ std::string INIFile::getTokenInLine() {
     } else {
       auto c = stream.get();
       readBuffer.push_back(c);
+      // stuff being glued, like '=55'
+      if (c == '=') {
+        break;
+      }
     }
   } while (!stream.eof());
 
@@ -302,9 +306,11 @@ std::optional<std::pair<uint16_t, uint16_t>> INIFile::parseShortPair() {
 
 std::optional<uint8_t> INIFile::parsePercent() {
   auto value = parseShort();
-  if (!value || value > 100) {
-    WARN_ZH("INIFile", "Invalid percent value.");
+  if (!value) {
+    WARN_ZH("INIFile", "Invalid percent value: {}", value);
     return {};
+  } else if (value > 100) {
+    return {100};
   }
 
   return value;

@@ -59,7 +59,7 @@ TEST(SoundEffectsINI, parsing) {
   ASSERT_NE(effects.cend(), lookup);
 
   auto& effect2 = lookup->second;
-  EXPECT_EQ(89, effect2.volume);
+  EXPECT_EQ(100, effect2.volume);
   EXPECT_EQ(-14, effect2.volumeShift);
   EXPECT_EQ(72, effect2.minVolume);
   EXPECT_EQ(std::make_pair(23, 45), effect2.pitchShift);
