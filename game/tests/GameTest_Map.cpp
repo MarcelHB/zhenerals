@@ -16,9 +16,13 @@ void dumpWaterMap(const Map&, uint16_t);
 
 TEST(MapTest, parsing) {
   Config config;
+  ResourceLoader nullLoader {{}, config.baseDir};
   ResourceLoader mapsLoader {{"MapsZH.big"}, config.baseDir};
 
-  BattlefieldFactory factory {mapsLoader};
+  ObjectLoader objectLoader {nullLoader};
+  Objects::InstanceFactory instanceFactory {objectLoader};
+
+  BattlefieldFactory factory {mapsLoader, instanceFactory};
   auto battlefield = factory.load("shellmapmd");
   ASSERT_TRUE(battlefield);
 

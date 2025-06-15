@@ -1,29 +1,32 @@
-#ifndef H_GAME_MAP_RENDERER
-#define H_GAME_MAP_RENDERER
+#ifndef H_GAME_BATTLEFIELD_RENDERER
+#define H_GAME_BATTLEFIELD_RENDERER
 
 #include "../Battlefield.h"
 #include "../vugl/vugl_context.h"
+#include "../gfx/ModelCache.h"
 #include "../gfx/TextureCache.h"
 #include "../inis/TerrainINI.h"
 #include "../inis/WaterINI.h"
 
 namespace ZH {
 
-class MapRenderer {
+class BattlefieldRenderer {
   public:
-    MapRenderer(
+    BattlefieldRenderer(
         Vugl::Context&
       , Battlefield&
       , GFX::TextureCache&
+      , GFX::ModelCache&
       , const TerrainINI::Terrains& terrains
       , const WaterINI::WaterSettings& waterSettings
     );
-    MapRenderer(const MapRenderer&) = delete;
+    BattlefieldRenderer(const BattlefieldRenderer&) = delete;
 
     std::shared_ptr<Vugl::CommandBuffer> createRenderList(size_t, Vugl::RenderPass&);
   private:
     Vugl::Context& vuglContext;
     GFX::TextureCache& textureCache;
+    GFX::ModelCache& modelCache;
     Battlefield& battlefield;
     const TerrainINI::Terrains& terrains;
     const WaterINI::WaterSettings& waterSettings;
@@ -31,6 +34,8 @@ class MapRenderer {
     bool hasWater = false;
     bool waterSetupAttempted = false;
     std::shared_ptr<Vugl::Texture> cloudTexture;
+
+    std::shared_ptr<Vugl::Pipeline> modelPipline;
 
     std::shared_ptr<Vugl::DescriptorSet> terrainDescriptorSet;
     std::shared_ptr<Vugl::Pipeline> terrainPipeline;
@@ -45,6 +50,7 @@ class MapRenderer {
     std::shared_ptr<Vugl::UniformBuffer> waterUniformBuffer;
     std::shared_ptr<Vugl::ElementBuffer> waterVertices;
 
+    bool prepareModelPipeline(Vugl::RenderPass&);
     bool prepareTerrainPipeline(Vugl::RenderPass&, const std::vector<std::string>&);
     bool prepareTerrainVertices();
     bool prepareWaterPipeline(Vugl::RenderPass&);

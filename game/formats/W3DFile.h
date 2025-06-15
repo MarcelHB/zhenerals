@@ -2,7 +2,6 @@
 #define H_W3D_FILE
 
 #include <istream>
-#include <optional>
 #include <vector>
 
 #include <glm/glm.hpp>
@@ -11,7 +10,7 @@
 
 namespace ZH {
 
-struct W3DModel3D {
+struct W3DModel {
   struct Triangle {
     glm::uvec3 vertexIndices;
     uint32_t surfaceType;
@@ -44,7 +43,7 @@ struct W3DModel3D {
 class W3DFile {
   public:
     W3DFile(std::istream&);
-    std::optional<W3DModel3D> parse();
+    std::shared_ptr<W3DModel> parse();
   private:
     bool broken = false;
     std::optional<size_t> currentMaterialIdx;
@@ -52,9 +51,9 @@ class W3DFile {
     std::optional<size_t> currentMaterialPassIdx;
     std::istream& stream;
 
-    size_t parseHeader(W3DModel3D&);
-    size_t parseMaterialInfo(W3DModel3D&);
-    size_t parseNextChunk(W3DModel3D&);
+    size_t parseHeader(W3DModel&);
+    size_t parseMaterialInfo(W3DModel&);
+    size_t parseNextChunk(W3DModel&);
 
     template<typename T>
     size_t parseContiguous(std::vector<T>& vector, uint32_t chunkSize) {

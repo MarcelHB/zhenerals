@@ -10,7 +10,8 @@ namespace ZH {
 
 class ObjectsINI : public INIFile {
   public:
-    using ObjectMap = std::unordered_map<std::string, Objects::Builder>;
+    using ObjectMap =
+      std::unordered_map<std::string, std::shared_ptr<Objects::ObjectBuilder>>;
 
     ObjectsINI(std::istream&);
     ObjectMap parse();
@@ -19,10 +20,10 @@ class ObjectsINI : public INIFile {
     bool parseObject(ObjectMap&);
 
   public:
-    bool parseBehavior(Objects::Builder&);
-    bool parseBody(Objects::Builder&);
-    bool parseClientUpdate(Objects::Builder&);
-    bool parseDraw(Objects::Builder&);
+    bool parseBehavior(Objects::ObjectBuilder&);
+    bool parseBody(Objects::ObjectBuilder&);
+    bool parseClientUpdate(Objects::ObjectBuilder&);
+    bool parseDraw(Objects::ObjectBuilder&);
 };
 
 }

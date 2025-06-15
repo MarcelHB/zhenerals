@@ -141,31 +141,31 @@ static INIApplierMap<Objects::Physics> PhysicsDataKVMap = {
   { "KillWhenRestingOnGround", [](Objects::Physics& p, INIFile& f) { p.killOnGround = f.parseBool(); return true; } },
 };
 
-static INIApplierMap<Objects::Builder> ObjectDataKVMap = {
-  { "ArmorSet", [](Objects::Builder& b, INIFile& f) {
+static INIApplierMap<Objects::ObjectBuilder> ObjectDataKVMap = {
+  { "ArmorSet", [](Objects::ObjectBuilder& b, INIFile& f) {
       auto& armorSet = b.armorSets.emplace_back();
       return f.parseAttributeBlock(armorSet, ArmorSetKVMap);
     }
   },
-  { "Behavior", [](Objects::Builder& b, INIFile& f) {
+  { "Behavior", [](Objects::ObjectBuilder& b, INIFile& f) {
       return reinterpret_cast<ObjectsINI&>(f).parseBehavior(b);
     }
   },
-  { "Body", [](Objects::Builder& b, INIFile& f) {
+  { "Body", [](Objects::ObjectBuilder& b, INIFile& f) {
       return reinterpret_cast<ObjectsINI&>(f).parseBody(b);
     }
   },
-  { "ClientUpdate", [](Objects::Builder& b, INIFile& f) {
+  { "ClientUpdate", [](Objects::ObjectBuilder& b, INIFile& f) {
       return reinterpret_cast<ObjectsINI&>(f).parseClientUpdate(b);
     }
   },
-  { "CrushableLevel", [](Objects::Builder& b, INIFile& f) {
+  { "CrushableLevel", [](Objects::ObjectBuilder& b, INIFile& f) {
       auto value = f.parseByte();
       b.crushableLevel = value.value_or(0);
       return value.has_value();
     }
   },
-  { "DisplayName", [](Objects::Builder& b, INIFile& f) {
+  { "DisplayName", [](Objects::ObjectBuilder& b, INIFile& f) {
       auto values = f.parseStringList();
       if (values.empty()) {
         return false;
@@ -176,49 +176,49 @@ static INIApplierMap<Objects::Builder> ObjectDataKVMap = {
       return true;
     }
   },
-  { "Draw", [](Objects::Builder& b, INIFile& f) {
+  { "Draw", [](Objects::ObjectBuilder& b, INIFile& f) {
       return reinterpret_cast<ObjectsINI&>(f).parseDraw(b);
     }
   },
-  { "EditorSorting", [](Objects::Builder& b, INIFile& f) { f.parseString(); return true; } },
-  { "FenceWidth", [](Objects::Builder& b, INIFile& f) { f.parseFloat(); return true; } },
-  { "FenceXOffset", [](Objects::Builder& b, INIFile& f) { f.parseFloat(); return true; } },
-  { "Geometry", [](Objects::Builder& b, INIFile& f) {
+  { "EditorSorting", [](Objects::ObjectBuilder& b, INIFile& f) { f.parseString(); return true; } },
+  { "FenceWidth", [](Objects::ObjectBuilder& b, INIFile& f) { f.parseFloat(); return true; } },
+  { "FenceXOffset", [](Objects::ObjectBuilder& b, INIFile& f) { f.parseFloat(); return true; } },
+  { "Geometry", [](Objects::ObjectBuilder& b, INIFile& f) {
       auto opt = f.parseEnum<Objects::Geometry>(&Objects::getGeometry);
       b.geometry.type = opt.value_or(Objects::Geometry::NONE);
       return opt.has_value();
     }
   },
-  { "GeometryMajorRadius", [](Objects::Builder& b, INIFile& f) {
+  { "GeometryMajorRadius", [](Objects::ObjectBuilder& b, INIFile& f) {
       auto value = f.parseFloat();
       b.geometry.majorRadius = value.value_or(1.0f);
       return value.has_value();
     }
   },
-  { "GeometryMinorRadius", [](Objects::Builder& b, INIFile& f) {
+  { "GeometryMinorRadius", [](Objects::ObjectBuilder& b, INIFile& f) {
       auto value = f.parseFloat();
       b.geometry.minorRadius = value.value_or(1.0f);
       return value.has_value();
     }
   },
-  { "GeometryHeight", [](Objects::Builder& b, INIFile& f) {
+  { "GeometryHeight", [](Objects::ObjectBuilder& b, INIFile& f) {
       auto value = f.parseFloat();
       b.geometry.height = value.value_or(1.0f);
       return value.has_value();
     }
   },
-  { "GeometryIsSmall", [](Objects::Builder& b, INIFile& f) { b.geometry.small = f.parseBool(); return true; } },
-  { "InstanceScaleFuzziness", [](Objects::Builder& b, INIFile& f) {
+  { "GeometryIsSmall", [](Objects::ObjectBuilder& b, INIFile& f) { b.geometry.small = f.parseBool(); return true; } },
+  { "InstanceScaleFuzziness", [](Objects::ObjectBuilder& b, INIFile& f) {
       auto value = f.parseFloat();
       b.scaleFuzziness = value.value_or(1.0f);
       return value.has_value();
     }
   },
-  { "KindOf", [](Objects::Builder& b, INIFile& f) {
+  { "KindOf", [](Objects::ObjectBuilder& b, INIFile& f) {
       return f.parseEnumSet<Objects::Attribute>(b.attributes, &Objects::getAttribute);
     }
   },
-  { "Shadow", [](Objects::Builder& b, INIFile& f) {
+  { "Shadow", [](Objects::ObjectBuilder& b, INIFile& f) {
       auto opt = f.parseEnum<Objects::Shadow>(&Objects::getShadow);
       b.shadow.type = opt.value_or(Objects::Shadow::NONE);
       return opt.has_value();
@@ -328,7 +328,7 @@ bool ObjectsINI::parseObject(ObjectMap& objects) {
   advanceStream();
   auto key = getTokenInLine();
 
-  Objects::Builder builder;
+  Objects::ObjectBuilder builder;
 
   if (reskinning) {
     advanceStream();
@@ -336,21 +336,24 @@ bool ObjectsINI::parseObject(ObjectMap& objects) {
 
     auto lookup = objects.find(reskinFrom);
     if (lookup != objects.cend()) {
-      builder = lookup->second;
+      builder = *lookup->second;
     } else {
       WARN_ZH("ObjectsINI", "Cannot reskin from {}", reskinFrom);
     }
   }
 
   if (parseAttributeBlock(builder, ObjectDataKVMap)) {
-    objects.emplace(std::move(key), std::move(builder));
+    objects.emplace(
+        std::move(key)
+      , std::make_shared<Objects::ObjectBuilder>(std::move(builder))
+    );
     return true;
   } else {
     return false;
   }
 }
 
-bool ObjectsINI::parseBehavior(Objects::Builder& builder) {
+bool ObjectsINI::parseBehavior(Objects::ObjectBuilder& builder) {
   advanceStream();
   auto token = getTokenInLine();
   if (token != "=") {
@@ -406,7 +409,7 @@ bool ObjectsINI::parseBehavior(Objects::Builder& builder) {
   return success;
 }
 
-bool ObjectsINI::parseBody(Objects::Builder& builder) {
+bool ObjectsINI::parseBody(Objects::ObjectBuilder& builder) {
   advanceStream();
   auto token = getTokenInLine();
   if (token != "=") {
@@ -445,7 +448,7 @@ bool ObjectsINI::parseBody(Objects::Builder& builder) {
   return success;
 }
 
-bool ObjectsINI::parseClientUpdate(Objects::Builder& builder) {
+bool ObjectsINI::parseClientUpdate(Objects::ObjectBuilder& builder) {
   advanceStream();
   auto token = getTokenInLine();
   if (token != "=") {
@@ -479,7 +482,7 @@ bool ObjectsINI::parseClientUpdate(Objects::Builder& builder) {
   return success;
 }
 
-bool ObjectsINI::parseDraw(Objects::Builder& builder) {
+bool ObjectsINI::parseDraw(Objects::ObjectBuilder& builder) {
   advanceStream();
   auto token = getTokenInLine();
   if (token != "=") {

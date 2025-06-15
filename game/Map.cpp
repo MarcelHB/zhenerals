@@ -16,7 +16,7 @@ namespace ZH {
 
 static constexpr float HEIGHT_SCALE = 0.0625f;
 
-Map::Map(MapBuilder&& builder)
+Map::Map(MapBuilder& builder)
   : size(builder.size)
   , padding(builder.borderSize)
   , heightMap(std::move(builder.heightMap))

@@ -1,0 +1,21 @@
+#ifndef H_GAME_OBJECTS_INSTANCE_FACTORY
+#define H_GAME_OBJECTS_INSTANCE_FACTORY
+
+#include "Instance.h"
+#include "../Map.h"
+#include "../ObjectLoader.h"
+
+namespace ZH::Objects {
+
+class InstanceFactory {
+  public:
+    InstanceFactory(ObjectLoader& objectLoader);
+
+    std::shared_ptr<Instance> getInstance(MapObject&) const;
+  private:
+    ObjectLoader& objectLoader;
+};
+
+}
+
+#endif

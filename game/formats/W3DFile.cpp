@@ -24,9 +24,9 @@ W3DFile::W3DFile(std::istream& stream) : stream(stream) {}
     return totalBytes; \
   }
 
-std::optional<W3DModel3D> W3DFile::parse() {
+std::shared_ptr<W3DModel> W3DFile::parse() {
   TRACY(ZoneScoped);
-  W3DModel3D model;
+  W3DModel model;
 
   while (!stream.eof() && !broken) {
     parseNextChunk(model);
@@ -36,10 +36,10 @@ std::optional<W3DModel3D> W3DFile::parse() {
     return {};
   }
 
-  return {model};
+  return std::make_shared<W3DModel>(std::move(model));
 }
 
-size_t W3DFile::parseNextChunk(W3DModel3D& model) {
+size_t W3DFile::parseNextChunk(W3DModel& model) {
   uint32_t buffer4 = 0;
   size_t bytesRead = 0;
   size_t totalBytes = 0;
@@ -187,7 +187,7 @@ size_t W3DFile::parseNextChunk(W3DModel3D& model) {
   return totalBytes;
 }
 
-size_t W3DFile::parseMaterialInfo(W3DModel3D& model) {
+size_t W3DFile::parseMaterialInfo(W3DModel& model) {
   uint32_t buffer4 = 0;
   size_t bytesRead = 0;
   size_t totalBytes = 0;
@@ -210,7 +210,7 @@ size_t W3DFile::parseMaterialInfo(W3DModel3D& model) {
   return totalBytes;
 }
 
-size_t W3DFile::parseHeader(W3DModel3D& model) {
+size_t W3DFile::parseHeader(W3DModel& model) {
   uint32_t buffer4 = 0;
   float bufferf = 0.0f;
   size_t bytesRead = 0;

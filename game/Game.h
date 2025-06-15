@@ -13,10 +13,13 @@
 #include "EventDispatcher.h"
 #include "inis/TerrainINI.h"
 #include "inis/WaterINI.h"
+#include "ObjectLoader.h"
+#include "objects/InstanceFactory.h"
 #include "ResourceLoader.h"
 #include "StringLoader.h"
 #include "Window.h"
 #include "WindowFactory.h"
+#include "gfx/ModelCache.h"
 #include "gfx/TextureCache.h"
 #include "gfx/TextureLookup.h"
 #include "gfx/font/FontManager.h"
@@ -24,7 +27,7 @@
 #include "GUI/Overlay.h"
 #include "GUI/drawing/RenderListFactory.h"
 #include "GUI/hosts/MainMenu.h"
-#include "rendering/MapRenderer.h"
+#include "rendering/BattlefieldRenderer.h"
 
 namespace ZH {
 
@@ -50,9 +53,13 @@ class Game {
     std::shared_ptr<ResourceLoader> audioResourceLoader;
     std::shared_ptr<Audio::Playback> audioPlayback;
     std::shared_ptr<ResourceLoader> iniResourceLoader;
+    std::shared_ptr<Objects::InstanceFactory> instanceFactory;
     std::shared_ptr<ResourceLoader> languageResourceLoader;
     std::shared_ptr<ResourceLoader> mapsLoader;
-    std::shared_ptr<MapRenderer> mapRenderer;
+    std::shared_ptr<BattlefieldRenderer> mapRenderer;
+    std::shared_ptr<GFX::ModelCache> modelCache;
+    std::shared_ptr<ResourceLoader> modelLoader;
+    std::shared_ptr<ObjectLoader> objectLoader;
     std::shared_ptr<StringLoader> stringLoader;
     std::shared_ptr<ResourceLoader> texturesResourceLoader;
     std::shared_ptr<WindowFactory> windowFactory;

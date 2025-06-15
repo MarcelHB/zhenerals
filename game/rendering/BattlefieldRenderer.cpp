@@ -1,7 +1,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 #include "../Logging.h"
-#include "MapRenderer.h"
+#include "BattlefieldRenderer.h"
 
 namespace ZH {
 
@@ -14,42 +14,44 @@ struct WaterScene {
   alignas(16) glm::mat4 mvp;
 };
 
-MapRenderer::MapRenderer(
+BattlefieldRenderer::BattlefieldRenderer(
     Vugl::Context& vuglContext
   , Battlefield& battlefield
   , GFX::TextureCache& textureCache
+  , GFX::ModelCache& modelCache
   , const TerrainINI::Terrains& terrains
   , const WaterINI::WaterSettings& waterSettings
 ) : vuglContext(vuglContext)
   , textureCache(textureCache)
+  , modelCache(modelCache)
   , battlefield(battlefield)
   , terrains(terrains)
   , waterSettings(waterSettings)
 {}
 
-std::shared_ptr<Vugl::CommandBuffer> MapRenderer::createRenderList(size_t frameIdx, Vugl::RenderPass& renderPass) {
+std::shared_ptr<Vugl::CommandBuffer> BattlefieldRenderer::createRenderList(size_t frameIdx, Vugl::RenderPass& renderPass) {
   TRACY(ZoneScoped);
 
   if (!terrainVertices && !prepareTerrainVertices()) {
-    WARN_ZH("MapRenderer", "Could not set up terrain");
+    WARN_ZH("BattlefieldRenderer", "Could not set up terrain");
     return {};
   }
 
   auto map = battlefield.getMap();
   if (!terrainPipeline && !prepareTerrainPipeline(renderPass, map->getTexturesIndex())) {
-    WARN_ZH("MapRenderer", "Could not setup up terrain rendering");
+    WARN_ZH("BattlefieldRenderer", "Could not setup up terrain rendering");
     return {};
   }
 
   if (!map->getWater().empty() && !waterSetupAttempted) {
     waterSetupAttempted = true;
     if (!waterVertices && !prepareWaterVertices()) {
-      WARN_ZH("MapRenderer", "Could not set up water");
+      WARN_ZH("BattlefieldRenderer", "Could not set up water");
       return {};
     }
 
     if (!waterPipeline && !prepareWaterPipeline(renderPass)) {
-      WARN_ZH("MapRenderer", "Could not setup up water rendering");
+      WARN_ZH("BattlefieldRenderer", "Could not setup up water rendering");
       return {};
     }
 
@@ -141,7 +143,28 @@ std::shared_ptr<Vugl::CommandBuffer> MapRenderer::createRenderList(size_t frameI
   return std::make_shared<Vugl::CommandBuffer>(std::move(commandBuffer));
 }
 
-bool MapRenderer::prepareTerrainPipeline(
+bool BattlefieldRenderer::prepareModelPipeline(Vugl::RenderPass& renderPass) {
+  Vugl::PipelineSetup pipelineSetup {vuglContext.getViewport(), vuglContext.getVkSamplingFlag()};
+  pipelineSetup.vkPipelineInputAssemblyStateCreateInfo.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+  pipelineSetup.vkPipelineDepthStencilCreateInfo.depthTestEnable = VK_TRUE;
+  pipelineSetup.setVSCode(readFile("shaders/model.vert.spv"));
+  pipelineSetup.setFSCode(readFile("shaders/model.frag.spv"));
+
+  pipelineSetup.addVertexInput(VK_FORMAT_R32G32B32_SFLOAT, 0, 12, 0);
+  pipelineSetup.addVertexInput(VK_FORMAT_R32G32B32_SFLOAT, 12, 12, 0);
+  pipelineSetup.addVertexInput(VK_FORMAT_R32G32_SFLOAT, 24, 8, 0);
+
+  modelPipline =
+    std::make_unique<Vugl::Pipeline>(vuglContext.createPipeline(pipelineSetup, renderPass.getVkRenderPass()));
+
+  if (modelPipline->getLastResult() != VK_SUCCESS) {
+    return false;
+  }
+
+  return true;
+}
+
+bool BattlefieldRenderer::prepareTerrainPipeline(
     Vugl::RenderPass& renderPass
   , const std::vector<std::string>& texturesIndex
 ) {
@@ -184,13 +207,13 @@ bool MapRenderer::prepareTerrainPipeline(
   for (auto& keyName : texturesIndex) {
     auto terrainLookup = terrains.find(keyName);
     if (terrainLookup == terrains.cend()) {
-      WARN_ZH("MapRenderer", "Terrain not found");
+      WARN_ZH("BattlefieldRenderer", "Terrain not found");
       continue;
     }
 
     auto texture = terrainTextures.emplace_back(textureCache.getTexture(terrainLookup->second.textureName));
     if (!texture) {
-      WARN_ZH("MapRenderer", "Terrain texture not found");
+      WARN_ZH("BattlefieldRenderer", "Terrain texture not found");
       continue;
     }
     terrainDescriptorSet->assignTexture(*texture, 2);
@@ -210,7 +233,7 @@ bool MapRenderer::prepareTerrainPipeline(
   return true;
 }
 
-bool MapRenderer::prepareTerrainVertices() {
+bool BattlefieldRenderer::prepareTerrainVertices() {
   terrainVertices =
     std::make_shared<Vugl::ElementBuffer>(vuglContext.createElementBuffer(0));
   auto map = battlefield.getMap();
@@ -226,7 +249,7 @@ bool MapRenderer::prepareTerrainVertices() {
   return true;
 }
 
-bool MapRenderer::prepareWaterPipeline(Vugl::RenderPass& renderPass) {
+bool BattlefieldRenderer::prepareWaterPipeline(Vugl::RenderPass& renderPass) {
   Vugl::PipelineSetup pipelineSetup {vuglContext.getViewport(), vuglContext.getVkSamplingFlag()};
   pipelineSetup.vkPipelineInputAssemblyStateCreateInfo.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
   pipelineSetup.vkPipelineDepthStencilCreateInfo.depthTestEnable = VK_TRUE;
@@ -274,7 +297,7 @@ bool MapRenderer::prepareWaterPipeline(Vugl::RenderPass& renderPass) {
   return true;
 }
 
-bool MapRenderer::prepareWaterVertices() {
+bool BattlefieldRenderer::prepareWaterVertices() {
   waterVertices =
     std::make_shared<Vugl::ElementBuffer>(vuglContext.createElementBuffer(0));
   auto map = battlefield.getMap();

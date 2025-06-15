@@ -151,7 +151,7 @@ struct WeaponSet {
   bool sharedLock = false;
 };
 
-struct Builder {
+struct ObjectBuilder {
   std::list<Behavior> behaviors;
   std::optional<Behavior> body;
   std::optional<Behavior> clientUpdate;

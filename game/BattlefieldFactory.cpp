@@ -6,7 +6,12 @@
 
 namespace ZH {
 
-BattlefieldFactory::BattlefieldFactory(ResourceLoader& mapLoader) : mapLoader(mapLoader) {}
+BattlefieldFactory::BattlefieldFactory(
+    ResourceLoader& mapLoader
+  , Objects::InstanceFactory& instaceFactory
+) : mapLoader(mapLoader)
+  , instanceFactory(instanceFactory)
+{}
 
 std::shared_ptr<Battlefield> BattlefieldFactory::load(const std::string& mapFileName) {
   std::string path = fmt::format("maps\\{}\\{}.map", mapFileName, mapFileName);
@@ -25,9 +30,13 @@ std::shared_ptr<Battlefield> BattlefieldFactory::load(const std::string& mapFile
     return {};
   }
 
-  auto map = std::make_shared<Map>(std::move(*mapBuilder));
+  auto map = std::make_shared<Map>(*mapBuilder);
 
-  return std::make_shared<Battlefield>(map);
+  return std::make_shared<Battlefield>(
+      map
+    , *mapBuilder
+    , instanceFactory
+  );
 }
 
 }

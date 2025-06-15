@@ -63,7 +63,21 @@ bool Game::init() {
       new ResourceLoader {{"MapsZH.big", "ZH_Generals/Maps.big"} , config.baseDir}
     );
 
-  battlefieldFactory = std::make_shared<BattlefieldFactory>(*mapsLoader);
+  modelLoader =
+    std::shared_ptr<ResourceLoader>(
+      new ResourceLoader {{"W3DZH.big", "ZH_Generals/W3D.big"} , config.baseDir}
+    );
+  modelCache = std::make_shared<GFX::ModelCache>(*modelLoader);
+
+  objectLoader = std::make_shared<ObjectLoader>(*iniResourceLoader);
+  if (!objectLoader->init()) {
+    ERROR_ZH("Game", "Could not load objects list");
+  }
+
+  objectLoader = std::make_shared<ObjectLoader>(*iniResourceLoader);
+  instanceFactory = std::make_shared<Objects::InstanceFactory>(*objectLoader);
+
+  battlefieldFactory = std::make_shared<BattlefieldFactory>(*mapsLoader, *instanceFactory);
 
   textureLookup = std::make_shared<GFX::TextureLookup>(*iniResourceLoader);
   if (!textureLookup->load()) {
@@ -145,10 +159,11 @@ bool Game::init() {
   }
 
   mapRenderer =
-    std::make_shared<MapRenderer>(
+    std::make_shared<BattlefieldRenderer>(
         window.getVuglContext()
       , *mainMenuMap
       , *textureCache
+      , *modelCache
       , terrains
       , waterSettings
     );

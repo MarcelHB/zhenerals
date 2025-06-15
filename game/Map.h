@@ -217,7 +217,7 @@ class Map {
       float surfaceHeight = 0;
     };
 
-    Map(MapBuilder&&);
+    Map(MapBuilder&);
 
     float getCenterHeight(size_t, size_t);
     float getHeight(size_t, size_t, uint8_t);

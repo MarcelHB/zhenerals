@@ -4,8 +4,12 @@
 
 namespace ZH {
 
-Battlefield::Battlefield(std::shared_ptr<Map> map)
-  : map(map)
+Battlefield::Battlefield(
+    std::shared_ptr<Map> map
+  , MapBuilder& mapBuilder
+  , Objects::InstanceFactory& instanceFactory
+) : map(map)
+  , instanceFactory(instanceFactory)
 {
   auto size = map->getSize();
   cameraTarget =

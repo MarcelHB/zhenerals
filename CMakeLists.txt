@@ -144,6 +144,8 @@ ADD_EXECUTABLE(zhen
   game/formats/WNDFile.cpp
   game/formats/W3DFile.cpp
   game/gfx/HostTexture.cpp
+  game/gfx/Model.cpp
+  game/gfx/ModelCache.cpp
   game/gfx/TextureCache.cpp
   game/gfx/TextureLookup.cpp
   game/gfx/font/Atlas.cpp
@@ -168,16 +170,20 @@ ADD_EXECUTABLE(zhen
   game/InflatingStream.cpp
   game/inis/INIFile.cpp
   game/inis/MappedImageINI.cpp
+  game/inis/ObjectsINI.cpp
   game/inis/SoundEffectsINI.cpp
   game/inis/TerrainINI.cpp
   game/inis/WaterINI.cpp
   game/Main.cpp
   game/Map.cpp
+  game/objects/InstanceFactory.cpp
+  game/objects/Object.cpp
+  game/ObjectLoader.cpp
   game/MurmurHash.cpp
   game/Logger.cpp
   game/Logging.cpp
   game/ResourceLoader.cpp
-  game/rendering/MapRenderer.cpp
+  game/rendering/BattlefieldRenderer.cpp
   game/Script.cpp
   game/StringLoader.cpp
   game/Window.cpp
@@ -375,12 +381,19 @@ ADD_GAME_TEST(MAPFile
   game/Battlefield.cpp
   game/BattlefieldFactory.cpp
   game/gfx/HostTexture.cpp
+  game/gfx/Model.cpp
+  game/gfx/ModelCache.cpp
   game/InflatingStream.cpp
   game/Map.cpp
+  game/objects/InstanceFactory.cpp
+  game/objects/Object.cpp
+  game/ObjectLoader.cpp
   game/formats/Dict.cpp
   game/formats/MAPFile.cpp
   game/formats/TGAFile.cpp
+  game/formats/W3DFile.cpp
   game/inis/INIFile.cpp
+  game/inis/ObjectsINI.cpp
   game/inis/TerrainINI.cpp
   game/Script.cpp
   game/tests/GameTest_Map.cpp
