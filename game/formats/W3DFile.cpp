@@ -1,7 +1,7 @@
 #include <array>
 #include <cstdint>
 
-#include "../Common.h"
+#include "../common.h"
 #include "W3DFile.h"
 
 namespace ZH {
