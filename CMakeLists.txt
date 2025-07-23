@@ -143,6 +143,7 @@ ADD_EXECUTABLE(zhen
   game/formats/TGAFile.cpp
   game/formats/WNDFile.cpp
   game/formats/W3DFile.cpp
+  game/gfx/FrameDisposable.cpp
   game/gfx/HostTexture.cpp
   game/gfx/Model.cpp
   game/gfx/ModelCache.cpp

@@ -10,6 +10,7 @@
 #include "../Button.h"
 #include "../Label.h"
 #include "../Window.h"
+#include "../../gfx/FrameDisposable.h"
 #include "../../gfx/TextureCache.h"
 #include "../../gfx/font/FontManager.h"
 #include "../../MurmurHash.h"
@@ -72,23 +73,12 @@ struct TextureBundle {
 
 using NineTextures = std::array<std::optional<TextureBundle>, 9>;
 
-class FrameDisposable {
-  public:
-    uint8_t getMisses() const;
-
-    void increaseMiss();
-    void decreaseMiss();
-
-  private:
-    uint8_t misses = 0;
-};
-
-struct ResourceBundle : public FrameDisposable {
+struct ResourceBundle : public GFX::FrameDisposable {
     NineTextures enabledTextures;
     NineTextures highlightTextures;
 };
 
-struct TextHolderBundle : public FrameDisposable {
+struct TextHolderBundle : public GFX::FrameDisposable {
     glm::mat4 matrix;
     std::shared_ptr<Vugl::DescriptorSet> descriptorSet;
     std::shared_ptr<Vugl::UniformBuffer> matrixBuffer;
@@ -112,7 +102,7 @@ struct TextCacheKeyCmp {
   }
 };
 
-struct TextCacheEntry : public FrameDisposable {
+struct TextCacheEntry : public GFX::FrameDisposable {
     TextCacheEntry (Vugl::ElementBuffer&&, size_t);
 
     Vugl::ElementBuffer vertexBuffer;
