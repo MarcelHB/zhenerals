@@ -8,18 +8,16 @@ namespace ZH::GFX {
 
 ModelCache::ModelCache(
     ResourceLoader& resourceLoader
-  , size_t capacity
-) : capacity(capacity)
-  , resourceLoader(resourceLoader)
+) : resourceLoader(resourceLoader)
 {}
 
 std::shared_ptr<Model> ModelCache::getModel(const std::string& key) {
   TRACY(ZoneScoped);
 
   auto path = fmt::format("art\\w3d\\{}.w3d", key);
-  auto cacheLookup = models.find(path);
-  if (cacheLookup != models.cend()) {
-    return cacheLookup->second;
+  auto cacheLookup = modelCache.get(path);
+  if (cacheLookup) {
+    return cacheLookup;
   }
 
   auto lookup = resourceLoader.getFileStream(path, true);
@@ -34,28 +32,12 @@ std::shared_ptr<Model> ModelCache::getModel(const std::string& key) {
   if (!w3dModel) {
     return {};
   }
-  auto model = Model::fromW3D(*w3dModel);
 
-  if (models.size() >= capacity) {
-    tryCleanUpCache();
-  }
+  auto model =
+    std::make_shared<Model>(std::move(Model::fromW3D(*w3dModel)));
+  modelCache.put(path, model);
 
-  auto cachedModel = std::make_shared<Model>(std::move(model));
-
-  auto result = models.emplace(std::move(key), cachedModel);
-  if (result.second) {
-    usage.push(result.first);
-  }
-
-  return cachedModel;
-}
-
-void ModelCache::tryCleanUpCache() {
-  auto& top = usage.top();
-  if (top->second.use_count() == 1) {
-    usage.pop();
-    models.erase(top);
-  }
+  return model;
 }
 
 }

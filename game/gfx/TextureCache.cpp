@@ -18,19 +18,10 @@ TextureCache::TextureCache(
     Vugl::Context& vuglContext
   , ResourceLoader& textureLoader
   , Font::FontManager& fontManager
-  , size_t capacity
-)
-  : capacity(capacity)
-  , vuglContext(vuglContext)
+) : vuglContext(vuglContext)
   , textureLoader(textureLoader)
   , fontManager(fontManager)
-{
-  auto queueOrder = [](TextureMapIt& a, TextureMapIt& b) {
-    return a->second.use_count() < b->second.use_count();
-  };
-
-  usage = decltype(usage) {queueOrder};
-}
+{ }
 
 std::shared_ptr<Vugl::CombinedSampler> TextureCache::getFontTextureSampler(uint8_t size, bool bold) {
   Font::FontKey key {size, bold};
@@ -129,9 +120,9 @@ std::shared_ptr<Vugl::CombinedSampler> TextureCache::getTextureSampler(const std
     std::string path {prefix};
     path.append(key);
 
-    auto cacheLookup = textures.find(path);
-    if (cacheLookup != textures.cend()) {
-      return cacheLookup->second;
+    auto cacheLookup = textureCache.get(path);
+    if (cacheLookup) {
+      return cacheLookup;
     }
 
     lookup = textureLoader.getFileStream(path, true);
@@ -177,15 +168,7 @@ std::shared_ptr<Vugl::CombinedSampler> TextureCache::getTextureSampler(const std
 
   auto cachedSampler =
     std::make_shared<Vugl::CombinedSampler>(std::move(uploadSampler));
-
-  if (textures.size() >= capacity) {
-    tryCleanUpCache();
-  }
-
-  auto result = textures.emplace(key, cachedSampler);
-  if (result.second) {
-    usage.push(result.first);
-  }
+  textureCache.put(key, cachedSampler);
 
   return cachedSampler;
 }
@@ -199,15 +182,6 @@ VkFormat TextureCache::mappedFormat(HostTexture::Format format) {
     default:
       WARN_ZH("TextureCache", "Unmapped format, falling back");
       return VK_FORMAT_R8G8B8A8_UNORM;
-  }
-}
-
-void TextureCache::tryCleanUpCache() {
-  auto& top = usage.top();
-  // Drop one element that is not in use r/n
-  if (top->second.use_count() == 1) {
-    usage.pop();
-    textures.erase(top);
   }
 }
 

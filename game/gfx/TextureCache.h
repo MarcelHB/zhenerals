@@ -6,6 +6,7 @@
 #include <queue>
 #include <vector>
 
+#include "../Cache.h"
 #include "../ResourceLoader.h"
 #include "../vugl/vugl_context.h"
 #include "HostTexture.h"
@@ -19,7 +20,6 @@ class TextureCache {
         Vugl::Context& vuglContext
       , ResourceLoader& textureLoader
       , Font::FontManager& fontManager
-      , size_t capacity = 128
     );
 
     std::shared_ptr<Vugl::CombinedSampler> getFontTextureSampler(uint8_t, bool bold = false);
@@ -28,23 +28,13 @@ class TextureCache {
     std::shared_ptr<Vugl::CombinedSampler> getTextureSampler(const std::string&);
 
   private:
-    size_t capacity;
+    Cache<Vugl::CombinedSampler> textureCache;
+    std::unordered_map<Font::FontKey, std::shared_ptr<Vugl::CombinedSampler>> fontTextures;
     Vugl::Context& vuglContext;
     ResourceLoader& textureLoader;
     Font::FontManager& fontManager;
 
-    std::map<std::string, std::shared_ptr<Vugl::CombinedSampler>> textures;
-    std::unordered_map<Font::FontKey, std::shared_ptr<Vugl::CombinedSampler>> fontTextures;
-
-    using TextureMapIt = decltype(textures)::const_iterator;
-    std::priority_queue<
-        TextureMapIt
-      , std::vector<TextureMapIt>
-      , std::function<bool(TextureMapIt&, TextureMapIt&)>
-    > usage;
-
     VkFormat mappedFormat(HostTexture::Format format);
-    void tryCleanUpCache();
 };
 
 }
