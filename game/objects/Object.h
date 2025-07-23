@@ -153,8 +153,8 @@ struct WeaponSet {
 
 struct ObjectBuilder {
   std::list<Behavior> behaviors;
-  std::optional<Behavior> body;
-  std::optional<Behavior> clientUpdate;
+  std::shared_ptr<Behavior> body;
+  std::shared_ptr<Behavior> clientUpdate;
   DrawMetaData drawMetaData;
 
   std::list<ArmorSet> armorSets;
@@ -184,7 +184,7 @@ struct ObjectBuilder {
   float extraWidth = 0.0f;
   bool forbidden = false;
   GeometryData geometry;
-  std::optional<Behavior> inheritableModule;
+  std::shared_ptr<Behavior> inheritableModule;
   bool isBridge = false;
   std::set<Locomotor> locomotors;
   uint32_t occlusionDelay = 0;

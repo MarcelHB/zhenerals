@@ -424,7 +424,7 @@ bool ObjectsINI::parseBody(Objects::ObjectBuilder& builder) {
     return false;
   }
 
-  builder.body = std::make_optional<Objects::Behavior>();
+  builder.body = std::make_shared<Objects::Behavior>();
   builder.body->type = *bodyType;
 
   advanceStream();
@@ -463,7 +463,7 @@ bool ObjectsINI::parseClientUpdate(Objects::ObjectBuilder& builder) {
     return false;
   }
 
-  builder.clientUpdate = std::make_optional<Objects::Behavior>();
+  builder.clientUpdate = std::make_shared<Objects::Behavior>();
   builder.clientUpdate->type = *clientUpdateType;
 
   advanceStream();
