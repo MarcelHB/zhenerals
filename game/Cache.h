@@ -2,6 +2,7 @@
 #define H_GAME_CACHE
 
 #include "common.h"
+#include "MurmurHash.h"
 
 namespace ZH {
 
@@ -13,8 +14,7 @@ class Cache {
   private:
     size_t capacity;
 
-    // EVAL hashing
-    std::unordered_map<std::string, std::shared_ptr<T>> cacheEntries;
+    std::unordered_map<uint32_t, std::shared_ptr<T>> cacheEntries;
 
     using CacheIt = decltype(cacheEntries)::const_iterator;
     struct QueueSort {
@@ -27,7 +27,9 @@ class Cache {
 
   public:
     std::shared_ptr<T> get(const std::string& key) {
-      auto lookup = cacheEntries.find(key);
+      auto hash = getCacheKey(key);
+
+      auto lookup = cacheEntries.find(hash);
       if (lookup == cacheEntries.cend()) {
         return {};
       }
@@ -36,7 +38,8 @@ class Cache {
     }
 
     void put(std::string key, std::shared_ptr<T> ptr) {
-      auto result = cacheEntries.emplace(std::move(key), ptr);
+      auto hash = getCacheKey(key);
+      auto result = cacheEntries.emplace(hash, ptr);
 
       if (result.second) {
         usage.push(result.first);
@@ -54,6 +57,13 @@ class Cache {
         usage.pop();
         cacheEntries.erase(top);
       }
+    }
+
+    uint32_t getCacheKey(const std::string& value) {
+      MurmurHash3_32 hasher;
+      hasher.feed(value);
+
+      return hasher.getHash();
     }
 };
 

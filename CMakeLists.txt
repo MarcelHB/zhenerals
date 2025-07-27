@@ -339,6 +339,11 @@ ADD_UNIT_TEST(MappedImageINI
   game/tests/Test_MappedImageINI.cpp
 )
 
+ADD_UNIT_TEST(MurmurHash
+  game/MurmurHash.cpp
+  game/tests/Test_MurmurHash.cpp
+)
+
 ADD_UNIT_TEST(MemoryViewStream
   game/MemoryViewStream.cpp
   game/tests/Test_MemoryViewStream.cpp
@@ -397,6 +402,7 @@ ADD_GAME_TEST(MAPFile
   game/InflatingStream.cpp
   game/Map.cpp
   game/MemoryViewStream.cpp
+  game/MurmurHash.cpp
   game/objects/InstanceFactory.cpp
   game/objects/Object.cpp
   game/ObjectLoader.cpp
