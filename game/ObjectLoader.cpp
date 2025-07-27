@@ -1,6 +1,7 @@
 #include <omp.h>
 
 #include "common.h"
+#include "MurmurHash.h"
 #include "ObjectLoader.h"
 
 namespace ZH {
@@ -43,7 +44,10 @@ bool ObjectLoader::init() {
 }
 
 std::shared_ptr<Objects::ObjectBuilder> ObjectLoader::getObject(const std::string& key) const {
-  auto lookup = index.find(key);
+  MurmurHash3_32 hasher;
+  hasher.feed(key);
+
+  auto lookup = index.find(hasher.getHash());
 
   if (lookup == index.cend()) {
     return {};

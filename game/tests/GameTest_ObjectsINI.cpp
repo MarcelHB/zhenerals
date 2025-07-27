@@ -2,6 +2,7 @@
 #include <gtest/gtest.h>
 
 #include "../Config.h"
+#include "../MurmurHash.h"
 #include "../ResourceLoader.h"
 #include "../inis/ObjectsINI.h"
 
@@ -59,7 +60,10 @@ TEST(ObjectsINITest, parsingNatureprop) {
   auto builders = objectsINI.parse();
   EXPECT_EQ(179, builders.size());
 
-  auto genericTreeLookup = builders.find("GenericTree");
+  MurmurHash3_32 hasher1;
+  hasher1.feed("GenericTree");
+
+  auto genericTreeLookup = builders.find(hasher1.getHash());
   ASSERT_NE(genericTreeLookup, builders.cend());
   auto& genericTree = *genericTreeLookup->second;
 
@@ -70,7 +74,11 @@ TEST(ObjectsINITest, parsingNatureprop) {
 
   EXPECT_EQ(4.0f, genericTree.geometry.majorRadius);
   // ---------------
-  auto palmLookup = builders.find("TreePalm1");
+
+  MurmurHash3_32 hasher2;
+  hasher2.feed("TreePalm1");
+
+  auto palmLookup = builders.find(hasher2.getHash());
   ASSERT_NE(palmLookup, builders.cend());
   auto& palm = *palmLookup->second;
 

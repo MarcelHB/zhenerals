@@ -1,5 +1,6 @@
 #include "ObjectsINI.h"
 #include "../Logging.h"
+#include "../MurmurHash.h"
 
 namespace ZH {
 
@@ -334,7 +335,10 @@ bool ObjectsINI::parseObject(ObjectMap& objects) {
     advanceStream();
     auto reskinFrom = getTokenInLine();
 
-    auto lookup = objects.find(reskinFrom);
+    MurmurHash3_32 hasher;
+    hasher.feed(reskinFrom);
+
+    auto lookup = objects.find(hasher.getHash());
     if (lookup != objects.cend()) {
       builder = *lookup->second;
     } else {
@@ -343,8 +347,11 @@ bool ObjectsINI::parseObject(ObjectMap& objects) {
   }
 
   if (parseAttributeBlock(builder, ObjectDataKVMap)) {
+    MurmurHash3_32 hasher;
+    hasher.feed(key);
+
     objects.emplace(
-        std::move(key)
+        hasher.getHash()
       , std::make_shared<Objects::ObjectBuilder>(std::move(builder))
     );
     return true;

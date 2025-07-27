@@ -12,7 +12,7 @@ namespace ZH {
 class ObjectsINI : public INIFile {
   public:
     using ObjectMap =
-      std::unordered_map<std::string, std::shared_ptr<Objects::ObjectBuilder>>;
+      std::unordered_map<uint32_t, std::shared_ptr<Objects::ObjectBuilder>>;
 
     ObjectsINI(std::istream&);
     ObjectMap parse();

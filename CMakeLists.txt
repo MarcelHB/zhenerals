@@ -419,6 +419,7 @@ ADD_GAME_TEST(MAPFile
 
 ADD_GAME_TEST(ObjectsINI
   game/MemoryViewStream.cpp
+  game/MurmurHash.cpp
   game/inis/INIFile.cpp
   game/inis/ObjectsINI.cpp
   game/objects/Object.cpp
