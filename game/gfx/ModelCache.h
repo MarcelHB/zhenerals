@@ -6,6 +6,7 @@
 #include <queue>
 #include <unordered_map>
 
+#include "../common.h"
 #include "Model.h"
 #include "../Cache.h"
 #include "../ResourceLoader.h"

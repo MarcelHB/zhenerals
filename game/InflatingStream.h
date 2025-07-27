@@ -5,6 +5,8 @@
 #include <istream>
 #include <vector>
 
+#include "common.h"
+
 namespace ZH {
 
 class InflatingStream {

@@ -1,6 +1,7 @@
 #ifndef H_WINDOW_FACTORY
 #define H_WINDOW_FACTORY
 
+#include "common.h"
 #include "Config.h"
 #include "ResourceLoader.h"
 #include "GUI/wnd/WindowAndLayout.h"

@@ -6,6 +6,8 @@
 
 #include <glm/glm.hpp>
 
+#include "common.h"
+
 namespace ZH {
 
 using Point = glm::ivec2;

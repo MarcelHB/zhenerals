@@ -6,6 +6,7 @@
 #include <string>
 #include <unordered_map>
 
+#include "common.h"
 #include "Color.h"
 #include "Dimensions.h"
 #include "formats/Dict.h"

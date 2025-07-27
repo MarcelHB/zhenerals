@@ -6,6 +6,8 @@
 #include <string>
 #include <unordered_map>
 
+#include "../common.h"
+
 namespace ZH {
 
 namespace fs = std::filesystem;

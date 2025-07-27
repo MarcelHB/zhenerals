@@ -6,6 +6,7 @@
 
 #include <glm/glm.hpp>
 
+#include "../common.h"
 #include "../Logging.h"
 
 namespace ZH {

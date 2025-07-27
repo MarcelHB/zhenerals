@@ -1,5 +1,6 @@
 #include <glm/gtc/matrix_transform.hpp>
 
+#include "common.h"
 #include "Battlefield.h"
 
 namespace ZH {

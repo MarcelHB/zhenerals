@@ -3,6 +3,7 @@
 
 #include <unordered_map>
 
+#include "../../common.h"
 #include "TextureGenerator.h"
 
 namespace ZH::GFX::Font {

@@ -3,6 +3,8 @@
 
 #include <cstdint>
 
+#include "common.h"
+
 namespace ZH {
 
 enum class GameEvent : int32_t {

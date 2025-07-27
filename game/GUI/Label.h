@@ -1,6 +1,7 @@
 #ifndef H_GUI_LABEL
 #define H_GUI_LABEL
 
+#include "../common.h"
 #include "Component.h"
 
 namespace ZH::GUI {

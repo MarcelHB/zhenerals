@@ -5,6 +5,7 @@
 
 #include <glm/glm.hpp>
 
+#include "../common.h"
 #include "../formats/W3DFile.h"
 
 namespace ZH {

@@ -9,8 +9,18 @@ ResourceLoader::ResourceLoader(
   , const std::filesystem::path& basePath
 ) {
   for (auto& path : paths) {
+#ifdef USE_TRACY_MEMORY
+    // don't use '/' here, there may be a bug in GCC 15.1 libs on Windows, that leads to
+    // dangling pointers somewhere internally and confuses tools
+    std::filesystem::path::string_type strPath {basePath};
+    strPath.append(1, std::filesystem::path::preferred_separator);
+    strPath.append(path);
+
+    std::filesystem::path fullPath {strPath};
+#else
     std::filesystem::path fullPath {basePath};
     fullPath = fullPath / path;
+#endif
     if (std::filesystem::exists(fullPath)) {
       bigFiles.emplace_back(std::make_pair(fullPath, State::NEW));
     }
@@ -88,8 +98,8 @@ char* ResourceLoader::MemoryStream::getData(uint32_t size) {
   return buffer.data();
 }
 
-std::istringstream ResourceLoader::MemoryStream::getStream() const {
-  return std::istringstream {std::string {buffer.data(), buffer.size()}};
+MemoryViewStream ResourceLoader::MemoryStream::getStream() const {
+  return MemoryViewStream(buffer.data(), buffer.size());
 }
 
 size_t ResourceLoader::MemoryStream::size() const {

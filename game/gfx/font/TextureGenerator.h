@@ -7,6 +7,7 @@
 #include <ft2build.h>
 #include <freetype/freetype.h>
 
+#include "../../common.h"
 #include "Atlas.h"
 
 namespace ZH::GFX::Font {

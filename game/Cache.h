@@ -1,6 +1,8 @@
 #ifndef H_GAME_CACHE
 #define H_GAME_CACHE
 
+#include "common.h"
+
 namespace ZH {
 
 template<typename T>

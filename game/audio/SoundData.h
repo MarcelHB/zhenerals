@@ -4,6 +4,8 @@
 #include <cstdint>
 #include <vector>
 
+#include "../common.h"
+
 namespace ZH::Audio {
 
 struct SoundFormat {

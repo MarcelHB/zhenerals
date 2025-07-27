@@ -1,6 +1,7 @@
 #ifndef H_GUI_HOSTS_MAIN_MENU
 #define H_GUI_HOSTS_MAIN_MENU
 
+#include "../../common.h"
 #include "../ComponentFactory.h"
 #include "../../EventDispatcher.h"
 #include "../../WindowFactory.h"

@@ -5,6 +5,7 @@
 
 #include <SDL3/SDL.h>
 
+#include "../common.h"
 #include "../Battlefield.h"
 #include "Component.h"
 

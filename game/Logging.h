@@ -12,6 +12,8 @@
 
 #include "fmt/std.h"
 
+#include "common.h"
+
 namespace ZH {
 
 enum class LogLevel {

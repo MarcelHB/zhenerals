@@ -7,7 +7,9 @@
 #include <unordered_map>
 #include <vector>
 
+#include "common.h"
 #include "formats/BIGFile.h"
+#include "MemoryViewStream.h"
 
 namespace ZH {
 
@@ -26,7 +28,7 @@ class ResourceLoader {
       friend ResourceLoader;
 
       public:
-        std::istringstream getStream() const;
+        MemoryViewStream getStream() const;
         size_t size() const;
 
       private:

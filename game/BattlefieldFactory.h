@@ -1,6 +1,7 @@
 #ifndef H_GAME_BATTLEFIELD_FACTORY
 #define H_GAME_BATTLEFIELD_FACTORY
 
+#include "common.h"
 #include "Battlefield.h"
 #include "objects/InstanceFactory.h"
 #include "ResourceLoader.h"

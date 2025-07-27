@@ -1,6 +1,7 @@
 #ifndef H_GUI_WINDOW
 #define H_GUI_WINDOW
 
+#include "../common.h"
 #include "Component.h"
 
 namespace ZH::GUI {

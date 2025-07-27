@@ -1,6 +1,7 @@
 #ifndef H_GFX_TEXTURE_LOOKUP
 #define H_GFX_TEXTURE_LOOKUP
 
+#include "../common.h"
 #include "../ResourceLoader.h"
 #include "../inis/MappedImageINI.h"
 

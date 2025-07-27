@@ -10,6 +10,7 @@
 
 #include <glm/glm.hpp>
 
+#include "../common.h"
 #include "Attributes.h"
 #include "../Color.h"
 

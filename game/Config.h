@@ -3,6 +3,7 @@
 
 #include <filesystem>
 
+#include "common.h"
 #include "Dimensions.h"
 
 namespace ZH {

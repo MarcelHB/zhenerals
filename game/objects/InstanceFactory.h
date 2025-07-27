@@ -1,6 +1,7 @@
 #ifndef H_GAME_OBJECTS_INSTANCE_FACTORY
 #define H_GAME_OBJECTS_INSTANCE_FACTORY
 
+#include "../common.h"
 #include "Instance.h"
 #include "../Map.h"
 #include "../ObjectLoader.h"

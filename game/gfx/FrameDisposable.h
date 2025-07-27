@@ -3,6 +3,8 @@
 
 #include <cstdint>
 
+#include "../common.h"
+
 namespace ZH::GFX {
 
 class FrameDisposable {

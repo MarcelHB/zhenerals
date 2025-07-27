@@ -1,6 +1,7 @@
 #ifndef H_GAME_TERRAIN_INI
 #define H_GAME_TERRAIN_INI
 
+#include "../common.h"
 #include "INIFile.h"
 
 namespace ZH {

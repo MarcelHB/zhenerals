@@ -4,6 +4,7 @@
 #include <optional>
 #include <unordered_map>
 
+#include "../common.h"
 #include "../Dimensions.h"
 #include "INIFile.h"
 

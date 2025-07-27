@@ -1,6 +1,7 @@
 #ifndef H_GAME_BATTLEFIELD
 #define H_GAME_BATTLEFIELD
 
+#include "common.h"
 #include "Map.h"
 #include "objects/InstanceFactory.h"
 

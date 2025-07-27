@@ -1,18 +1,28 @@
 #ifndef H_COMMON
 #define H_COMMON
 
+#define USE_TRACY_MEMORY 1
+
+#if defined(USE_TRACY) && !defined(NO_TRACY)
+  #if defined(USE_TRACY_MEMORY)
+#include <cstddef>
+#include <new>
+void* operator new(size_t count);
+void operator delete(void* ptr, std::size_t sz) noexcept;
+    #define TRACY_ON_DEMAND 1
+  #endif
+
+  #define TRACY_ENABLE 1
+  #include <tracy/Tracy.hpp>
+  #define TRACY(x) x
+#else
+  #define TRACY(x)
+#endif
+
 #include <filesystem>
 #include <optional>
 #include <string>
 #include <vector>
-
-#if defined(USE_TRACY) && !defined(NO_TRACY)
-	#define TRACY_ENABLE 1
-	#include <tracy/Tracy.hpp>
-	#define TRACY(x) x
-#else
-	#define TRACY(x)
-#endif
 
 namespace ZH {
 

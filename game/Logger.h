@@ -3,6 +3,7 @@
 
 #include <thread>
 
+#include "common.h"
 #include "Logging.h"
 
 namespace ZH {

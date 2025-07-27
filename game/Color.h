@@ -5,6 +5,8 @@
 
 #include <glm/glm.hpp>
 
+#include "common.h"
+
 namespace ZH {
 
 struct Color {

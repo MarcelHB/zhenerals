@@ -5,6 +5,7 @@
 #include <memory>
 #include <optional>
 
+#include "../common.h"
 #include "../Map.h"
 #include "../InflatingStream.h"
 

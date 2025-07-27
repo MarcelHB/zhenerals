@@ -4,6 +4,8 @@
 #include <cstdint>
 #include <optional>
 
+#include "common.h"
+
 namespace ZH::Script {
 
 enum class ActionType : uint16_t {

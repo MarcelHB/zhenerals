@@ -3,6 +3,7 @@
 
 #include <optional>
 
+#include "../../common.h"
 #include "../../Color.h"
 
 namespace ZH::GUI::WND {

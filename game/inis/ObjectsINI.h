@@ -3,6 +3,7 @@
 
 #include <unordered_map>
 
+#include "../common.h"
 #include "INIFile.h"
 #include "../objects/Object.h"
 

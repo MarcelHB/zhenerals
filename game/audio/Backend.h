@@ -4,6 +4,7 @@
 #include <al.h>
 #include <alc.h>
 
+#include "../common.h"
 #include "SoundData.h"
 
 namespace ZH::Audio {

@@ -6,6 +6,7 @@
 #include <queue>
 #include <vector>
 
+#include "../common.h"
 #include "../Cache.h"
 #include "../ResourceLoader.h"
 #include "../vugl/vugl_context.h"

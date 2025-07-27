@@ -7,6 +7,7 @@
 #include <optional>
 #include <set>
 
+#include "../common.h"
 #include "../Color.h"
 #include "Drawing.h"
 #include "Modules.h"

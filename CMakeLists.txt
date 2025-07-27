@@ -54,10 +54,12 @@ IF (USE_TRACY)
     SET(CMAKE_POSITION_INDEPENDENT_CODE ON)
   ENDIF()
 
+  OPTION(TRACY_ON_DEMAND "" ON)
+
   FETCHCONTENT_DECLARE(
     tracy
     GIT_REPOSITORY https://github.com/wolfpld/tracy.git
-    GIT_TAG v0.11.1
+    GIT_TAG v0.12.2
     GIT_SHALLOW TRUE
     GIT_PROGRESS TRUE
   )
@@ -177,9 +179,11 @@ ADD_EXECUTABLE(zhen
   game/inis/WaterINI.cpp
   game/Main.cpp
   game/Map.cpp
+  game/MemProfiling.cpp
   game/objects/InstanceFactory.cpp
   game/objects/Object.cpp
   game/ObjectLoader.cpp
+  game/MemoryViewStream.cpp
   game/MurmurHash.cpp
   game/Logger.cpp
   game/Logging.cpp
@@ -335,7 +339,13 @@ ADD_UNIT_TEST(MappedImageINI
   game/tests/Test_MappedImageINI.cpp
 )
 
+ADD_UNIT_TEST(MemoryViewStream
+  game/MemoryViewStream.cpp
+  game/tests/Test_MemoryViewStream.cpp
+)
+
 ADD_UNIT_TEST(ResourceLoader
+  game/MemoryViewStream.cpp
   game/formats/BIGFile.cpp
   game/ResourceLoader.cpp
   game/tests/Test_ResourceLoader.cpp
@@ -386,6 +396,7 @@ ADD_GAME_TEST(MAPFile
   game/gfx/ModelCache.cpp
   game/InflatingStream.cpp
   game/Map.cpp
+  game/MemoryViewStream.cpp
   game/objects/InstanceFactory.cpp
   game/objects/Object.cpp
   game/ObjectLoader.cpp
@@ -401,6 +412,7 @@ ADD_GAME_TEST(MAPFile
 )
 
 ADD_GAME_TEST(ObjectsINI
+  game/MemoryViewStream.cpp
   game/inis/INIFile.cpp
   game/inis/ObjectsINI.cpp
   game/objects/Object.cpp
@@ -408,6 +420,7 @@ ADD_GAME_TEST(ObjectsINI
 )
 
 ADD_GAME_TEST(W3DFile
+  game/MemoryViewStream.cpp
   game/formats/W3DFile.cpp
   game/tests/GameTest_W3D.cpp
 )

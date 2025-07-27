@@ -1,6 +1,7 @@
 #ifndef H_GAME_BATTLEFIELD_RENDERER
 #define H_GAME_BATTLEFIELD_RENDERER
 
+#include "../common.h"
 #include "../Battlefield.h"
 #include "../vugl/vugl_context.h"
 #include "../gfx/ModelCache.h"

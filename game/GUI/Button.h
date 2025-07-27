@@ -1,6 +1,7 @@
 #ifndef H_GUI_BUTTON
 #define H_GUI_BUTTON
 
+#include "../common.h"
 #include "Component.h"
 
 namespace ZH::GUI {

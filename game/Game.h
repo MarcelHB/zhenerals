@@ -5,6 +5,7 @@
 
 #include <SDL3/SDL.h>
 
+#include "common.h"
 #include "audio/Backend.h"
 #include "audio/Playback.h"
 #include "BattlefieldFactory.h"
