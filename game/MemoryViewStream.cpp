@@ -16,13 +16,9 @@ MemoryStreamBuffer::pos_type MemoryStreamBuffer::seekpos(
     MemoryStreamBuffer::pos_type pos
   , std::ios_base::openmode
 ) {
-  if (pos >= 0 && pos < (egptr() - eback())) {
-    setg(eback(), eback() + pos, egptr());
+  setg(eback(), eback() + pos, egptr());
 
-    return pos;
-  }
-
-  return -1;
+  return pos;
 }
 
 MemoryStreamBuffer::pos_type MemoryStreamBuffer::seekoff(
@@ -34,21 +30,14 @@ MemoryStreamBuffer::pos_type MemoryStreamBuffer::seekoff(
     case std::ios::beg:
       return seekpos(off, mode);
     case std::ios::cur:
-      if ((off <= 0 && (gptr() + off) >= eback())
-          || (off >= 0 && (gptr() + off) < egptr())) {
-        setg(eback(), gptr() + off, egptr());
-        return gptr() - eback();
-      }
-      break;
+      setg(eback(), gptr() + off, egptr());
+      return gptr() - eback();
     case std::ios::end:
-      if (off <= 0 && (egptr() + off) >= eback()) {
-        setg(eback(), egptr() + off, egptr());
-        return egptr() - gptr();
-      }
-      break;
+      setg(eback(), egptr() + off, egptr());
+      return egptr() - gptr();
+    default:
+      return -1;
   }
-
-  return -1;
 }
 
 }

@@ -78,4 +78,17 @@ TEST(MemoryViewStream, EndOfFile) {
   EXPECT_TRUE(s.eof());
 }
 
+TEST(MemoryViewStream, EndOfFile2) {
+  std::vector<char> buffer;
+  buffer.resize(8);
+
+  MemoryViewStream s {buffer.data(), buffer.size()};
+  s.seekg(8, std::ios::cur);
+
+  char byte;
+  s.read(&byte, 1);
+  EXPECT_EQ(0, s.gcount());
+  EXPECT_TRUE(s.eof());
+}
+
 }
