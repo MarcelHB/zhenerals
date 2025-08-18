@@ -346,9 +346,11 @@ bool ObjectsINI::parseObject(ObjectMap& objects) {
     }
   }
 
+  builder.name = std::move(key);
+
   if (parseAttributeBlock(builder, ObjectDataKVMap)) {
     MurmurHash3_32 hasher;
-    hasher.feed(key);
+    hasher.feed(builder.name);
 
     objects.emplace(
         hasher.getHash()
