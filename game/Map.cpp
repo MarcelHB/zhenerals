@@ -220,6 +220,10 @@ const std::vector<Map::WaterVertexData>& Map::getWaterVertices() const {
   return waterVertices;
 }
 
+const glm::mat4& Map::getWorldToGridMatrix() const {
+  return worldToGridMatrix;
+}
+
 Size Map::getSize() const {
   return size;
 }
