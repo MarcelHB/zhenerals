@@ -8,6 +8,8 @@ ElementBuffer::ElementBuffer (
 ) : resourceAllocator{allocator}
   , binding{binding}
   , bigIndex{false}
+  , numVertices{0}
+  , numIndices{0}
   , vkLastResult{VK_SUCCESS}
   , vkStagingBuffer{VK_NULL_HANDLE}
   , vkBuffer{VK_NULL_HANDLE}
@@ -21,6 +23,8 @@ ElementBuffer::ElementBuffer (ElementBuffer && other)
   : resourceAllocator{other.resourceAllocator}
   , binding(other.binding)
   , bigIndex{other.bigIndex}
+  , numVertices{other.numVertices}
+  , numIndices{other.numIndices}
   , vkLastResult{other.vkLastResult}
   , vkStagingBuffer{other.vkStagingBuffer}
   , vkBuffer{other.vkBuffer}
