@@ -20,6 +20,8 @@ class ElementBuffer
     ResourceAllocator& resourceAllocator;
     uint32_t binding;
     bool bigIndex;
+    size_t numVertices;
+    size_t numIndices;
 
     VkBuffer vkStagingBuffer;
     VkBuffer vkBuffer;
@@ -42,6 +44,8 @@ class ElementBuffer
     void destroy ();
 
     VkResult getLastResult () const;
+    size_t getNumIndices () const;
+    size_t getNumVertices () const;
 
     VkResult recordBindCommands (VkCommandBuffer vkCommandBuffer, uint32_t i) override;
     VkResult recordUploadCommands (VkCommandBuffer vkCommandBuffer) override;
@@ -50,8 +54,10 @@ class ElementBuffer
 
     template <typename T, typename U>
     void writeData (const std::vector<T>& vertexData, const std::vector<U>& indexData) {
+      this->numVertices = vertexData.size();
+      this->numIndices = indexData.size();
       this->vkStagingVBSize = sizeof(T) * vertexData.size();
-      this->vkStagingIBSize = + sizeof(U) * indexData.size();
+      this->vkStagingIBSize = sizeof(U) * indexData.size();
 
       if (VK_NULL_HANDLE == vkStagingBuffer) {
         this->vkLastResult =

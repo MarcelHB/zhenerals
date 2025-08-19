@@ -62,6 +62,14 @@ VkResult ElementBuffer::getLastResult () const {
   return vkLastResult;
 }
 
+size_t ElementBuffer::getNumIndices () const {
+  return numIndices;
+}
+
+size_t ElementBuffer::getNumVertices () const {
+  return numVertices;
+}
+
 VkResult ElementBuffer::recordBindCommands (VkCommandBuffer vkCommandBuffer, uint32_t i) {
   VkDeviceSize offset = 0;
   vkCmdBindVertexBuffers(vkCommandBuffer, binding, 1, &vkBuffer, &offset);
