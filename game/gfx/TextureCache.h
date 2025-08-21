@@ -8,9 +8,10 @@
 
 #include "../common.h"
 #include "../Cache.h"
-#include "../ResourceLoader.h"
 #include "../vugl/vugl_context.h"
 #include "HostTexture.h"
+#include "TextureCache.h"
+#include "TextureLoader.h"
 #include "font/FontManager.h"
 
 namespace ZH::GFX {
@@ -19,7 +20,7 @@ class TextureCache {
   public:
     TextureCache(
         Vugl::Context& vuglContext
-      , ResourceLoader& textureLoader
+      , TextureLoader& textureLoader
       , Font::FontManager& fontManager
     );
 
@@ -32,7 +33,7 @@ class TextureCache {
     Cache<Vugl::CombinedSampler> textureCache;
     std::unordered_map<Font::FontKey, std::shared_ptr<Vugl::CombinedSampler>> fontTextures;
     Vugl::Context& vuglContext;
-    ResourceLoader& textureLoader;
+    TextureLoader& textureLoader;
     Font::FontManager& fontManager;
 
     VkFormat mappedFormat(HostTexture::Format format);

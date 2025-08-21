@@ -22,6 +22,7 @@
 #include "WindowFactory.h"
 #include "gfx/ModelCache.h"
 #include "gfx/TextureCache.h"
+#include "gfx/TextureLoader.h"
 #include "gfx/TextureLookup.h"
 #include "gfx/font/FontManager.h"
 #include "GUI/ComponentFactory.h"
@@ -65,6 +66,7 @@ class Game {
     std::shared_ptr<ResourceLoader> texturesResourceLoader;
     std::shared_ptr<WindowFactory> windowFactory;
     std::shared_ptr<GFX::TextureCache> textureCache;
+    std::shared_ptr<GFX::TextureLoader> textureLoader;
     std::shared_ptr<GFX::TextureLookup> textureLookup;
 
     std::shared_ptr<GUI::Overlay> overlay;

@@ -104,6 +104,7 @@ FUNCTION(ADD_GAME_TEST game_test_name)
       ${ARGN}
       game/formats/BIGFile.cpp
       game/Logging.cpp
+      game/MemoryViewStream.cpp
       game/ResourceLoader.cpp
     )
 
@@ -151,6 +152,7 @@ ADD_EXECUTABLE(zhen
   game/gfx/Model.cpp
   game/gfx/ModelCache.cpp
   game/gfx/TextureCache.cpp
+  game/gfx/TextureLoader.cpp
   game/gfx/TextureLookup.cpp
   game/gfx/font/Atlas.cpp
   game/gfx/font/FontManager.cpp
@@ -427,6 +429,14 @@ ADD_GAME_TEST(ObjectsINI
   game/inis/ObjectsINI.cpp
   game/objects/Object.cpp
   game/tests/GameTest_ObjectsINI.cpp
+)
+
+ADD_GAME_TEST(Textures
+  game/formats/DDSFile.cpp
+  game/formats/TGAFile.cpp
+  game/gfx/HostTexture.cpp
+  game/gfx/TextureLoader.cpp
+  game/tests/GameTest_Textures.cpp
 )
 
 ADD_GAME_TEST(W3DFile

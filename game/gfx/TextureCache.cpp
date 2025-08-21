@@ -1,22 +1,15 @@
 #include "../common.h"
 #include "../Logging.h"
-#include "../formats/DDSFile.h"
-#include "../formats/TGAFile.h"
 #include "HostTexture.h"
 #include "TextureCache.h"
+#include "TextureLoader.h"
 
 namespace ZH::GFX {
 
-// EVAL language
-static std::vector<std::string> texturePrefixes {{
-    "data\\english\\art\\textures\\"
-  , "art\\textures\\"
-  , "art\\terrain\\"
-}};
-
+// EVAL split into lookup and Vk, since repeating, and for testing
 TextureCache::TextureCache(
     Vugl::Context& vuglContext
-  , ResourceLoader& textureLoader
+  , TextureLoader& textureLoader
   , Font::FontManager& fontManager
 ) : vuglContext(vuglContext)
   , textureLoader(textureLoader)
@@ -56,41 +49,8 @@ std::shared_ptr<Vugl::CombinedSampler> TextureCache::getFontTextureSampler(uint8
 std::shared_ptr<Vugl::Texture> TextureCache::getTexture(const std::string& key) {
   TRACY(ZoneScoped);
 
-  std::optional<ResourceLoader::MemoryStream> lookup;
-
-  for (auto& prefix : texturePrefixes) {
-    std::string path {prefix};
-    path.append(key);
-
-    lookup = textureLoader.getFileStream(path, true);
-    if (lookup) {
-      break;
-    }
-  }
-
-  if (!lookup) {
-    WARN_ZH("TextureCache", "Did not find texture: {}", key);
-    return {};
-  }
-
-  std::shared_ptr<HostTexture> hostTexture;
-  auto stream = lookup->getStream();
-
-  if (key.ends_with(".tga")) {
-    TGAFile tga {stream};
-
-    hostTexture = tga.getTexture();
-  } else if (key.ends_with(".dds")) {
-    DDSFile dds {stream};
-
-    hostTexture = dds.getTexture();
-  } else {
-    WARN_ZH("TextureCache", "Requesting unsupported texture: {}", key);
-    return {};
-  }
-
+  auto hostTexture = textureLoader.getTexture(key);
   if (!hostTexture) {
-    WARN_ZH("TextureCache", "Failed to load texture: {}", key);
     return {};
   }
 
@@ -114,51 +74,18 @@ std::shared_ptr<Vugl::Texture> TextureCache::getTexture(const std::string& key) 
 std::shared_ptr<Vugl::CombinedSampler> TextureCache::getTextureSampler(const std::string& key) {
   TRACY(ZoneScoped);
 
-  std::optional<ResourceLoader::MemoryStream> lookup;
-
-  for (auto& prefix : texturePrefixes) {
-    std::string path {prefix};
-    path.append(key);
-
-    auto cacheLookup = textureCache.get(path);
-    if (cacheLookup) {
-      return cacheLookup;
-    }
-
-    lookup = textureLoader.getFileStream(path, true);
-    if (lookup) {
-      break;
-    }
-  }
-
-  if (!lookup) {
-    WARN_ZH("TextureCache", "Did not find texture: {}", key);
-    return {};
-  }
-
-  std::shared_ptr<HostTexture> texture;
-  if (key.ends_with(".tga")) {
-    auto stream = lookup->getStream();
-    TGAFile tga {stream};
-
-    texture = tga.getTexture();
-  } else {
-    WARN_ZH("TextureCache", "Requesting unsupported texture: {}", key);
-    return {};
-  }
-
-  if (!texture) {
-    WARN_ZH("TextureCache", "Failed to load texture: {}", key);
+  auto hostTexture = textureLoader.getTexture(key);
+  if (!hostTexture) {
     return {};
   }
 
   auto uploadSampler = vuglContext.createCombinedSampler();
-  auto size = texture->getSize();
+  auto size = hostTexture->getSize();
 
   uploadSampler.createTexture(
-      texture->getData()
+      hostTexture->getData()
     , VkExtent2D {size.x, size.y}
-    , mappedFormat(texture->getFormat())
+    , mappedFormat(hostTexture->getFormat())
   );
 
   if (uploadSampler.getLastResult() != VK_SUCCESS) {

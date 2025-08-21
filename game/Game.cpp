@@ -58,6 +58,8 @@ bool Game::init() {
       }
     );
 
+  textureLoader = std::make_shared<GFX::TextureLoader>(*texturesResourceLoader);
+
   mapsLoader =
     std::shared_ptr<ResourceLoader>(
       new ResourceLoader {{"MapsZH.big", "ZH_Generals/Maps.big"} , config.baseDir}
@@ -91,7 +93,7 @@ bool Game::init() {
   textureCache =
     std::make_shared<GFX::TextureCache>(
         window.getVuglContext()
-      , *texturesResourceLoader
+      , *textureLoader
       , *fontManager
     );
   windowFactory = std::make_shared<WindowFactory>(config);
