@@ -37,6 +37,7 @@ FetchContent_MakeAvailable(glm)
 INCLUDE_DIRECTORIES(
   ${fmt_SOURCE_DIR}/include
   ${FREETYPE_INCLUDE_DIRS}
+  ${glm_SOURCE_DIR}
   ${LIBAV_INCLUDE_DIRS}
   ${OPENAL_INCLUDE_DIR}
   ${SDL3_INCLUDE_DIR}
@@ -180,6 +181,7 @@ ADD_EXECUTABLE(zhen
   game/Main.cpp
   game/Map.cpp
   game/MemProfiling.cpp
+  game/objects/Instance.cpp
   game/objects/InstanceFactory.cpp
   game/objects/Object.cpp
   game/ObjectLoader.cpp
@@ -403,6 +405,7 @@ ADD_GAME_TEST(MAPFile
   game/Map.cpp
   game/MemoryViewStream.cpp
   game/MurmurHash.cpp
+  game/objects/Instance.cpp
   game/objects/InstanceFactory.cpp
   game/objects/Object.cpp
   game/ObjectLoader.cpp
