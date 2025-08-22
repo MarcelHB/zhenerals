@@ -74,6 +74,11 @@ std::shared_ptr<Vugl::Texture> TextureCache::getTexture(const std::string& key) 
 std::shared_ptr<Vugl::CombinedSampler> TextureCache::getTextureSampler(const std::string& key) {
   TRACY(ZoneScoped);
 
+  auto lookup = textureCache.get(key);
+  if (lookup) {
+    return lookup;
+  }
+
   auto hostTexture = textureLoader.getTexture(key);
   if (!hostTexture) {
     return {};
