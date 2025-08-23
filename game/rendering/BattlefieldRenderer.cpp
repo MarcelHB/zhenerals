@@ -116,6 +116,9 @@ bool BattlefieldRenderer::prepareModelPipeline(Vugl::RenderPass& renderPass) {
   Vugl::PipelineSetup pipelineSetup {vuglContext.getViewport(), vuglContext.getVkSamplingFlag()};
   pipelineSetup.vkPipelineInputAssemblyStateCreateInfo.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
   pipelineSetup.vkPipelineDepthStencilCreateInfo.depthTestEnable = VK_TRUE;
+  pipelineSetup.vkPipelineColorBlendAttachmentState.blendEnable = VK_TRUE;
+  pipelineSetup.vkPipelineColorBlendAttachmentState.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
+  pipelineSetup.vkPipelineColorBlendAttachmentState.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
   pipelineSetup.setVSCode(readFile("shaders/model.vert.spv"));
   pipelineSetup.setFSCode(readFile("shaders/model.frag.spv"));
 
@@ -296,7 +299,7 @@ bool BattlefieldRenderer::prepareModelData(Objects::Instance& instance) {
   if (base->drawMetaData.type == Objects::DrawType::MODEL_DRAW) {
       prepareModelDrawData(instance);
   } else if (base->drawMetaData.type == Objects::DrawType::TREE_DRAW) {
-    // Silence
+      prepareTreeDrawData(instance);
   } else {
     WARN_ZH(
         "BattlefieldRenderer"
@@ -353,6 +356,63 @@ bool BattlefieldRenderer::prepareModelDrawData(Objects::Instance& instance) {
   auto sampler = textureCache.getTextureSampler(textureName);
   if (!sampler) {
     WARN_ZH("BattlefieldRenderer", "Failed to load model texture {}", textureName);
+    return false;
+  }
+
+  renderData->descriptorSet->assignCombinedSampler(*sampler);
+  vuglContext.uploadResource(*sampler);
+
+  renderData->descriptorSet->updateDevice();
+  modelRenderData.emplace(std::make_pair(instance.getID(), std::move(renderData)));
+
+  return true;
+}
+
+bool BattlefieldRenderer::prepareTreeDrawData(Objects::Instance& instance) {
+  auto base = instance.getBase();
+  auto drawData = static_pointer_cast<Objects::TreeDrawData>(base->drawMetaData.drawData);
+
+  // EVAL condition states
+  auto models = modelCache.getModels(drawData->model);
+  if (models == nullptr) {
+    WARN_ZH("BattlefieldRenderer", "Unable to find tree models for {}", drawData->model);
+    return false;
+  }
+
+  MurmurHash3_32 hasher;
+  hasher.feed(drawData->model);
+  uint32_t key = hasher.getHash();
+
+  auto renderData = std::make_shared<ModelRenderData>();
+  renderData->vertexKey = key;
+  renderData->descriptorSet =
+    std::make_shared<Vugl::DescriptorSet>(modelPipeline->createDescriptorSet());
+  renderData->uniformBuffer =
+    std::make_shared<Vugl::UniformBuffer>(vuglContext.createUniformBuffer(sizeof(ModelData)));
+
+  renderData->descriptorSet->assignUniformBuffer(*renderData->uniformBuffer);
+
+  // EVAL all models
+  // TODO better cleanup/avoidance if either setup fails
+  auto& model = models->front();
+  auto vertexLookup = vertexData.find(renderData->vertexKey);
+  if (vertexLookup == vertexData.cend()) {
+    auto modelVertices =
+      std::make_shared<Vugl::ElementBuffer>(vuglContext.createElementBuffer(0));
+
+    modelVertices->setBigIndexBuffer(true);
+    modelVertices->writeData(model->vertexData, model->vertexIndices);
+
+    vuglContext.uploadResource(*modelVertices);
+
+    vertexData.emplace(std::make_pair(renderData->vertexKey, std::move(modelVertices)));
+  }
+
+  // EVAL per-triangle texture
+  auto& textureName = model->textures[0];
+  auto sampler = textureCache.getTextureSampler(textureName);
+  if (!sampler) {
+    WARN_ZH("BattlefieldRenderer", "Failed to load tree model texture {}", textureName);
     return false;
   }
 

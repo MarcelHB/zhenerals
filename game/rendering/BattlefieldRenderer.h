@@ -78,6 +78,7 @@ class BattlefieldRenderer {
     bool prepareModelDrawData(Objects::Instance&);
     bool prepareTerrainPipeline(Vugl::RenderPass&, const std::vector<std::string>&);
     bool prepareTerrainVertices();
+    bool prepareTreeDrawData(Objects::Instance&);
     bool prepareWaterPipeline(Vugl::RenderPass&);
     bool prepareWaterVertices();
 
