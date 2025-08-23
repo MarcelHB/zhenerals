@@ -37,8 +37,10 @@ Texture::~Texture () {
 }
 
 void Texture::destroy () {
-  vkDestroyImageView(vkDevice, vkTextureView, nullptr);
-  this->vkTextureView = VK_NULL_HANDLE;
+  if (this->vkTextureView != VK_NULL_HANDLE) {
+    vkDestroyImageView(vkDevice, vkTextureView, nullptr);
+    this->vkTextureView = VK_NULL_HANDLE;
+  }
 
   deleteGPUData();
   deleteHostData();

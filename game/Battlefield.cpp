@@ -1,3 +1,4 @@
+#define GLM_FORCE_RADIANS
 #include <glm/gtc/matrix_transform.hpp>
 
 #include "common.h"
@@ -12,6 +13,10 @@ Battlefield::Battlefield(
 ) : map(map)
   , instanceFactory(instanceFactory)
 {
+  TRACY(ZoneScoped);
+
+  loadInstances(mapBuilder);
+
   auto size = map->getSize();
   cameraTarget =
     glm::vec3 {
@@ -28,12 +33,35 @@ Battlefield::Battlefield(
     };
 }
 
-glm::mat4 Battlefield::getCameraMatrix() {
+glm::mat4 Battlefield::getCameraMatrix() const {
   return glm::lookAt(
       cameraPos
     , cameraTarget
     , glm::vec3 {0.0f, -1.0f, 0.0f}
   );
+}
+
+glm::mat4 Battlefield::getObjectToWorldMatrix(const glm::vec3& pos, float radAngle) const {
+  glm::mat4 axisFlip {1.0f};
+  axisFlip[1][1] = 0.0f;
+  axisFlip[1][2] = 1.0f;
+  axisFlip[2][1] = 1.0f;
+  axisFlip[2][2] = 0.0f;
+
+  auto gridPos =
+    glm::vec3{map->getWorldToGridMatrix() * glm::vec4{pos, 1.0f}};
+
+  auto height = map->getCenterHeight(gridPos.x, gridPos.y) / (0.0625f / 1.0f);
+
+  return
+    glm::translate(
+        glm::rotate(
+            axisFlip * map->getWorldToGridMatrix()
+          , radAngle
+          , glm::vec3{0.0f, 1.0f, 0.0f}
+        )
+      , pos + glm::vec3{0.0f, 0.0f, height}
+    );
 }
 
 Daytime Battlefield::getDaytime() const {
@@ -42,6 +70,21 @@ Daytime Battlefield::getDaytime() const {
 
 std::shared_ptr<Map> Battlefield::getMap() const {
   return map;
+}
+
+std::list<std::shared_ptr<Objects::Instance>>& Battlefield::getObjectInstances() {
+  return instances;
+}
+
+void Battlefield::loadInstances(MapBuilder& mapBuilder) {
+  for (auto& mapObject : mapBuilder.objects) {
+    auto instance = instanceFactory.getInstance(mapObject);
+    if (!instance) {
+      continue;
+    }
+
+    instances.emplace_back(std::move(instance));
+  }
 }
 
 }

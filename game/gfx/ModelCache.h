@@ -15,12 +15,13 @@ namespace ZH::GFX {
 
 class ModelCache {
   public:
+    using Models = std::shared_ptr<std::vector<std::shared_ptr<Model>>>;
     ModelCache(ResourceLoader& resourceLoader);
 
-    std::shared_ptr<Model> getModel(const std::string&);
+    Models getModels(const std::string&);
   private:
     ResourceLoader& resourceLoader;
-    Cache<Model> modelCache;
+    Cache<std::vector<std::shared_ptr<Model>>> modelCache;
 };
 
 }

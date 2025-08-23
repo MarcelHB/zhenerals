@@ -1,3 +1,4 @@
+#define GLM_FORCE_RADIANS
 #include <glm/gtc/matrix_transform.hpp>
 
 #include "../Logging.h"
@@ -7,7 +8,7 @@ namespace ZH {
 
 struct TerrainScene {
   alignas(16) glm::mat4 mvp;
-  alignas(16) glm::vec3 sunLight;
+  alignas(16) glm::vec3 sunlight;
 };
 
 struct WaterScene {
@@ -29,39 +30,14 @@ BattlefieldRenderer::BattlefieldRenderer(
   , waterSettings(waterSettings)
 {}
 
-std::shared_ptr<Vugl::CommandBuffer> BattlefieldRenderer::createRenderList(size_t frameIdx, Vugl::RenderPass& renderPass) {
+bool BattlefieldRenderer::init(Vugl::RenderPass& renderPass) {
   TRACY(ZoneScoped);
 
-  if (!terrainVertices && !prepareTerrainVertices()) {
-    WARN_ZH("BattlefieldRenderer", "Could not set up terrain");
-    return {};
-  }
-
   auto map = battlefield.getMap();
-  if (!terrainPipeline && !prepareTerrainPipeline(renderPass, map->getTexturesIndex())) {
-    WARN_ZH("BattlefieldRenderer", "Could not setup up terrain rendering");
-    return {};
-  }
-
-  if (!map->getWater().empty() && !waterSetupAttempted) {
-    waterSetupAttempted = true;
-    if (!waterVertices && !prepareWaterVertices()) {
-      WARN_ZH("BattlefieldRenderer", "Could not set up water");
-      return {};
-    }
-
-    if (!waterPipeline && !prepareWaterPipeline(renderPass)) {
-      WARN_ZH("BattlefieldRenderer", "Could not setup up water rendering");
-      return {};
-    }
-
-    hasWater = true;
-  }
-
-  auto commandBuffer = vuglContext.createCommandBuffer(frameIdx, true);
+  auto size = map->getSize();
 
   auto vp = vuglContext.getViewport();
-  auto projectMatrix =
+  projectMatrix =
     glm::perspective(
         glm::radians(90.0f)
       , vp.width / static_cast<float>(vp.height)
@@ -69,17 +45,6 @@ std::shared_ptr<Vugl::CommandBuffer> BattlefieldRenderer::createRenderList(size_
       , 1000.0f
     );
 
-  std::array<VkClearValue, 2> clearColors{};
-  clearColors[0].color = {0.0f, 0.0f, 0.0f, 1.0f};
-  clearColors[1].depthStencil = {1.0f, 0};
-  commandBuffer.beginRendering(renderPass, clearColors);
-
-  if (vuglContext.isDebuggingAllowed()) {
-    commandBuffer.beginDebugLabel("Terrain");
-  }
-
-  auto size = map->getSize();
-  // Terrain
   auto lightTarget =
     glm::vec3 {
         size.x / 2.0f
@@ -94,49 +59,53 @@ std::shared_ptr<Vugl::CommandBuffer> BattlefieldRenderer::createRenderList(size_
       , size.y * 0.75f
     };
 
-  TerrainScene scene;
-  scene.mvp =
-    projectMatrix * battlefield.getCameraMatrix();
-  scene.sunLight = glm::normalize(lightTarget - lightPos);
-  terrainUniformBuffer->writeData(scene, frameIdx);
+  sunlightNormal = glm::normalize(lightTarget - lightPos);
 
-  commandBuffer.bindResource(*terrainPipeline);
-  commandBuffer.bindResource(*terrainDescriptorSet);
-  commandBuffer.bindResource(*terrainVertices);
-
-  auto numIndices = map->getVertexIndices().size();
-  commandBuffer.draw([numIndices](VkCommandBuffer vkCommandBuffer, uint32_t) {
-    vkCmdDrawIndexed(vkCommandBuffer, numIndices, 1, 0, 0, 0);
-    return VK_SUCCESS;
-  });
-
-  if (vuglContext.isDebuggingAllowed()) {
-    commandBuffer.endDebugLabel();
+  if (!prepareTerrainVertices()) {
+    WARN_ZH("BattlefieldRenderer", "Could not set up terrain");
+    return false;
   }
 
-  if (hasWater) {
-    if (vuglContext.isDebuggingAllowed()) {
-      commandBuffer.beginDebugLabel("Water");
-    }
-
-    WaterScene scene;
-    scene.mvp = projectMatrix * battlefield.getCameraMatrix();
-    waterUniformBuffer->writeData(scene, frameIdx);
-
-    commandBuffer.bindResource(*waterPipeline);
-    commandBuffer.bindResource(*waterDescriptorSet);
-    commandBuffer.bindResource(*waterVertices);
-
-    auto numVertices = map->getWaterVertices().size();
-    commandBuffer.draw([numVertices](VkCommandBuffer vkCommandBuffer, uint32_t) {
-      vkCmdDraw(vkCommandBuffer, numVertices, 1, 0, 0);
-      return VK_SUCCESS;
-    });
-
-    if (vuglContext.isDebuggingAllowed()) {
-      commandBuffer.endDebugLabel();
-    }
+  if (!prepareTerrainPipeline(renderPass, map->getTexturesIndex())) {
+    WARN_ZH("BattlefieldRenderer", "Could not setup up terrain rendering");
+    return false;
   }
+
+  if (!map->getWater().empty()) {
+    if (!prepareWaterVertices()) {
+      WARN_ZH("BattlefieldRenderer", "Could not set up water");
+      return false;
+    }
+
+    if (!prepareWaterPipeline(renderPass)) {
+      WARN_ZH("BattlefieldRenderer", "Could not setup up water rendering");
+      return false;
+    }
+
+    hasWater = true;
+  }
+
+  if (!prepareModelPipeline(renderPass)) {
+    WARN_ZH("BattlefieldRenderer", "Could not setup model rendering");
+    return false;
+  }
+
+  return true;
+}
+
+std::shared_ptr<Vugl::CommandBuffer> BattlefieldRenderer::createRenderList(size_t frameIdx, Vugl::RenderPass& renderPass) {
+  TRACY(ZoneScoped);
+
+  auto commandBuffer = vuglContext.createCommandBuffer(frameIdx, true);
+
+  std::array<VkClearValue, 2> clearColors{};
+  clearColors[0].color = {0.0f, 0.0f, 0.0f, 1.0f};
+  clearColors[1].depthStencil = {1.0f, 0};
+  commandBuffer.beginRendering(renderPass, clearColors);
+
+  renderTerrain(commandBuffer, frameIdx);
+  renderObjectInstances(commandBuffer, frameIdx);
+  renderWater(commandBuffer, frameIdx);
 
   commandBuffer.closeRendering();
 
@@ -150,14 +119,17 @@ bool BattlefieldRenderer::prepareModelPipeline(Vugl::RenderPass& renderPass) {
   pipelineSetup.setVSCode(readFile("shaders/model.vert.spv"));
   pipelineSetup.setFSCode(readFile("shaders/model.frag.spv"));
 
+  pipelineSetup.reserveUniformBuffer(VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT);
+  pipelineSetup.reserveCombinedSampler(VK_SHADER_STAGE_FRAGMENT_BIT);
+
   pipelineSetup.addVertexInput(VK_FORMAT_R32G32B32_SFLOAT, 0, 12, 0);
   pipelineSetup.addVertexInput(VK_FORMAT_R32G32B32_SFLOAT, 12, 12, 0);
   pipelineSetup.addVertexInput(VK_FORMAT_R32G32_SFLOAT, 24, 8, 0);
 
-  modelPipline =
+  modelPipeline =
     std::make_unique<Vugl::Pipeline>(vuglContext.createPipeline(pipelineSetup, renderPass.getVkRenderPass()));
 
-  if (modelPipline->getLastResult() != VK_SUCCESS) {
+  if (modelPipeline->getLastResult() != VK_SUCCESS) {
     return false;
   }
 
@@ -310,6 +282,240 @@ bool BattlefieldRenderer::prepareWaterVertices() {
   vuglContext.uploadResource(*waterVertices);
 
   return true;
+}
+
+bool BattlefieldRenderer::prepareModelData(Objects::Instance& instance) {
+  auto lookup = modelRenderData.find(instance.getID());
+
+  if (lookup != modelRenderData.cend()) {
+    lookup->second->decreaseMiss();
+    return true;
+  }
+
+  auto base = instance.getBase();
+  if (base->drawMetaData.type == Objects::DrawType::MODEL_DRAW) {
+      prepareModelDrawData(instance);
+  } else if (base->drawMetaData.type == Objects::DrawType::TREE_DRAW) {
+    // Silence
+  } else {
+    WARN_ZH(
+        "BattlefieldRenderer"
+      , "Skipping drawing of {}, draw mode not implemented"
+      , instance.getBase()->name
+    );
+  }
+
+  return true;
+}
+
+bool BattlefieldRenderer::prepareModelDrawData(Objects::Instance& instance) {
+  auto base = instance.getBase();
+  auto drawData = static_pointer_cast<Objects::ModelDrawData>(base->drawMetaData.drawData);
+
+  // EVAL condition states
+  auto models = modelCache.getModels(drawData->defaultConditionState.model);
+  if (models == nullptr) {
+    WARN_ZH("BattlefieldRenderer", "Unable to find models for {}", drawData->defaultConditionState.model);
+    return false;
+  }
+
+  MurmurHash3_32 hasher;
+  hasher.feed(drawData->defaultConditionState.model);
+  uint32_t key = hasher.getHash();
+
+  auto renderData = std::make_shared<ModelRenderData>();
+  renderData->vertexKey = key;
+  renderData->descriptorSet =
+    std::make_shared<Vugl::DescriptorSet>(modelPipeline->createDescriptorSet());
+  renderData->uniformBuffer =
+    std::make_shared<Vugl::UniformBuffer>(vuglContext.createUniformBuffer(sizeof(ModelData)));
+
+  renderData->descriptorSet->assignUniformBuffer(*renderData->uniformBuffer);
+
+  // EVAL all models
+  // TODO better cleanup/avoidance if either setup fails
+  auto& model = models->front();
+  auto vertexLookup = vertexData.find(renderData->vertexKey);
+  if (vertexLookup == vertexData.cend()) {
+    auto modelVertices =
+      std::make_shared<Vugl::ElementBuffer>(vuglContext.createElementBuffer(0));
+
+    modelVertices->setBigIndexBuffer(true);
+    modelVertices->writeData(model->vertexData, model->vertexIndices);
+
+    vuglContext.uploadResource(*modelVertices);
+
+    vertexData.emplace(std::make_pair(renderData->vertexKey, std::move(modelVertices)));
+  }
+
+  // EVAL per-triangle texture
+  auto& textureName = model->textures[0];
+  auto sampler = textureCache.getTextureSampler(textureName);
+  if (!sampler) {
+    WARN_ZH("BattlefieldRenderer", "Failed to load model texture {}", textureName);
+    return false;
+  }
+
+  renderData->descriptorSet->assignCombinedSampler(*sampler);
+  vuglContext.uploadResource(*sampler);
+
+  renderData->descriptorSet->updateDevice();
+  modelRenderData.emplace(std::make_pair(instance.getID(), std::move(renderData)));
+
+  return true;
+}
+
+void BattlefieldRenderer::renderObjectInstances(Vugl::CommandBuffer& commandBuffer, size_t frameIdx) {
+  for (auto& pair : modelRenderData) {
+    pair.second->increaseMiss();
+  }
+
+  for (auto& instance : battlefield.getObjectInstances()) {
+    if (!prepareModelData(*instance)) {
+      WARN_ZH(
+          "BattlefieldRenderer"
+        , "Skipping drawing of {}, model not loaded"
+        , instance->getBase()->name
+      );
+      continue;
+    }
+  }
+
+  if (vuglContext.isDebuggingAllowed()) {
+    commandBuffer.beginDebugLabel("Objects");
+  }
+
+  commandBuffer.bindResource(*modelPipeline);
+
+  for (auto& instance : battlefield.getObjectInstances()) {
+    // TODO visibility check
+    renderObjectInstance(*instance, commandBuffer, frameIdx);
+  }
+
+  if (vuglContext.isDebuggingAllowed()) {
+    commandBuffer.endDebugLabel();
+  }
+
+  for (auto it = modelRenderData.begin(); it != modelRenderData.end();) {
+    if (it->second->getMisses() >= 2) {
+      it = modelRenderData.erase(it);
+    } else {
+      it++;
+    }
+  }
+}
+
+void BattlefieldRenderer::renderObjectInstance(Objects::Instance& instance, Vugl::CommandBuffer& commandBuffer, size_t frameIdx) {
+  auto renderDataLookup = modelRenderData.find(instance.getID());
+  if (renderDataLookup == modelRenderData.cend()) {
+    return;
+  }
+  auto& renderData = renderDataLookup->second;
+
+  auto elementBufferLookup = vertexData.find(renderData->vertexKey);
+  if (elementBufferLookup == vertexData.cend()) {
+    return;
+  }
+  auto& elementBuffer = elementBufferLookup->second;
+
+  if (vuglContext.isDebuggingAllowed()) {
+    commandBuffer.beginDebugLabel(std::to_string(instance.getID()));
+  }
+
+  if (instance.needsRedraw()) {
+    auto modelMatrix =
+      battlefield.getObjectToWorldMatrix(
+          instance.getPosition()
+        , instance.getAngle()
+      );
+
+    glm::mat4 axisFlip {1.0f};
+    axisFlip[1][1] = 0.0f;
+    axisFlip[1][2] = 1.0f;
+    axisFlip[2][1] = 1.0f;
+    axisFlip[2][2] = 0.0f;
+
+    auto normalMatrix =
+      glm::rotate(axisFlip, instance.getAngle(), glm::vec3{0.0f, 1.0f, 0.0f});
+
+    renderData->modelData.mvp =
+      projectMatrix * battlefield.getCameraMatrix() * modelMatrix;
+    renderData->modelData.sunlight = sunlightNormal;
+    renderData->modelData.normalMatrix = normalMatrix;
+
+    instance.setRedrawn();
+  }
+
+  renderData->uniformBuffer->writeData(renderData->modelData, frameIdx);
+
+  commandBuffer.bindResource(*renderData->descriptorSet);
+  commandBuffer.bindResource(*elementBuffer);
+
+  auto numIndices = elementBuffer->getNumIndices();
+  commandBuffer.draw([numIndices](VkCommandBuffer vkCommandBuffer, uint32_t) {
+    vkCmdDrawIndexed(vkCommandBuffer, numIndices, 1, 0, 0, 0);
+    return VK_SUCCESS;
+  });
+
+  if (vuglContext.isDebuggingAllowed()) {
+    commandBuffer.endDebugLabel();
+  }
+}
+
+void BattlefieldRenderer::renderTerrain(Vugl::CommandBuffer& commandBuffer, size_t frameIdx) {
+  if (vuglContext.isDebuggingAllowed()) {
+    commandBuffer.beginDebugLabel("Terrain");
+  }
+
+  TerrainScene scene;
+  scene.mvp =
+    projectMatrix * battlefield.getCameraMatrix();
+  scene.sunlight = sunlightNormal;
+  terrainUniformBuffer->writeData(scene, frameIdx);
+
+  commandBuffer.bindResource(*terrainPipeline);
+  commandBuffer.bindResource(*terrainDescriptorSet);
+  commandBuffer.bindResource(*terrainVertices);
+
+  auto map = battlefield.getMap();
+  auto numIndices = map->getVertexIndices().size();
+  commandBuffer.draw([numIndices](VkCommandBuffer vkCommandBuffer, uint32_t) {
+    vkCmdDrawIndexed(vkCommandBuffer, numIndices, 1, 0, 0, 0);
+    return VK_SUCCESS;
+  });
+
+  if (vuglContext.isDebuggingAllowed()) {
+    commandBuffer.endDebugLabel();
+  }
+}
+
+void BattlefieldRenderer::renderWater(Vugl::CommandBuffer& commandBuffer, size_t frameIdx) {
+  if (!hasWater) {
+    return;
+  }
+
+  if (vuglContext.isDebuggingAllowed()) {
+    commandBuffer.beginDebugLabel("Water");
+  }
+
+  auto map = battlefield.getMap();
+  WaterScene scene;
+  scene.mvp = projectMatrix * battlefield.getCameraMatrix();
+  waterUniformBuffer->writeData(scene, frameIdx);
+
+  commandBuffer.bindResource(*waterPipeline);
+  commandBuffer.bindResource(*waterDescriptorSet);
+  commandBuffer.bindResource(*waterVertices);
+
+  auto numVertices = map->getWaterVertices().size();
+  commandBuffer.draw([numVertices](VkCommandBuffer vkCommandBuffer, uint32_t) {
+    vkCmdDraw(vkCommandBuffer, numVertices, 1, 0, 0);
+    return VK_SUCCESS;
+  });
+
+  if (vuglContext.isDebuggingAllowed()) {
+    commandBuffer.endDebugLabel();
+  }
 }
 
 }

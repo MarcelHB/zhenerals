@@ -11,7 +11,7 @@ ModelCache::ModelCache(
 ) : resourceLoader(resourceLoader)
 {}
 
-std::shared_ptr<Model> ModelCache::getModel(const std::string& key) {
+ModelCache::Models ModelCache::getModels(const std::string& key) {
   TRACY(ZoneScoped);
 
   auto path = fmt::format("art\\w3d\\{}.w3d", key);
@@ -28,16 +28,21 @@ std::shared_ptr<Model> ModelCache::getModel(const std::string& key) {
   auto stream = lookup->getStream();
   auto w3d = W3DFile(stream);
 
-  auto w3dModel = w3d.parse();
-  if (!w3dModel) {
+  auto w3dModels = w3d.parse();
+  if (w3dModels.empty()) {
     return {};
   }
 
-  auto model =
-    std::make_shared<Model>(std::move(Model::fromW3D(*w3dModel)));
-  modelCache.put(path, model);
+  Models models = std::make_shared<std::vector<std::shared_ptr<Model>>>();
 
-  return model;
+  for (auto& w3dModel : w3dModels) {
+    auto model =
+      std::make_shared<Model>(std::move(Model::fromW3D(*w3dModel)));
+    models->emplace_back(std::move(model));
+  }
+  modelCache.put(path, models);
+
+  return models;
 }
 
 }

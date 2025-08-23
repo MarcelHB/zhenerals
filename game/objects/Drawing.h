@@ -35,7 +35,7 @@ struct ConditionState {
   Turret turret2;
   std::list<std::string> shownSubObjects;
   std::list<std::string> hiddenSubObjects;
-  std::string weaponRireEffectBone;
+  std::string weaponFireEffectBone;
   std::string weaponRecoilBone;
   std::string weaponMuzzleFlashBone;
   std::string weaponLaunchBone;

@@ -44,7 +44,7 @@ struct W3DModel {
 class W3DFile {
   public:
     W3DFile(std::istream&);
-    std::shared_ptr<W3DModel> parse();
+    std::vector<std::shared_ptr<W3DModel>> parse();
   private:
     bool broken = false;
     std::optional<size_t> currentMaterialIdx;
@@ -54,7 +54,7 @@ class W3DFile {
 
     size_t parseHeader(W3DModel&);
     size_t parseMaterialInfo(W3DModel&);
-    size_t parseNextChunk(W3DModel&);
+    size_t parseNextChunk(std::vector<std::shared_ptr<W3DModel>>&);
 
     template<typename T>
     size_t parseContiguous(std::vector<T>& vector, uint32_t chunkSize) {

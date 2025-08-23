@@ -24,6 +24,9 @@ Model Model::fromW3D(const W3DModel& w3d) {
     }
   }
 
+  model.textures = w3d.textures;
+  model.textureIndices = materialPass.textureIndices;
+
   return model;
 }
 

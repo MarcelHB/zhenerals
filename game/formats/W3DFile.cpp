@@ -24,22 +24,22 @@ W3DFile::W3DFile(std::istream& stream) : stream(stream) {}
     return totalBytes; \
   }
 
-std::shared_ptr<W3DModel> W3DFile::parse() {
+std::vector<std::shared_ptr<W3DModel>> W3DFile::parse() {
   TRACY(ZoneScoped);
-  W3DModel model;
+  std::vector<std::shared_ptr<W3DModel>> models;
 
   while (!stream.eof() && !broken) {
-    parseNextChunk(model);
+    parseNextChunk(models);
   }
 
   if (broken) {
     return {};
   }
 
-  return std::make_shared<W3DModel>(std::move(model));
+  return models;
 }
 
-size_t W3DFile::parseNextChunk(W3DModel& model) {
+size_t W3DFile::parseNextChunk(std::vector<std::shared_ptr<W3DModel>>& models) {
   uint32_t buffer4 = 0;
   size_t bytesRead = 0;
   size_t totalBytes = 0;
@@ -50,6 +50,11 @@ size_t W3DFile::parseNextChunk(W3DModel& model) {
 
   bool hasSubchunks = (buffer4 & (1 << 31)) > 0;
   uint32_t chunkSize = (buffer4 & 0x7FFFFFFF);
+
+  std::shared_ptr<W3DModel> model;
+  if (!models.empty()) {
+    model = models.back();
+  }
 
   if (hasSubchunks) {
     bytesRead = 0;
@@ -76,6 +81,11 @@ size_t W3DFile::parseNextChunk(W3DModel& model) {
         }
         break;
       case 0x0: // root
+        model = models.emplace_back(std::make_shared<W3DModel>());
+        currentMaterialIdx = std::nullopt;
+        currentTextureIdx = std::nullopt;
+        currentMaterialPassIdx = std::nullopt;
+        break;
       case 0x2A: // vertex materials (subs)
       case 0x30: // textures (subs)
       case 0x48: // texture stage
@@ -89,14 +99,20 @@ size_t W3DFile::parseNextChunk(W3DModel& model) {
     }
 
     while (bytesRead < chunkSize && !stream.eof() && !broken) {
-      auto numBytes = parseNextChunk(model);
+      auto numBytes = parseNextChunk(models);
       bytesRead += numBytes;
       totalBytes += numBytes;
     }
   } else {
+    if (model == nullptr && !(chunkType >= 0x101 && chunkType <= 0x103)) {
+      broken = true;
+      return totalBytes;
+    }
+
     switch (chunkType) {
       case 0x22: // shade indices, skip
       case 0x2D: // vertex material info (?)
+      case 0x3B: // vertex diffuse colors
       case 0x101:
       case 0x102:
       case 0x103:
@@ -107,70 +123,110 @@ size_t W3DFile::parseNextChunk(W3DModel& model) {
         totalBytes += chunkSize;
         break;
       case 0x2:  // vertices
-        totalBytes += parseContiguous(model.vertices, chunkSize);
+        totalBytes += parseContiguous(model->vertices, chunkSize);
         break;
       case 0x3:  // normals
-        totalBytes += parseContiguous(model.normals, chunkSize);
+        totalBytes += parseContiguous(model->normals, chunkSize);
         break;
-      case 0x1F: // header
-        totalBytes += parseHeader(model);
+      case 0x1F: // headerstd::shared_ptr<
+        totalBytes += parseHeader(*model);
         break;
       case 0x20: // triangles
-        totalBytes += parseContiguous(model.triangles, chunkSize);
+        totalBytes += parseContiguous(model->triangles, chunkSize);
         break;
       case 0x28: // material info
-        totalBytes += parseMaterialInfo(model);
+        totalBytes += parseMaterialInfo(*model);
         break;
       case 0x29: // shader info
-        totalBytes += parseContiguous(model.shaderValues, chunkSize);
+        totalBytes += parseContiguous(model->shaderValues, chunkSize);
         break;
       case 0x2C: // vertex material name
         if (currentMaterialIdx) {
-          auto& str = model.materials[*currentMaterialIdx];
-          str.resize(chunkSize);
-          stream.read(str.data(), chunkSize);
+          if (*currentMaterialIdx >= model->materials.size()) {
+            broken = true;
+            return totalBytes;
+          }
+
+          auto& str = model->materials[*currentMaterialIdx];
+          // trailing '\0'
+          str.resize(chunkSize - 1);
+          stream.read(str.data(), chunkSize - 1);
           totalBytes += stream.gcount();
+          stream.seekg(1, std::ios::cur);
+          totalBytes += 1;
         }
         break;
       case 0x32: // texture name
         if (currentTextureIdx) {
-          auto& str = model.textures[*currentTextureIdx];
-          str.resize(chunkSize);
-          stream.read(str.data(), chunkSize);
+          if (*currentTextureIdx >= model->textures.size()) {
+            broken = true;
+            return totalBytes;
+          }
+
+          auto& str = model->textures[*currentTextureIdx];
+          // trailing '\0'
+          str.resize(chunkSize - 1);
+          stream.read(str.data(), chunkSize - 1);
           totalBytes += stream.gcount();
+          stream.seekg(1, std::ios::cur);
+          totalBytes += 1;
         }
         break;
       case 0x39: // vertex material idxs
         if (currentMaterialPassIdx) {
+          if (*currentMaterialPassIdx >= model->materialPasses.size()) {
+            broken = true;
+            return totalBytes;
+          }
+
           totalBytes +=
             parseContiguousDyn(
-                model.materialPasses[*currentMaterialPassIdx].materialIndices
+                model->materialPasses[*currentMaterialPassIdx].materialIndices
               , chunkSize
             );
         }
         break;
       case 0x3A: // shader idxs
         if (currentMaterialPassIdx) {
+          if (*currentMaterialPassIdx >= model->materialPasses.size()) {
+            broken = true;
+            return totalBytes;
+          }
+
           totalBytes +=
             parseContiguousDyn(
-                model.materialPasses[*currentMaterialPassIdx].shaderIndices
+                model->materialPasses[*currentMaterialPassIdx].shaderIndices
               , chunkSize
             );
         }
         break;
       case 0x49: // texture idxs
-        totalBytes +=
-          parseContiguousDyn(
-              model.materialPasses[*currentMaterialPassIdx].textureIndices
-            , chunkSize
-          );
+        if (currentMaterialPassIdx) {
+          if (*currentMaterialPassIdx >= model->materialPasses.size()) {
+            broken = true;
+            return totalBytes;
+          }
+
+          totalBytes +=
+            parseContiguousDyn(
+                model->materialPasses[*currentMaterialPassIdx].textureIndices
+              , chunkSize
+            );
+        }
         break;
       case 0x4A: // UV
-        totalBytes +=
-          parseContiguousDyn(
-              model.materialPasses[*currentMaterialPassIdx].uv
-            , chunkSize
-          );
+        if (currentMaterialPassIdx) {
+          if (*currentMaterialPassIdx >= model->materialPasses.size()) {
+            broken = true;
+            return totalBytes;
+          }
+
+          totalBytes +=
+            parseContiguousDyn(
+                model->materialPasses[*currentMaterialPassIdx].uv
+              , chunkSize
+            );
+        }
         break;
       default:
         WARN_ZH("W3DFile", "Unknown chunk type {}", chunkType);

@@ -9,7 +9,7 @@ layout(location = 4) in vec2 uvCloud;
 
 layout(binding = 0) uniform Scene {
   mat4 mvpMatrix;
-  vec3 sunLight;
+  vec3 sunlight;
 } scene;
 
 layout(binding = 1) uniform sampler textureSampler;
@@ -20,7 +20,7 @@ layout(location = 0) out vec4 outColor;
 
 void main() {
   vec4 color = texture(sampler2D(textures[nonuniformEXT(textureIdx.x)], textureSampler), uv);
-  vec4 brightness = vec4(0.3 + dot(normal, scene.sunLight) * 0.7);
+  vec4 brightness = vec4(0.3 + max(0.0, dot(normal, scene.sunlight)) * 0.7);
 
   vec4 color2 = texture(sampler2D(textures[nonuniformEXT(textureIdx.y)], textureSampler), uv);
 

@@ -153,6 +153,7 @@ struct WeaponSet {
 };
 
 struct ObjectBuilder {
+  std::string name;
   std::list<Behavior> behaviors;
   std::shared_ptr<Behavior> body;
   std::shared_ptr<Behavior> clientUpdate;

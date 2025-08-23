@@ -8,7 +8,7 @@ namespace ZH {
 
 BattlefieldFactory::BattlefieldFactory(
     ResourceLoader& mapLoader
-  , Objects::InstanceFactory& instaceFactory
+  , Objects::InstanceFactory& instanceFactory
 ) : mapLoader(mapLoader)
   , instanceFactory(instanceFactory)
 {}

@@ -46,7 +46,7 @@ bool Window::init() {
   SDL_DestroyProperties(props);
 
   CHECK_SDL(sdlWindow != nullptr);
-  //SDL_Delay(4000); // For attaching tracy before all
+  // SDL_Delay(4000); // For attaching tracy before all
 
   uint32_t extCount = 0;
   auto extensionsList = SDL_Vulkan_GetInstanceExtensions(&extCount);

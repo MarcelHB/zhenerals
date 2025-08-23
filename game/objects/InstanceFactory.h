@@ -12,7 +12,7 @@ class InstanceFactory {
   public:
     InstanceFactory(ObjectLoader& objectLoader);
 
-    std::shared_ptr<Instance> getInstance(MapObject&) const;
+    std::shared_ptr<Instance> getInstance(const MapObject&) const;
   private:
     ObjectLoader& objectLoader;
 };

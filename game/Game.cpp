@@ -76,9 +76,7 @@ bool Game::init() {
     ERROR_ZH("Game", "Could not load objects list");
   }
 
-  objectLoader = std::make_shared<ObjectLoader>(*iniResourceLoader);
   instanceFactory = std::make_shared<Objects::InstanceFactory>(*objectLoader);
-
   battlefieldFactory = std::make_shared<BattlefieldFactory>(*mapsLoader, *instanceFactory);
 
   textureLookup = std::make_shared<GFX::TextureLookup>(*iniResourceLoader);
@@ -223,6 +221,10 @@ void Game::draw(void *obj) {
   if (renderPass.getLastResult() != VK_SUCCESS) {
     ERROR_ZH("Game", "Failed to create render pass!");
     return;
+  }
+
+  if (!game->mapRenderer->init(renderPass)) {
+    WARN_ZH("Game", "Failed to prepare map rendering");
   }
 
   std::array<VkClearValue, 2> clearColors{};

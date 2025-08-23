@@ -19,6 +19,8 @@ struct Model {
 
   std::vector<VertexData> vertexData;
   std::vector<uint32_t> vertexIndices;
+  std::vector<std::string> textures;
+  std::vector<uint32_t> textureIndices;
 
   static Model fromW3D(const W3DModel&);
 };
