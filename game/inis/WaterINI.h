@@ -47,8 +47,6 @@ class WaterINI : public INIFile {
   private:
     void parseWaterSet(WaterSets&);
     void parseWaterTransparency(WaterTransparency&);
-    Color parseRGB();
-    Color parseRGBA();
 };
 
 }

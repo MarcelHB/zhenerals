@@ -12,6 +12,7 @@
 #include <unordered_map>
 #include <vector>
 
+#include "../Color.h"
 #include "../common.h"
 #include "../Logging.h"
 
@@ -56,6 +57,8 @@ class INIFile {
     std::optional<std::pair<uint16_t, uint16_t>> parseShortPair();
 
     std::optional<uint8_t> parsePercent();
+    Color parseRGB();
+    Color parseRGBA();
     std::string parseString();
     std::vector<std::string> parseStringList();
 

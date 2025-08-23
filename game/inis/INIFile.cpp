@@ -56,7 +56,7 @@ std::string INIFile::getToken() {
 
   do {
     auto peek = stream.peek();
-    if (peek == ' ' || peek == '\n' || peek == '\r') {
+    if (peek == ' ' || peek == '\n' || peek == '\r' || peek == ';') {
       break;
     } else {
       auto c = stream.get();
@@ -314,6 +314,33 @@ std::optional<uint8_t> INIFile::parsePercent() {
   }
 
   return value;
+}
+
+Color INIFile::parseRGB() {
+  auto color = parseRGBA();
+  color.a = 0xFF;
+
+  return color;
+}
+
+Color INIFile::parseRGBA() {
+  Color color;
+
+  auto values = parseAttributes();
+  if (values.contains("R")) {
+    color.r = std::min(parseInteger(values["R"]).value_or(0), 255u);
+  }
+  if (values.contains("G")) {
+    color.g = std::min(parseInteger(values["G"]).value_or(0), 255u);
+  }
+  if (values.contains("B")) {
+    color.b = std::min(parseInteger(values["B"]).value_or(0), 255u);
+  }
+  if (values.contains("A")) {
+    color.a = std::min(parseInteger(values["A"]).value_or(255), 255u);
+  }
+
+  return color;
 }
 
 std::string INIFile::parseString() {

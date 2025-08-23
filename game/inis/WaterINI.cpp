@@ -78,33 +78,6 @@ void WaterINI::parseWaterSet(WaterSets& waterSets) {
   waterSets.emplace(daytime, std::move(water));
 }
 
-Color WaterINI::parseRGB() {
-  auto color = parseRGBA();
-  color.a = 0xFF;
-
-  return color;
-}
-
-Color WaterINI::parseRGBA() {
-  Color color;
-
-  auto values = parseAttributes();
-  if (values.contains("R")) {
-    color.r = std::min(parseInteger(values["R"]).value_or(0), 255u);
-  }
-  if (values.contains("G")) {
-    color.g = std::min(parseInteger(values["G"]).value_or(0), 255u);
-  }
-  if (values.contains("B")) {
-    color.b = std::min(parseInteger(values["B"]).value_or(0), 255u);
-  }
-  if (values.contains("A")) {
-    color.a = std::min(parseInteger(values["A"]).value_or(255), 255u);
-  }
-
-  return color;
-}
-
 void WaterINI::parseWaterTransparency(WaterTransparency& transparency) {
   advanceStream();
   auto key = getTokenInLine();
