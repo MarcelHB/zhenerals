@@ -107,6 +107,12 @@ std::unordered_map<std::string, std::string> INIFile::parseAttributes() {
     auto key = token.substr(0, splitPos);
     auto value = token.substr(splitPos + 1);
 
+    // whitespace after colon
+    while (!key.empty() && value.empty()) {
+      advanceStreamInLine();
+      value = getTokenInLine();
+    }
+
     attributes.emplace(std::move(key), std::move(value));
 
     advanceStreamInLine();
