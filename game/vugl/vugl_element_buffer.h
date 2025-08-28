@@ -39,8 +39,8 @@ class ElementBuffer
     ElementBuffer (ResourceAllocator& allocator, uint32_t binding);
     ~ElementBuffer ();
 
-    void deleteHostData ();
-    void deleteGPUData ();
+    void deleteHostData () override;
+    void deleteGPUData () override;
     void destroy ();
 
     VkResult getLastResult () const;
