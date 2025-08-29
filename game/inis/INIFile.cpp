@@ -136,9 +136,9 @@ bool INIFile::parseBool() {
 }
 
 bool INIFile::parseBool(const std::string& token) const {
-  if (token == "yes" || token == "Yes") {
+  if (token == "yes" || token == "Yes" || token == "YES") {
     return true;
-  } else if (token == "no" || token == "No") {
+  } else if (token == "no" || token == "No" || token == "NO") {
     return false;
   }
 

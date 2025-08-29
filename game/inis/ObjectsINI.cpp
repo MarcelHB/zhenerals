@@ -755,7 +755,8 @@ static INIApplierMap<Objects::FXListDie> FXListDieKVMap = {
       fld.effect = f.parseString();
       return !fld.effect.empty();
     }
-  }
+  },
+  { "OrientToObject", [](Objects::FXListDie& fld, INIFile& f) { fld.orientToObject = f.parseBool(); return true; } },
 };
 
 static INIApplierMap<Objects::GarrisonContain> GarrisonContainKVMap = {
@@ -1283,6 +1284,7 @@ static INIApplierMap<Objects::ModelDrawData> ModelDrawDataKVMap = {
       return f.parseEnumSet<Objects::WeaponSlot>(dd.feedbackSlots, CALL(Objects::getWeaponSlot));
     }
   },
+  { "ReceivesDynamicLights", [](Objects::ModelDrawData& dd, INIFile& f) { dd.dynamicIllumination = f.parseBool(); return true; } },
   { "RecoilSettleSpeed", [](Objects::ModelDrawData& t, INIFile& f) {
       auto value = f.parseFloat();
       t.recoilSettleSpeed = value.value_or(t.recoilSettleSpeed);
@@ -1685,12 +1687,13 @@ static bool parseTransitionDamageParticles(INIFile& f, Objects::TransitionDamage
 };
 
 static INIApplierMap<Objects::TransitionDamageFX> TransitionDamageFXKVMap = {
-  { "DamagedFXList1", [](Objects::TransitionDamageFX& fx, INIFile& f) { return parseTransitionDamageFX(f, fx.effects, 0, 0); } },
-  { "DamagedParticleSystem1", [](Objects::TransitionDamageFX& fx, INIFile& f) { return parseTransitionDamageParticles(f, fx.particleSystems, 0, 0); } },
-  { "ReallyDamagedFXList1", [](Objects::TransitionDamageFX& fx, INIFile& f) { return parseTransitionDamageFX(f, fx.effects, 1, 0); } },
-  { "ReallyDamagedParticleSystem1", [](Objects::TransitionDamageFX& fx, INIFile& f) { return parseTransitionDamageParticles(f, fx.particleSystems, 1, 0); } },
-  { "ReallyDamagedParticleSystem2", [](Objects::TransitionDamageFX& fx, INIFile& f) { return parseTransitionDamageParticles(f, fx.particleSystems, 1, 1); } },
-  { "ReallyDamagedParticleSystem3", [](Objects::TransitionDamageFX& fx, INIFile& f) { return parseTransitionDamageParticles(f, fx.particleSystems, 1, 2); } },
+  { "DamagedFXList1", [](Objects::TransitionDamageFX& fx, INIFile& f) { return parseTransitionDamageFX(f, fx.effects, 1, 0); } },
+  { "DamagedParticleSystem1", [](Objects::TransitionDamageFX& fx, INIFile& f) { return parseTransitionDamageParticles(f, fx.particleSystems, 1, 0); } },
+  { "ReallyDamagedFXList1", [](Objects::TransitionDamageFX& fx, INIFile& f) { return parseTransitionDamageFX(f, fx.effects, 2, 0); } },
+  { "ReallyDamagedParticleSystem1", [](Objects::TransitionDamageFX& fx, INIFile& f) { return parseTransitionDamageParticles(f, fx.particleSystems, 2, 0); } },
+  { "ReallyDamagedParticleSystem2", [](Objects::TransitionDamageFX& fx, INIFile& f) { return parseTransitionDamageParticles(f, fx.particleSystems, 2, 1); } },
+  { "ReallyDamagedParticleSystem3", [](Objects::TransitionDamageFX& fx, INIFile& f) { return parseTransitionDamageParticles(f, fx.particleSystems, 2, 2); } },
+  { "RubbleParticleSystem1", [](Objects::TransitionDamageFX& fx, INIFile& f) { return parseTransitionDamageParticles(f, fx.particleSystems, 3, 0); } },
 };
 
 static bool parseSound(Objects::ObjectBuilder& b, INIFile& f, Objects::Noise noise) {
@@ -1986,7 +1989,7 @@ static INIApplierMap<Objects::ObjectBuilder> ObjectDataKVMap = {
     }
   },
   { "Draw", [](Objects::ObjectBuilder& b, INIFile& f) { return reinterpret_cast<ObjectsINI&>(f).parseDraw(b); } },
-  { "EditorSorting", [](Objects::ObjectBuilder& b, INIFile& f) { f.parseString(); return true; } },
+  { "EditorSorting", [](Objects::ObjectBuilder& b, INIFile& f) { f.parseStringList(); return true; } },
   { "EnergyBonus", [](Objects::ObjectBuilder& b, INIFile& f) {
       auto opt = f.parseSignedInteger();
       b.energyBonus = opt.value_or(b.energyBonus);
@@ -2665,7 +2668,7 @@ static INIApplierMap<Objects::StealthDetector> StealthDetectorKVMap = {
   { "InitiallyDisabled", [](Objects::StealthDetector& sd, INIFile& f) { sd.disabled = f.parseBool(); return true; } },
 };
 
-static INIApplierMap<Objects::Topple> ToppleDataKVMap = {
+static INIApplierMap<Objects::Topple> ToppleKVMap = {
   { "BounceFX", [](Objects::Topple& t, INIFile& f) { t.bounceEffect = f.parseString(); return !t.bounceEffect.empty(); } },
   { "BounceVelocityPercent", [](Objects::Topple& t, INIFile& f) {
       auto opt = f.parsePercent();
@@ -2679,6 +2682,8 @@ static INIApplierMap<Objects::Topple> ToppleDataKVMap = {
       return opt.has_value();
     }
   },
+  { "KillWhenStartToppling", [](Objects::Topple& t, INIFile& f) { t.killOnStartToppling = f.parseBool(); return true; } },
+  { "ReorientToppledRubble", [](Objects::Topple& t, INIFile& f) { t.reorientToppledRubble = f.parseBool(); return true; } },
   { "StumpName", [](Objects::Topple& t, INIFile& f) { t.stump = f.parseString(); return !t.stump.empty(); } },
   { "ToppleFX", [](Objects::Topple& t, INIFile& f) { t.toppleEffect = f.parseString(); return !t.toppleEffect.empty(); } },
   { "ToppleLeftOrRightOnly", [](Objects::Topple& t, INIFile& f) { t.oneAxisOnly = f.parseBool(); return true; } },
@@ -3118,7 +3123,7 @@ bool ObjectsINI::parseBehavior(Objects::ObjectBuilder& builder) {
           , OpenContainKVMap
         );
     case Objects::ModuleType::TOPPLE:
-      return parseSubtypedAttributeBlock<Objects::Topple>(std::move(behavior.moduleData), ToppleDataKVMap);
+      return parseSubtypedAttributeBlock<Objects::Topple>(std::move(behavior.moduleData), ToppleKVMap);
     case Objects::ModuleType::ARMOR_UPGRADE:
     case Objects::ModuleType::LOCOMOTOR_SET_UPGRADE:
     case Objects::ModuleType::RADAR_UPGRADE:
@@ -3180,6 +3185,7 @@ bool ObjectsINI::parseBody(Objects::ObjectBuilder& builder) {
   switch (builder.body->type) {
     case Objects::ModuleType::ACTIVE_BODY:
     case Objects::ModuleType::HIGHLANDER_BODY:
+    case Objects::ModuleType::IMMORTAL_BODY:
     case Objects::ModuleType::STRUCTURE_BODY:
       return
         parseSubtypedAttributeBlock<Objects::ActiveBody>(

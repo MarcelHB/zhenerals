@@ -98,6 +98,7 @@ enum class ModuleType {
   , HELIX_CONTAIN
   , HIGHLANDER_BODY
   , HIVE_STRUCTURE_BODY
+  , IMMORTAL_BODY
   , INSTANT_DEATH
   , JET_AI
   , JET_SLOW_DEATH
@@ -1227,8 +1228,8 @@ struct TransitionDamageTypeParticles {
   bool randomBone;
 };
 
-using TransitionDamageFXSlots = std::array<std::array<TransitionDamageTypeFX, 12>, 3>;
-using TransitionDamageParticlesSlots = std::array<std::array<TransitionDamageTypeParticles, 12>, 3>;
+using TransitionDamageFXSlots = std::array<std::array<TransitionDamageTypeFX, 12>, 4>;
+using TransitionDamageParticlesSlots = std::array<std::array<TransitionDamageTypeParticles, 12>, 4>;
 
 struct TransitionDamageFX : public Module {
   std::set<DamageType> damageEffectTypes;

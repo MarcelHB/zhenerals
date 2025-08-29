@@ -845,6 +845,8 @@ std::optional<ModuleType> getModuleType(const std::string_view& value) {
     return {ModuleType::HIGHLANDER_BODY};
   } else if (value == "HiveStructureBody") {
     return {ModuleType::HIVE_STRUCTURE_BODY};
+  } else if (value == "ImmortalBody") {
+    return {ModuleType::IMMORTAL_BODY};
   } else if (value == "InstantDeathBehavior") {
     return {ModuleType::INSTANT_DEATH};
   } else if (value == "JetAIUpdate") {
