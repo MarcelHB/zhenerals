@@ -49,11 +49,25 @@ void expectGenericTree(const Objects::ObjectBuilder& builder) {
   EXPECT_EQ(0.1f, builder.scaleFuzziness);
 }
 
+TEST(ObjectsINITest, parsingAirforceGeneral) {
+  Config config;
+  ResourceLoader w3dLoader {{"INIZH.big"}, config.baseDir};
+
+  auto fileStream =
+    w3dLoader.getFileStream("data\\ini\\object\\airforcegeneral.ini");
+
+  auto stream = fileStream->getStream();
+  ObjectsINI objectsINI {stream};
+
+  auto builders = objectsINI.parse();
+}
+
 TEST(ObjectsINITest, parsingNatureprop) {
   Config config;
   ResourceLoader w3dLoader {{"INIZH.big"}, config.baseDir};
 
-  auto fileStream = w3dLoader.getFileStream("data\\ini\\object\\natureprop.ini");
+  auto fileStream =
+    w3dLoader.getFileStream("data\\ini\\object\\natureprop.ini");
   auto stream = fileStream->getStream();
   ObjectsINI objectsINI {stream};
 

@@ -296,7 +296,13 @@ bool BattlefieldRenderer::prepareModelData(Objects::Instance& instance) {
   }
 
   auto base = instance.getBase();
-  if (base->drawMetaData.type == Objects::DrawType::MODEL_DRAW) {
+  // TODO differentiation
+  if (base->drawMetaData.type == Objects::DrawType::DEPENDENCY_MODEL_DRAW
+      || base->drawMetaData.type == Objects::DrawType::MODEL_DRAW
+      || base->drawMetaData.type == Objects::DrawType::OVERLORD_AIRCRAFT_DRAW
+      || base->drawMetaData.type == Objects::DrawType::TANK_DRAW
+      || base->drawMetaData.type == Objects::DrawType::TRUCK_DRAW
+  ) {
       prepareModelDrawData(instance);
   } else if (base->drawMetaData.type == Objects::DrawType::TREE_DRAW) {
       prepareTreeDrawData(instance);

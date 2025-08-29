@@ -127,6 +127,9 @@ IF (${HAS_OPENMP})
   SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")
 ENDIF()
 
+# Workaround against truncation-to-fit-relocation errors
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mcmodel=large")
+
 # main executable
 ADD_EXECUTABLE(zhen
   game/audio/Backend.cpp

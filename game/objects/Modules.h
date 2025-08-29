@@ -23,12 +23,14 @@ enum class ModuleType {
     ACTIVE_BODY
   , AI
   , ANIMATION_STEERING
+  , ARMOR_UPGRADE
   , ASSAULT_TRANSPORT
   , ASSISTED_TARGETING
   , AUTO_DEPOSIT
   , AUTO_FIND_HEALING
   , AUTO_HEAL
   , BAIKONUR_LAUNCH_POWER
+  , BASE_REGENERATE
   , BATTLE_BUS_SLOW_DEATH
   , BATTLE_PLAN
   , BONE_FX
@@ -39,7 +41,7 @@ enum class ModuleType {
   , CASH_HACK
   , CAVE_CONTAIN
   , CHECKPOINT
-  , CHINOOK
+  , CHINOOK_AI
   , CLEANUP_AREA
   , CLEANUP_HAZARD
   , COMMAND_BUTTON_HUNT
@@ -60,74 +62,126 @@ enum class ModuleType {
   , DELETION
   , DELIVER_PAYLOAD
   , DEMO_TRAP
-  , DEPLOY_STYLE
+  , DEPLOY_STYLE_AI
+  , DESTROY_DIE
   , DIE
   , DOCK
-  , DOZER
+  , DOZER_AI
   , DUMB_PROJECTILE
   , DYNAMIC_GEOMETRY_INFO
   , DYNAMIC_SHROUD_CLEARING_RANGE
   , EJECT_PILOT_DIE
   , EMP
   , ENEMY_NEAR
-  , EXPERINCE_SCALAR
+  , EXPERINCE_SCALAR_UPGRADE
   , FIRE_OCL_AFTER_WEAPON_COOLDOWN
   , FIRE_SPREAD
   , FIRESTORM_DYNAMIC_GEOMETRY_INFO
   , FIRE_WEAPON_COLLISION
   , FIRE_WEAPON_POWER
   , FIRE_WEAPON
-  , FIRE_WEAPON_WHEN_DAMAGED
-  , FIRE_WEAPON_WHEN_DEAD
+  , FIRE_WEAPON_WHEN_DAMAGED_UPGRADE
+  , FIRE_WEAPON_WHEN_DEAD_UPGRADE
   , FLAMMABLE
   , FLIGHT_DECK
   , FLOAT
   , FX_LIST_DIE
   , GARRISON_CONTAIN
   , GENERATE_MINEFIELD
-  , GRANT_SCIENCE
+  , GRANT_SCIENCE_UPGRADE
   , GRANT_STEALTH
   , GRANT_UPGRADE
   , HACK_INTERNET
   , HEAL_CONTAIN
-  , HEIGHT_DIE // cont here
+  , HEIGHT_DIE
+  , HELICOPTER_SLOW_DEATH
+  , HELIX_CONTAIN
   , HIGHLANDER_BODY
-  , JET
+  , HIVE_STRUCTURE_BODY
+  , INSTANT_DEATH
+  , JET_AI
+  , JET_SLOW_DEATH
+  , LASER
   , LEAFLET_DROP
   , LIFETIME
+  , LOCK_WEAPON
+  , LOCOMOTOR_SET_UPGRADE
+  , MAX_HEALTH_UPGRADE
+  , MISSILE_AI
   , MONEY_CRATE_COLLISION
   , NEUTRON_MISSILE_SLOW_DEATH
+  , OBJECT_CREATION_UPGRADE
+  , OCL
+  , OCL_SPECIAL_POWER
   , OPEN_CONTAIN
+  , OVERLORD_CONTAIN
+  , PARACHUTE_CONTAIN
+  , PARKING_PLACE
+  , PARTICLE_UPLINK_CANNON
+  , PREORDER_CREATE
   , PHYSICS
+  , PILOT_FIND_VEHICLE
+  , POINT_DEFENSE_LASER
+  , POISONED
+  , POWER_PLANT
+  , POWER_PLANT_UPGRADE
+  , PRODUCTION
+  , RADAR
+  , RADAR_UPGRADE
+  , REPAIR_DOCK
   , SALVAGE_CRATE_COLLISION
+  , SLAVED
+  , SLOW_DEATH
+  , SPAWN
   , SPECIAL_POWER
   , SPECIAL_POWER_COMPLETION_DIE
-  , SLOW_DEATH
-  , SUPPLY_TRUCK
+  , SPECIAL_POWER_CREATE
+  , SPECIAL_POWER_UPDATE
+  , SPECTRE_GUNSHIP
+  , SPECTRE_GUNSHIP_DEPLOYMENT
+  , SPY_VISION
+  , SPY_VISION_SPECIAL_POWER
+  , SQUISH_COLLIDE
+  , SUPPLY_CENTER
+  , SUPPLY_CENTER_DOCK
+  , SUPPLY_CENTER_PRODUCTION_EXIT
+  , SUPPLY_TRUCK_AI
+  , STEALTH
+  , STEALTH_UPGRADE
   , STEALTH_DETECTOR
+  , STRUCTURE_BODY
   , SWAY_CLIENT
   , TOPPLE
+  , TRANSITION_DAMAGE_FX
+  , TRANSPORT_AI
+  , TRANSPORT_CONTAIN
+  , UNPAUSE_SPECIAL_POWER_UPGRADE
   , UPGRADE
+  , UPGRADE_DIE
+  , VETERANCY_GAIN
+  , VETERANCY_CRATE_COLLISION
   , WAVE_GUIDE
   , WEAPON_BONUS
+  , WEAPON_SET_UPGRADE
 };
 
 struct Turret {
   bool canPitch = true;
   bool canFireAndTurn = true;
+  float defaultAngle = 0.0f;
+  float defaultPitch = 0.0f;
   bool disabled = false;
-  WeaponSlot controlledSlot = WeaponSlot::PRIMARY;
-  std::optional<float> fixedFirePitch;
+  std::set<WeaponSlot> controlledSlots;
+  float firePitch = 0.0f;
   std::array<std::optional<float>, 3> fireAngleSweep;
   float groundUnitPitch = 0.0f;
+  float maxScanAngle = 0.0f;
+  Duration maxScanIntervalMs = 1;
   float minPitch = 0.0f;
   float minScanAngle = 0.0f;
-  uint32_t minScanInterval = 1;
-  float maxScanAngle = 0.0f;
-  uint32_t maxScanInterval = 1;
-  uint32_t recenterTimeMs = 1;
-  glm::vec2 rotationRate;
-  glm::vec2 rotation;
+  Duration minScanIntervalMs = 1;
+  Duration recenterTimeMs = 1;
+  glm::vec2 rotationRate; // deg/sec
   std::array<float, 3> sweepSpeedModifier;
 };
 
@@ -140,9 +194,9 @@ struct ActiveBody : public Module {
 };
 
 struct AI : public Module {
-  bool acquireEnemiesWhenIdle = true;
+  std::set<AutoAcquireEnemyMode> acquireEnemiesWhenIdle;
   bool ignorePlayer = false;
-  uint32_t moodAttackCheckRate = 1;
+  Duration moodAttackCheckRateMs = 250;
   Turret turret1;
   Turret turret2;
   bool turretsLinked = false;
@@ -158,8 +212,8 @@ struct AssaultTransport : public AI {
 };
 
 struct AssistetedTargeting : public Module {
-  uint32_t numShots = 1;
-  WeaponSlot slot;
+  int32_t numShots = 1;
+  WeaponSlot slot = WeaponSlot::NONE;
   std::string laserFrom; // object names
   std::string laserTo;
 };
@@ -174,23 +228,23 @@ struct AutoDeposit : public Module {
 };
 
 struct AutoFindHealing : public Module {
-  uint32_t scanRateMs = 1000;
-  float scanRange = 10.0f;
-  float neverHeal = 100.0f;
   float alwaysHeal = 1.0f;
+  float neverHeal = 100.0f; // percent
+  Duration scanIntervalMs = 1000;
+  float scanRange = 10.0f;
 };
 
 struct AutoHeal : public Module {
   bool enabled = true;
   bool singleBurst = false;
   int32_t healingAmount = 1;
-  uint32_t healingDelay = 0;
+  Duration healingDelayMs = 0;
   float radius = 10.0f;
   std::set<Attribute> healingInclusion;
   std::set<Attribute> healingExclusion;
   std::string radiusParticleSystem; // TODO ParticleSystem
   std::string healParticleSyste;
-  uint32_t startHealingDelay = 0;
+  Duration startHealingDelayMs = 0;
   bool wholePlayer = true;
   bool skipSelf = false;
 };
@@ -220,7 +274,7 @@ struct BattlePlan : public Module {
   uint32_t planChangeTime = 3;
   float hdlFactor = 1.0f;
   float hdlBuildingHealthFactor = 1.0f;
-  HealthModifier hdlBuildingHealthModifier = HealthModifier::PRESERVE_RATIO;
+  MaxHealthModifier hdlBuildingHealthModifier = MaxHealthModifier::PRESERVE_RATIO;
   float sndFactor = 1.0f;
   float sndBuildingFactor = 1.0f;
   bool sndBuildingStealthDetection = true;
@@ -323,13 +377,13 @@ struct Countermeasure : public Module {
 };
 
 struct Die : public Module {
-  // EVAL Death types
-  // EVAL veteran levels
-  std::set<Status> requiredStates;
+  std::set<DeathType> deathTypes;
   std::set<Status> excludedStates;
+  std::set<Status> requiredStates;
+  std::set<Veterancy> veterancyLevels;
 };
 
-struct CreateCreateDie : public Die {
+struct CreateCrateDie : public Die {
   std::string crate; // TODO Crate
 };
 
@@ -345,6 +399,9 @@ struct CrushDie : public Die {
   Percent totalCrushSound;
   Percent totalBackEndSound;
   Percent totalFrontEndSound;
+};
+
+struct DestroyDie : public Die {
 };
 
 struct EjectPilotDie : public Die {
@@ -364,26 +421,26 @@ struct SpecialPowerCompletionDie : public Die {
 };
 
 struct DefaultProductionExit : public Module {
-  glm::vec3 defaultPoint;
+  glm::vec3 creationPoint;
   glm::vec3 rallyPoint;
   bool useRallyPoint = false;
 };
 
 struct Deletion : public Module {
-  uint32_t minLifetime;
-  uint32_t maxLifetime;
+  Duration minLifetimeMs;
+  Duration maxLifetimeMs;
 };
 
 struct DeliverPayload : public AI {
-  uint32_t doorDelay = 1;
-  std::string dropCarrier; // object name
-  float distance = 1.0f;
-  int32_t numAttempts = 3;
-  uint32_t dropDelay = 1;
-  glm::vec3 offset;
-  glm::vec3 variance;
+  int32_t attempts = 3;
   std::string decal; // TODO Decal
   float decalRadius = 2.0f;
+  float distance = 1.0f;
+  Duration doorDelayMs = 1000;
+  std::string dropCarrier; // object name
+  Duration dropDelayMs = 1;
+  glm::vec3 offset;
+  glm::vec3 variance;
 };
 
 struct DemoTrap : public Module {
@@ -399,10 +456,10 @@ struct DemoTrap : public Module {
   bool detonateOnDeath = true;
 };
 
-struct DeployStyle : public Module {
-  uint32_t unpackTime = 1;
-  uint32_t packTime = 1;
-  bool resetBeforePacking = true;
+struct DeployStyleAI : public AI {
+  Duration unpackTimeMs = 1000;
+  Duration packTimeMs = 1000;
+  bool resetTurretsBeforePacking = true;
   bool deployRequired = true;
   bool centerBeforePacking = true;
   bool manualDeployAnimation = false;
@@ -413,10 +470,10 @@ struct Dock : public Module {
   bool allowPassThrough = false;
 };
 
-struct Dozer : public AI {
-  Percent repairPerSecond;
-  float boredTime = 5.0f;
+struct DozerAI : public AI {
   float boredRange = 5.0f;
+  float boredTime = 5.0f; // EVAL frames? ms?
+  float repairPerSecond = 2.0f;
 };
 
 struct DumbProjectile : public Module {
@@ -523,8 +580,8 @@ struct FireWeaponCollision : public Module {
 
 struct FireWeapon : public Module {
   std::string weapon;
-  uint32_t initialDelay = 0;
-  uint32_t exclusiveWeaponDelay = 0;
+  Duration initialDelayMs = 0;
+  Duration exclusiveWeaponDelayMs = 0;
 };
 
 struct Flammable : public Module {
@@ -599,13 +656,6 @@ struct GrantUpgrade : public Module {
   std::set<Status> exclusions;
 };
 
-struct LeafletDrop : public Module {
-  uint32_t delay = 0;
-  uint32_t disabledDuration = 0;
-  float radius;
-  std::string leafletParticles; // TODO ParticleSystem
-};
-
 struct HackInternet : public AI {
   uint32_t unpackTime = 1;
   uint32_t packTime = 1;
@@ -622,13 +672,23 @@ struct HackInternet : public AI {
 struct HeightDie : public Module {
   float targetHeight = 1.0f;
   bool targetHeightForStructures = false;
-  bool onlyDownwards = false;
-  bool destroyParticles = false;
+  bool downwardsOnly = false;
+  float destroyParticlesAt = 0.0f;
   bool toGroundOnDeath = true;
   uint32_t initialDelay = 0;
 };
 
-struct Jet : public AI {
+struct HiveStructureBody : public ActiveBody {
+  std::set<DamageType> absorbDamages;
+  std::set<DamageType> propagateDamages;
+};
+
+struct InstantDeath : public Die {
+  std::list<std::string> effects; // TODO FXList
+  std::list<std::string> creationLists; // TODO OCL
+};
+
+struct JetAI : public AI {
   float outOfAmmoDamagePerSecond = 1.0;
   bool needsRunway = true;
   bool keepsParkingSpace = true;
@@ -637,9 +697,9 @@ struct Jet : public AI {
   float minHeight = 1.0f;
   float parkingOffset = 0.0f;
   float sneakAttackOffset = 0.0f;
-  Locomotor attackLocomotion = Locomotor::NORMAL;
+  LocomotorType attackLocomotion = LocomotorType::NORMAL;
   uint32_t atackPersistTime = 1.0f;
-  Locomotor returnLocomotion = Locomotor::NORMAL;
+  LocomotorType returnLocomotion = LocomotorType::NORMAL;
   uint32_t lockOnTime = 1;
   std::string lockOnCursor;
   float lockOnInitialDist = 0.0f;
@@ -649,27 +709,71 @@ struct Jet : public AI {
   uint32_t idleReturnTime = 0;
 };
 
+struct Laser : public Module {
+  std::string muzzleParticleSystem; // TODO ParticleSystem
+  float punchThroughScalar = 1.0f;
+  std::string targetParticleSystem; // ...
+};
+
+struct LeafletDrop : public Module {
+  uint32_t delay = 0;
+  uint32_t disabledDuration = 0;
+  float radius;
+  std::string leafletParticles; // TODO ParticleSystem
+};
+
 struct Lifetime : public Module {
   Duration minLifetimeMs;
   Duration maxLifetimeMs;
 };
 
+struct LockWeapon : public Module {
+  WeaponSlot slot = WeaponSlot::NONE;
+};
+
+struct MissileAI : public AI {
+  bool detonateOnFuelDepletion = false;
+  bool detonationCallsKill = false;
+  float distanceUntilDiving = 200.0f;
+  float distanceUntilLock = 200.0f;
+  float distanceUntilReturn = 200.0f;
+  bool followTarget = true;
+  Duration fuelLifetimeMs = 5000;
+  uint32_t garrisonKillCount = 10;
+  std::string garrisonKillEffect; // TODO FXList
+  std::set<Attribute> garrisonKillExclusion;
+  std::set<Attribute> garrisonKillInclusion;
+  Duration ignitionDelayMs = 0;
+  std::string ignitionEffect;
+  float initialVelocity = 50.0f;
+  Duration killSelfDelayMs = 1000;
+  float jammedScatterDistance = 1.0f;
+  bool weaponSpeed = false;
+};
+
+struct OCL : public Module {
+  bool createAtEdge = true;
+  std::string ocl; // OCL
+  Duration maxDelayMs = 1000;
+  Duration minDelayMs = 0;
+};
+
 struct OpenContain : public Module {
-  int32_t max = 1;
-  std::string enterSound;
-  std::string exitSound;
-  Percent damageToUnits = 0;
-  bool burnUnits = false;
-  std::set<Attribute> guestInclusion;
-  std::set<Attribute> guestExclusion;
-  bool unitsCanFire = true;
-  bool unitsInTurret = false;
-  int32_t numExitPaths = 1;
-  uint32_t doorOpenTime = 1;
-  bool weaponBonusToUnits = false;
   bool allowAllies = true;
   bool allowNeutrals = false;
   bool allowEnemies = false;
+  bool burnUnits = false;
+  Percent damageToUnits = 0;
+  Duration doorOpenTimeMs = 1000;
+  std::string enterSound;
+  std::string exitSound;
+  std::set<Attribute> guestInclusion;
+  std::set<Attribute> guestExclusion;
+  int32_t max = 1;
+  int32_t numExitPaths = 1;
+  bool unitsCanFire = true;
+  bool unitsInTurret = false;
+  bool weaponBonusToUnits = false;
 };
 
 struct CaveContain : public OpenContain {
@@ -677,32 +781,94 @@ struct CaveContain : public OpenContain {
 };
 
 struct GarrisonContain : public OpenContain {
-  bool mobile = false;
-  bool heal = false;
+  bool enclosing = true;
   float fullHealTime = 1.0f;
+  bool heal = false;
   std::string initialRoster; // object name
+  bool mobile = false;
   uint32_t numInitial = 1;
   bool noRaidAttack = false;
-  bool enclosing = true;
 };
 
 struct HealContain : public OpenContain {
-  uint32_t timeToFullHealth = 1;
+  Duration timeToFullHealthMs = 5000;
+};
+
+struct ParachuteContain : public OpenContain {
+  float freeFallDamage = 0.0f; // percent
+  float lowAltDampening = 0.0f;
+  std::string openingSound;
+  float pitchRateMax = 1.0f;
+  float rollRateMax = 1.0f;
+  float travelToOpenDist = 10.0f;
+};
+
+struct TransportContain : public OpenContain {
+  bool armedRidersWeaponUpgrade = true;
+  bool destroyTrappedRiders = true;
+  bool exitAggressively = true;
+  std::string exitBone;
+  Duration exitDelayMs = 1000;
+  bool exitDelayInAir = true;
+  float exitPitchRate = 1.0f;
+  bool exitContainerKeepSpeed = false;
+  bool exitOrientationAsContainer = false;
+  bool exitResetMoodCheck = true;
+  bool exitScattering = true;
+  std::string initialPayload; // objects?
+  float healthRegenPerSecond = 1.0f;
+  uint32_t slots = 1;
+};
+
+struct HelixContain : public TransportContain {
+  bool drawPips = true;
+  std::list<std::string> templates;
+};
+
+struct OverlordContain : public TransportContain {
+  std::string payload;
+  bool xpForRider = false;
+};
+
+struct ParkingPlace : public Module {
+  float approachHeight = 50.0f;
+  bool hasRunways = true;
+  int32_t numCols = 1;
+  int32_t numRows = 1;
+  float healingPerSecond = 1.0f;
 };
 
 struct Physics : public Module {
-  float mass = 1.0f;
-  float geometryMassCenterOffset = 0.0f;
-  float shockResistance = 0.0f;
-  glm::vec3 shockMax = {0.05f, 0.025f, 0.025f};
-  glm::vec3 friction = {0.15f, 0.8f, 0.15f};
-  float aerodynamicFriction = 0.0f;
+  float aerodynamicFriction = 0.0f; // percent?
   bool bouncing = false;
-  bool killOnGround = false;
   bool collisionForce = true;
-  float minFallSpeedForDamage = 2.0f; // TODO lookup calc
   float fallHeightDamageFactor = 1.0f;
   float factor; // EVAL pitchRollYawFactor
+  float forwardFriction = 0.0f; // percent?
+  glm::vec3 friction = {0.15f, 0.8f, 0.15f};
+  bool killOnGround = false;
+  float mass = 1.0f;
+  float massCenterOffset = 0.0f;
+  float minFallSpeedForDamage = 2.0f; // TODO lookup calc
+  float shockResistance = 0.0f;
+  glm::vec3 shockMax = {0.05f, 0.025f, 0.025f};
+};
+
+struct PilotFindVehicle : public Module {
+};
+
+struct PointDefenseLaser : public Module {
+  std::set<Attribute> primaryTargets;
+  std::set<Attribute> secondaryTargets;
+  uint32_t scanRate = 1;
+  float scanRange = 10.0f;
+  float velocityFactor = 1.0f;
+  std::string weapon;
+};
+
+struct Poisoned : public Module {
+  Duration intervalMs = 1000;
+  Duration durationMs = 3000;
 };
 
 struct SalvageCrateCollision : public CrateCollision {
@@ -721,7 +887,7 @@ enum class SlowDeathPhase {
 
 struct SlowDeathCreationList {
   SlowDeathPhase phase = SlowDeathPhase::INITIAL;
-  std::string objectCreationList; // TODO ObjectCreationList
+  std::string creationList; // TODO ObjectCreationList
 };
 
 struct SlowDeathEffect {
@@ -729,7 +895,7 @@ struct SlowDeathEffect {
   std::string effect; // TODO FXList
 };
 
-struct SlowDeath : public Module {
+struct SlowDeath : public Die {
   float sinkRate = 0.0f;
   Duration sinkDelayMs = 0;
   Duration sinkDelayVarianceMs = 0;
@@ -741,7 +907,7 @@ struct SlowDeath : public Module {
   float desctructionAlt = -10.0f;
   std::list<SlowDeathEffect> effects;
   std::list<SlowDeathCreationList> creationLists;
-  std::string weapon; // TODO Weapon
+  std::list<SlowDeathEffect> weapons;
   float flingForce = 0.0f;
   float flingForceVariance = 0.0f;
   float flingPitch = 0.0f;
@@ -756,6 +922,58 @@ struct BattleBusSlowDeath : public SlowDeath {
   float throwForce = 1.0f;
   Percent damageToPassengers = 0;
   uint32_t emptyDestructionDelay = 0;
+};
+
+// EVAL delay docs vary between frames and ms
+struct HelicopterSlowDeath : public SlowDeath {
+  std::string bladeEffect; // FX
+  std::string bladeCreationList; // OCL
+  std::string blades;
+  std::string bladesBone;
+  std::string deathSound;
+  Duration delayToBlowupMs = 2000;
+  std::string ejectPilotEffect; // FX
+  std::string ejectPilotCreationList; // OCL
+  Percent fallSpeed = 100;
+  std::string finalBlowupEffect; // FX
+  std::string finalBlowupCreationList; // OCL
+  std::string hitGroundEffect; // FX
+  std::string hitGroundCreationList; // OCL
+  Duration maxBladeFallOffDelayMs = 1000;
+  float maxBraking = 100.0f;
+  float maxSpin = 100.0f;
+  Duration minBladeFallOffDelayMs = 1000;
+  float minSpin = 100.0f;
+  std::string particles;
+  std::string particlesBone;
+  glm::vec3 particlesLocation;
+  std::string rubble; // Object
+  float spinUpdateAmount = 100.0f;
+  float spinUpdateDelayFrames = 100.0f;
+  float spiralTurnRate = 100.0f;
+  float spiralForwardSpeed = 100.0f;
+  float spiralForwardSpeedDampening = 0.0f;
+};
+
+// EVAL delay docs vary between frames and ms
+struct JetSlowDeath : public SlowDeath {
+  std::string deathSound;
+  Duration delayToSecondaryDeathMs = 2000;
+  Duration delayToBlowupMs = 2000;
+  Percent fallSpeed = 100;
+  std::string finalBlowupEffect; // FX
+  std::string finalBlowupCreationList; // OCL
+  std::string groundDeathEffect; // FX
+  std::string groundDeathCreationList; // OCL
+  std::string hitGroundEffect; // FX
+  std::string hitGroundCreationList; // OCL
+  std::string initialDeathEffect; // FX
+  std::string initialDeathCreationList; // OCL
+  float pitchRate = 0.0f;
+  float rollRate = 0.0f;
+  Percent rollRateDelta = 100;
+  std::string secondaryEffect; // FX
+  std::string secondaryCreationList; // OCL
 };
 
 struct NeutronMissileSlowDeath : public SlowDeath {
@@ -776,12 +994,62 @@ struct NeutronMissileSlowDeath : public SlowDeath {
   std::array<Blast, 8> blasts;
 };
 
+// TODO
+struct ParticleUplinkCannon : public Module {
+};
+
+struct PowerPlant : public Module {
+  Duration rodsExtendTimeMs = 1000;
+};
+
+struct Production : public Module {
+  Duration constructionTimeMs = 1000;
+  Duration doorClosingTimeMs = 1000;
+  Duration doorOpeningTimeMs = 1000;
+  Duration doorWaitOpenTimeMs = 1000;
+  int32_t maxQueue = 10;
+  int32_t numDoorAnimations = 1;
+};
+
+struct Radar : public Module {
+  Duration extendTimeMs = 1000;
+};
+
+struct RepairDock : public Dock {
+  Duration timeToHealMs = 5000;
+};
+
 struct SpecialPower : public Module {
-  std::string specialPower;
+  std::string specialPower; // TODO Special power
   bool updateStartsAttack = false;
   bool paused = false;
   std::string sound;
-  bool scriptedSpecial = false;
+  bool scriptedOnly = false;
+};
+
+struct SpecialPowerUpdate : public Module {
+  float abilityAbortRange = 1.0f;
+  float abilityStartRange = 1.0f;
+  std::string captureEffect;
+  float fleeRange = 100.0f;
+  bool loseStealth = true;
+  uint16_t maxSpecialObjects = 1;
+  Duration packTimeMs = 1000;
+  Duration preparationTimeMs = 0;
+  Duration persistentPreparationTimeMs = 0;
+  bool skipPackingWithoutTarget = true;
+  std::string specialPower; // TODO Special power
+  std::string specialObject; // Object
+  bool specialObjectPersists = true;
+  bool specialObjectPersistsOnDeath = true;
+  std::string specialObjectToBone;
+  bool specialObjectUniquePerTarget = true;
+  bool switchOwnerAfterUnpacking = false;
+  std::string unpackSound;
+  Duration unpackTimeMs = 1000;
+  Duration unstealthTimeMs = 1000;
+  bool validateSpecialObject = false;
+  uint32_t xpAward = 0;
 };
 
 struct BaikonurLaunchPower : public SpecialPower {
@@ -815,7 +1083,82 @@ struct FireWeaponPower : public SpecialPower {
   uint32_t maxShots = 1;
 };
 
-struct SupplyTruck : public AI {
+struct OCLSpecialPower : public SpecialPower {
+  bool adjustToNextPassable = true;
+  OCLLocation location = OCLLocation::NEAR_SOURCE;
+  std::list<std::string> OCLs; // TODO OCL
+  std::string reference;
+  std::list<std::pair<std::string, std::string>> upgradeOCLs;
+};
+
+struct SpyVisionSpecialPower : public SpecialPower {
+  Duration baseDurationMs = 1000;
+  Duration bonusDurationPerCaptureMs = 1000;
+  Duration maxDurationMs = 10000;
+};
+
+struct Spawn : public Module {
+  bool aggregateHealth = false;
+  int32_t initialBurst = 0;
+  int32_t number = 1;
+  bool once = false;
+  bool reclaimOrphans = false;
+  Duration replaceDelayMs = 1000;
+  bool requiresSpawner = false;
+  std::set<DamageType> propagatedDamageTypes;
+  std::string spawn;
+  bool spawnsWithFreeWill = true;
+};
+
+struct Slaved : public Module {
+  int32_t attackRange = 100;
+  int32_t attackWanderRange = 100;
+  int32_t guardMaxRange = 100;
+  int32_t guardWanderRange = 100;
+  Duration readyMaxMs = 1000;
+  Duration readyMinMs = 0;
+  float repairMaxAlt = 10.0f;
+  float repairMinAlt = 0.0f;
+  int32_t repairRange = 10;
+  float repairRate = 1.0f;
+  Percent repairWhenHealthBelow = 50;
+  bool sameLayer = false;
+  int32_t scoutRange = 100;
+  int32_t scoutWanderRange = 100;
+  int32_t targetMasterBonusRange = 10;
+  Duration weldMaxMs = 1000;
+  Duration weldMinMs = 0;
+  std::string welding;
+  std::string weldingEffectBone;
+};
+
+// TODO
+struct SpectreGunship : public Module {
+};
+
+// TODO
+struct SpectreGunshipDeployment : public Module {
+};
+
+struct Stealth : public Module {
+  Duration delayMs = 500;
+  std::set<Status> detectableStates;
+  std::string enemyDetectionEvaEvent; // EvaEvent
+  std::set<StealthLevel> forbiddenConditions;
+  Duration pulseFrequencyMs = 500;
+  Percent friendlyOpacityMin = 50;
+  Percent friendlyOpacityMax = 100;
+  bool gettingAttackWhenRevealed = true;
+  bool innateStealth = true;
+  float moveSpeedThreshold = 3.0f;
+  std::string ownDetectionEvaEvent; // EvaEvent
+};
+
+struct SupplyCenterDock : public Dock {
+  Duration temporaryStealthMs = 5000;
+};
+
+struct SupplyTruckAI : public AI {
   int32_t maxBoxes = 3;
   uint32_t supplyCenterDelay = 3;
   uint32_t warehouseDelay = 3;
@@ -823,7 +1166,7 @@ struct SupplyTruck : public AI {
   std::string depletedSound;
 };
 
-struct Chinook : public SupplyTruck {
+struct ChinookAI : public SupplyTruckAI {
   float ropeDropSpeed = 2.0f;
   float rappelSpeed = 2.0f;
   std::string ropeName; // object name?
@@ -843,21 +1186,22 @@ struct Chinook : public SupplyTruck {
 };
 
 struct StealthDetector : public Module {
-  uint32_t rate = 1;
-  float range = 5.0f;
+  bool detectWhenGarrisoned = false;
+  bool detectWhenContained = false;
+  std::set<Attribute> detectionInclusion;
+  std::set<Attribute> detectionExclusion;
   bool disabled = false;
+  std::string bone; // TODO ?!
   std::string pingSound;
   std::string loudPingSound;
   std::string beaconParticles; // TODO ParticleSystem
   std::string particles;
   std::string brightParticles;
   std::string gridParticles;
-  std::string bone; // TODO ?!
-  std::set<Attribute> detectionInclusion;
-  std::set<Attribute> detectionExclusion;
-  bool detectWhenGarrisoned = false;
-  bool detectWhenContained = false;
+  Duration rateMs = 1000;
+  float range = 5.0f;
 };
+
 
 struct Topple : public Module {
   std::string toppleEffect; // TODO FXList
@@ -870,6 +1214,29 @@ struct Topple : public Module {
   bool oneAxisOnly = false;
   Percent initialAcceleration = 1;
   Percent bounceVelocity = 30;
+};
+
+struct TransitionDamageTypeFX {
+  glm::vec3 location;
+  std::string effect; // TODO FXList
+};
+
+struct TransitionDamageTypeParticles {
+  std::string bone;
+  std::string particleSystem;
+  bool randomBone;
+};
+
+using TransitionDamageFXSlots = std::array<std::array<TransitionDamageTypeFX, 12>, 3>;
+using TransitionDamageParticlesSlots = std::array<std::array<TransitionDamageTypeParticles, 12>, 3>;
+
+struct TransitionDamageFX : public Module {
+  std::set<DamageType> damageEffectTypes;
+  TransitionDamageFXSlots effects;
+  std::set<DamageType> damageOCLTypes;
+  TransitionDamageFXSlots OCLs;
+  std::set<DamageType> damageParticleTypes;
+  TransitionDamageParticlesSlots particleSystems;
 };
 
 struct Upgrade : public Module {
@@ -885,11 +1252,11 @@ struct CommandSetUpgrade : public Upgrade {
   std::string trigger; // TODO Upgrade
 };
 
-struct ExperienceScalar : public Upgrade {
+struct ExperienceScalarUpgrade : public Upgrade {
   float xpScalar = 1.0f;
 };
 
-struct FireWeaponWhenDamaged : public Upgrade {
+struct FireWeaponWhenDamagedUpgrade : public Upgrade {
   bool active = true;
   std::string reactionWeaponPristine;
   std::string reactionWeaponDamaged;
@@ -903,13 +1270,41 @@ struct FireWeaponWhenDamaged : public Upgrade {
   float damageAmount = 1.0f;
 };
 
-struct FireWeaponWhenDead : public Die, public Upgrade {
+struct FireWeaponWhenDeadUpgrade : public Die, public Upgrade {
   bool active = true;
   std::string deathWeapon; // TODO Weapon
 };
 
-struct GrantScience : public Upgrade {
-  std::string science;
+struct GrantScienceUpgrade : public Upgrade {
+  std::string science; // TODO Science
+};
+
+struct MaxHealthUpgrade : public Upgrade {
+  Health healthUpgrade = 10.0f;
+  MaxHealthModifier modifier;
+};
+
+struct ObjectCreationUpgrade : public Upgrade {
+  std::string object;
+};
+
+struct UnpauseSpecialPowerUpgrade : public Upgrade {
+  std::string specialPower; // TODO special power
+};
+
+struct UpgradeDie : public Die {
+  std::string removeUpgrade; // TODO Upgrade
+};
+
+struct VeterancyCrateCollision : public CrateCollision {
+  uint32_t effectRange = 10;
+  bool isPilot = false;
+  bool veterancyToTarget = false;
+};
+
+struct VeterancyGain : public Module {
+  Veterancy starting = Veterancy::REGULAR;
+  std::string requiredScience; // TODO Science
 };
 
 struct WeaponBonus : public Module {

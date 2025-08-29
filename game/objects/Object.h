@@ -6,6 +6,7 @@
 #include <memory>
 #include <optional>
 #include <set>
+#include <unordered_map>
 
 #include "../common.h"
 #include "../Color.h"
@@ -59,65 +60,6 @@ struct ShadowData {
   std::string texture;
 };
 
-// EVAL map?
-struct UnitSpecificSounds {
-  std::string afterburner;
-  std::string deploy;
-  std::string disguiseStarted;
-  std::string disguiseRevealFailure;
-  std::string disguiseRevealSuccess;
-  std::string howitzerFire;
-  std::string soundEject;
-  std::string startDive;
-  std::string stickyBombCreated;
-  std::string truckLandingSound;
-  std::string truckPowerslideSound;
-  std::string undeploy;
-  std::string underConstruction;
-
-  std::string unitBombingPing;
-  std::string unitCashPing;
-  std::string unitPack;
-  std::string unitUnpack;
-
-  std::string voiceBombard;
-  std::string voiceBuildResponse;
-  std::string voiceCaptureBuildingComplete;
-  std::string voiceClearBuilding;
-  std::string voiceCombatDrop;
-  std::string voiceCreate;
-  std::string voiceCreated;
-  std::string voiceCrush;
-  std::string voiceDisableBuildingComplete;
-  std::string voiceDisableVehicleComplete;
-  std::string voiceDisarm;
-  std::string voiceEject;
-  std::string voiceEnter;
-  std::string voiceEnterHostile;
-  std::string voiceFireRocketPods;
-  std::string voiceGarrison;
-  std::string voiceGetHealed;
-  std::string voiceHackInternet;
-  std::string voiceLowFuel;
-  std::string voiceMelee;
-  std::string voiceMoveLoop;
-  std::string voiceMoveUnderground;
-  std::string voiceNoBuild;
-  std::string voicePickup;
-  std::string voicePoisonLocation;
-  std::string voicePrimaryWeaponMode;
-  std::string voiceRepair;
-  std::string voiceRapidFire;
-  std::string voiceSalvage;
-  std::string voiceSecondaryWeaponMode;
-  std::string voiceSnipePilot;
-  std::string voiceStealCashComplete;
-  std::string voiceSubdue;
-  std::string voiceTertiaryWeaponMode;
-  std::string voiceUnload;
-  std::string voiceSupply;
-};
-
 struct WeaponPreference {
   std::string name; // TODO Weapon
   WeaponSlot slot;
@@ -127,7 +69,7 @@ struct WeaponPreference {
 
 struct WeaponSet {
   enum class Condition {
-      NONE
+      NONE = 0
     , VETERAN
     , ELITE
     , HERO
@@ -145,11 +87,17 @@ struct WeaponSet {
     , RIDER6
     , RIDER7
     , RIDER8
+    , ALL
   };
   std::set<Condition> conditions;
-  std::list<WeaponPreference> weapons;
+  std::array<WeaponPreference, 3> weapons;
   bool sharedReloadTime = false;
   bool sharedLock = false;
+};
+
+struct Locomotor {
+  LocomotorType type;
+  std::string locomotor; // TODO Locomotor
 };
 
 struct ObjectBuilder {
@@ -164,7 +112,7 @@ struct ObjectBuilder {
 
   bool buildable = false;
   Money buildCost = 0;
-  uint16_t buildTimeSec = 0;
+  uint16_t buildTimeSec = 1; // EVAL float?
   std::list<std::string> buildVariations; // object names
   std::set<Attribute> attributes;
   std::string buttonImage;
@@ -183,15 +131,15 @@ struct ObjectBuilder {
   Energy energyBonus = 0;
   std::array<uint16_t, 4> experienceValues;
   std::array<uint16_t, 4> experienceRequirements;
-  float extraWidth = 0.0f;
+  float factoryExitWidth = 0.0f;
   bool forbidden = false;
   GeometryData geometry;
   std::shared_ptr<Behavior> inheritableModule;
   bool isBridge = false;
-  std::set<Locomotor> locomotors;
+  std::vector<Locomotor> locomotors;
   uint32_t occlusionDelay = 0;
   std::list<Behavior> overridableDefaults;
-  float placementAngle = 0.0f;
+  float placementAngle = 0.0f; // deg
   std::string portrait;
   bool prerequisiteForSomething = false;
   RadarPriority radarPriority = RadarPriority::NONE;
@@ -200,69 +148,49 @@ struct ObjectBuilder {
   uint8_t rubbleHeight = 1;
   float scale = 1.0f;
   float scaleFuzziness = 0.0f;
-  std::list<std::string> sciencePrerequisites; // science names
+  std::string sciencePrerequisite; // science names
   ShadowData shadow;
-  bool simultaneousLimitByRestriction = false;
+  std::string simultaneousLimitRestrictionByKey;
   std::optional<uint16_t> simultaneousLimit;
+  bool simultaneousLimitByRestriction = false;
   std::list<std::string> objectPrerequisites; // object names
   std::string side;
   uint16_t threatValue = 1;
   bool trainable = false;
 
   bool transportable = false;
-  uint8_t transportSlotCount = 0;
-  std::list<std::string> upgradeCameo; // 1..5
+  std::optional<uint8_t> transportSlotCount = {};
+  std::array<std::string, 5> upgradeCameos; // TODO Upgrades
   float visualRange = 10.0f;
 
-  // EVAL map? (also merge with unit sounds?)
-  std::string voiceAttack;
-  std::string voiceAttackAir;
-  std::string voiceAttackSpecial;
-  std::string voiceCreated;
-  std::string voiceDefect;
-  std::string voiceEnter;
-  std::string voiceEnemyEncounter;
-  std::string voiceFear;
-  std::string voiceGarrison;
-  std::string voiceGroupSelect;
-  std::string voiceMove;
-  std::string voiceSelect;
-  std::string voiceSelectElite;
-  std::string voiceTaskDone;
-  std::string voiceTaskInept;
+  std::unordered_map<Noise, std::string> noises;
 
-  std::string soundAmbient;
-  std::string soundAmbientDamaged;
-  std::string soundAmbientSeverelyDamaged;
-  std::string soundAmbientBroken;
-  std::string soundCreated;
-  std::string soundDamaged;
-  std::string soundSeverelyDamaged;
-  std::string soundEnter;
-  std::string soundExit;
-  std::string soundFallFromPlane;
-  std::string soundMoveLoop;
-  std::string soundMoveLoopDamaged;
-  std::string soundMoveStart;
-  std::string soundMoveStartDamaged;
-  std::string soundPromotionVeteran;
-  std::string soundPromotionElite;
-  std::string soundPromotionHero;
-  std::string soundStealthOn;
-  std::string soundStealthOff;
-
-  std::shared_ptr<UnitSpecificSounds> unitSounds;
   std::string unitCombatDropKillEffect; // UnitSpecificFX "list"
 };
 
+std::optional<AnimationMode> getAnimationMode(const std::string_view&);
+std::optional<AnimationFrameMode> getAnimationFrameMode(const std::string_view&);
 std::optional<Attribute> getAttribute(const std::string_view&);
 std::optional<ArmorSet::Condition> getArmorSetCondition(const std::string_view&);
-std::optional<Geometry> getGeometry(const std::string_view& value);
-std::optional<ModelCondition> getModelCondition(const std::string_view&);
+std::optional<AutoAcquireEnemyMode> getAutoAcquireEnemyMode(const std::string_view&);
+std::optional<CommandSource> getCommandSource(const std::string_view&);
+std::optional<CompletionAppearance> getCompletionAppearance(const std::string_view&);
+std::optional<DamageType> getDamageType(const std::string_view&);
 std::optional<DeathType> getDeathType(const std::string_view&);
+std::optional<Geometry> getGeometry(const std::string_view& value);
+std::optional<LocomotorType> getLocomotorType(const std::string_view& value);
+std::optional<MaxHealthModifier> getMaxHealthModifier(const std::string_view& value);
+std::optional<ModelCondition> getModelCondition(const std::string_view&);
 std::optional<ModuleType> getModuleType(const std::string_view&);
+std::optional<OCLLocation> getOCLLocation(const std::string_view&);
+std::optional<RadarPriority> getRadarPriority(const std::string_view&);
 std::optional<Shadow> getShadow(const std::string_view&);
+std::optional<SlowDeathPhase> getSlowDeathPhase(const std::string_view&);
 std::optional<Status> getStatus(const std::string_view&);
+std::optional<StealthLevel> getStealthLevel(const std::string_view&);
+std::optional<Veterancy> getVeterancy(const std::string_view&);
+std::optional<WeaponSlot> getWeaponSlot(const std::string_view&);
+std::optional<WeaponSet::Condition> getWeaponSetCondition(const std::string_view&);
 
 
 }

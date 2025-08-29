@@ -9,17 +9,20 @@ enum class AnimationFrameMode {
   , START_FRAME_LAST
   , ADJUST_HEIGHT_BY_CONSTRUCTION_PERCENT
   , PRISTINE_BONE_POS_IN_FINAL_FRAME
-  , MAINTAIN_FRAME_ACROSS_STATES
   , RESTART_ANIM_WHEN_COMPLETE
+  , MAINTAIN_FRAME_ACROSS_STATES
   , MAINTAIN_FRAME_ACROSS_STATES2
   , MAINTAIN_FRAME_ACROSS_STATES3
   , MAINTAIN_FRAME_ACROSS_STATES4
 };
 
 enum class AnimationMode {
-    LOOP
+    NONE
+  , MANUAL
+  , LOOP
   , ONCE
   , BACK_AND_FORTH
+  , FORTH_AND_BACK
   , LOOP_BACKWARDS
   , ONCE_BACKWARDS
 };
@@ -145,6 +148,15 @@ enum class Attribute {
   , ALL
 };
 
+enum class AutoAcquireEnemyMode {
+    NO
+  , YES
+  , STEALTHED
+  , NOT_WHILE_ATTACKING
+  , ATTACK_BUILDINGS
+  , ALL
+};
+
 enum class CompletionAppearance {
     NONE
   , PLACEMENT
@@ -156,10 +168,12 @@ enum class CommandSource {
   , PLAYER
   , SCRIPT
   , AI
+  , FALLBACK
 };
 
 enum class DamageType {
-    EXPLOSION
+    NONE
+  , EXPLOSION
   , CRUSH
   , ARMOR_PIERCING
   , SMALL_ARMS
@@ -197,6 +211,7 @@ enum class DamageType {
   , MICROWAVE
   , KILL_GARRISONED
   , STATUS
+  , ALL
 };
 
 using Damage = float;
@@ -238,13 +253,7 @@ enum class Geometry {
 
 using Health = float;
 
-enum class HealthModifier {
-    PRESERVE_RATIO
-  , ADD
-  , SAME
-};
-
-enum class Locomotor {
+enum class LocomotorType {
     NORMAL
   , NORMAL_UPGRADED
   , FREEFALL
@@ -255,8 +264,16 @@ enum class Locomotor {
   , SLUGGISH
 };
 
+enum class MaxHealthModifier {
+    PRESERVE_RATIO
+  , ADD
+  , SAME
+  , FULLY_HEAL
+};
+
 enum class ModelCondition {
-    TOPPLED
+    NONE
+  , TOPPLED
   , FRONTCRUSHED
   , BACKCRUSHED
   , DAMAGED
@@ -373,10 +390,75 @@ enum class ModelCondition {
   , USER_1
   , USER_2
   , DISGUISED
+  , ALL
 };
 
 using Money = uint16_t;
+
+enum class Noise {
+    SOUND_AFTERBURNER
+  , SOUND_AMBIENT
+  , SOUND_AMBIENT_RUBBLE
+  , SOUND_DEPLOY
+  , SOUND_EJECT
+  , SOUND_ENTER
+  , SOUND_EXIT
+  , SOUND_HOWITZER_FIRE
+  , SOUND_MOVE_START
+  , SOUND_MOVE_START_DAMAGED
+  , SOUND_ON_DAMAGED
+  , SOUND_ON_REALLY_DAMAGED
+  , SOUND_START_DIVE
+  , SOUND_STEALTH_ON
+  , SOUND_STEALTH_OFF
+  , SOUND_TRUCK_LANDING_SOUND
+  , SOUND_TRUCK_POWERSLIDE_SOUND
+  , SOUND_TURRET_MOVE_START
+  , SOUND_TURRET_MOVE_LOOP
+  , SOUND_UNDEPLOY
+  , SOUND_UNDER_CONSTRUCTION
+  , VOICE_ATTACK
+  , VOICE_ATTACK_AIR
+  , VOICE_BOMBARD
+  , VOICE_BUILD_RESPONSE
+  , VOICE_CLEAR_BUILDING
+  , VOICE_COMBAT_DROP
+  , VOICE_CREATE
+  , VOICE_CRUSH
+  , VOICE_DISARM
+  , VOICE_EJECT
+  , VOICE_ENTER
+  , VOICE_ENTER_HOSTILE
+  , VOICE_FEAR
+  , VOICE_FIRE_ROCKET_PODS
+  , VOICE_GARRISON
+  , VOICE_GET_HEALED
+  , VOICE_GUARD
+  , VOICE_LOW_FUEL
+  , VOICE_MELEE
+  , VOICE_MOVE
+  , VOICE_NO_BUILD
+  , VOICE_PRIMARY_WEAPON_MODE
+  , VOICE_RAPID_FIRE
+  , VOICE_REPAIR
+  , VOICE_SECONDARY_WEAPON_MODE
+  , VOICE_SELECT
+  , VOICE_SUBDUE
+  , VOICE_SUPPLY
+  , VOICE_TASK_COMPLETE
+  , VOICE_UNLOAD
+};
+
 using Percent = uint8_t;
+
+enum class OCLLocation {
+    NEAR_SOURCE
+  , NEAR_TARGET
+  , AT_LOCATION
+  , AT_OWNER
+  , ABOVE_LOCATION
+  , FARTHEST_FROM_TARGET
+};
 
 enum class RadarPriority {
     NONE
@@ -446,6 +528,29 @@ enum class Status {
   , ALL
 };
 
+enum class StealthLevel {
+    NONE
+  , ATTACKING
+  , MOVING
+  , USING_ABILITY
+  , FIRING_PRIMARY
+  , FIRING_SECONDARY
+  , FIRING_TERTIARY
+  , NO_BLACK_MARKET
+  , TAKING_DAMAGE
+  , RIDERS_ATTACKING
+  , ALL
+};
+
+enum class Veterancy {
+    NONE = 0
+  , REGULAR
+  , VETERAN
+  , ELITE
+  , HEROIC
+  , ALL
+};
+
 enum class WeaponAffection {
     NONE
   , SELF
@@ -488,9 +593,11 @@ enum class WeaponBonusCondition {
 };
 
 enum class WeaponSlot {
-    PRIMARY
+    NONE = 0
+  , PRIMARY
   , SECONDARY
   , TERTIARY
+  , ALL
 };
 
 }
