@@ -221,6 +221,7 @@ static INIApplierMap<Objects::AutoFindHealing> AutoFindHealingKVMap = {
 };
 
 static INIApplierMap<Objects::AutoHeal> AutoHealKVMap = {
+  { "AffectsWholePlayer", [](Objects::AutoHeal& ah, INIFile& f) { ah.wholePlayer = f.parseBool(); return true; } },
   { "ForbiddenKindOf", [](Objects::AutoHeal& ah, INIFile& f) {
       return f.parseEnumSet<Objects::Attribute>(ah.healingExclusion, CALL(Objects::getAttribute));
     }
@@ -515,7 +516,8 @@ static INIApplierMap<Objects::DefaultProductionExit> DefaultProductionExitKVMap 
 
       return true;
     }
-  }
+  },
+  { "UseSpawnRallyPoint", [](Objects::DefaultProductionExit& dp, INIFile& f) { dp.useRallyPoint = f.parseBool(); return true; } }
 };
 
 static INIApplierMap<Objects::Deletion> DeletionKVMap = {
@@ -610,6 +612,7 @@ static INIApplierMap<Objects::DestroyDie> DestroyDieKVMap = {
 };
 
 static INIApplierMap<Objects::Dock> DockKVMap = {
+  { "AllowsPassthrough", [](Objects::Dock& d, INIFile& f) { d.allowPassThrough = f.parseBool(); return true; } },
   { "NumberApproachPositions", [](Objects::Dock& d, INIFile& f) {
       auto value = f.parseSignedInteger();
       d.numApproachPositions = value.value_or(d.numApproachPositions);
@@ -1319,6 +1322,31 @@ static INIApplierMap<Objects::ObjectCreationUpgrade> ObjectCreationUpgradeKVMap 
 
 static INIApplierMap<Objects::OCL> OCLKVMap = {
   { "CreateAtEdge", [](Objects::OCL& ocl, INIFile& f) { ocl.createAtEdge = f.parseBool(); return true; } },
+  { "FactionOCL", [](Objects::OCL& ocl, INIFile& f) {
+      auto values = f.parseAttributes();
+      if (values.size() != 2) {
+        return false;
+      }
+
+      Objects::FactionOCL fOCL;
+      if (values.contains("OCL")) {
+        fOCL.ocl = std::move(values["OCL"]);
+      } else {
+        return false;
+      }
+
+      if (values.contains("Faction")) {
+        fOCL.faction = std::move(values["Faction"]);
+      } else {
+        return false;
+      }
+
+      ocl.factionOCLs.emplace_back(std::move(fOCL));
+
+      return true;
+    }
+  },
+  { "FactionTriggered", [](Objects::OCL& ocl, INIFile& f) { ocl.factionTriggered = f.parseBool(); return true; } },
   { "MaxDelay", [](Objects::OCL& ocl, INIFile& f) {
       auto opt = f.parseInteger();
       ocl.maxDelayMs = opt.value_or(ocl.maxDelayMs);
@@ -2849,11 +2877,13 @@ bool ObjectsINI::parseBehavior(Objects::ObjectBuilder& builder) {
   switch (behavior.type) {
     case Objects::ModuleType::BASE_REGENERATE:
     case Objects::ModuleType::COMMAND_BUTTON_HUNT:
+    case Objects::ModuleType::KEEP_OBJECT_DIE:
     case Objects::ModuleType::PREORDER_CREATE:
     case Objects::ModuleType::SPECIAL_POWER_CREATE:
     case Objects::ModuleType::SPY_VISION:
     case Objects::ModuleType::SQUISH_COLLIDE:
     case Objects::ModuleType::SUPPLY_CENTER:
+    case Objects::ModuleType::TECH_BUILDING:
       return parseEmptyAttributeBlock();
 
     case Objects::ModuleType::AI:

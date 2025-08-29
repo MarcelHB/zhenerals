@@ -853,6 +853,8 @@ std::optional<ModuleType> getModuleType(const std::string_view& value) {
     return {ModuleType::JET_AI};
   } else if (value == "JetSlowDeathBehavior") {
     return {ModuleType::JET_SLOW_DEATH};
+  } else if (value == "KeepObjectDie") {
+    return {ModuleType::KEEP_OBJECT_DIE};
   } else if (value == "LaserUpdate") {
     return {ModuleType::LASER};
   } else if (value == "LifetimeUpdate") {
@@ -939,6 +941,8 @@ std::optional<ModuleType> getModuleType(const std::string_view& value) {
     return {ModuleType::SUPPLY_CENTER_PRODUCTION_EXIT};
   } else if (value == "SwayClientUpdate") {
     return {ModuleType::SWAY_CLIENT};
+  } else if (value == "TechBuildingBehavior") {
+    return {ModuleType::TECH_BUILDING};
   } else if (value == "ToppleUpdate") {
     return {ModuleType::TOPPLE};
   } else if (value == "TransitionDamageFX") {

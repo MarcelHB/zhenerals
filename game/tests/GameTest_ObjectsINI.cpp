@@ -117,4 +117,17 @@ TEST(ObjectsINITest, parsingNatureProp) {
   EXPECT_EQ(3.0f, palm.geometry.majorRadius);
 }
 
+TEST(ObjectsINITest, parsingTechBuildings) {
+  Config config;
+  ResourceLoader w3dLoader {{"INIZH.big"}, config.baseDir};
+
+  auto fileStream =
+    w3dLoader.getFileStream("data\\ini\\object\\techbuildings.ini");
+
+  auto stream = fileStream->getStream();
+  ObjectsINI objectsINI {stream};
+
+  objectsINI.parse();
+}
+
 }

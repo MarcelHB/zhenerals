@@ -102,6 +102,7 @@ enum class ModuleType {
   , INSTANT_DEATH
   , JET_AI
   , JET_SLOW_DEATH
+  , KEEP_OBJECT_DIE
   , LASER
   , LEAFLET_DROP
   , LIFETIME
@@ -152,6 +153,7 @@ enum class ModuleType {
   , STEALTH_DETECTOR
   , STRUCTURE_BODY
   , SWAY_CLIENT
+  , TECH_BUILDING
   , TOPPLE
   , TRANSITION_DAMAGE_FX
   , TRANSPORT_AI
@@ -752,8 +754,15 @@ struct MissileAI : public AI {
   bool weaponSpeed = false;
 };
 
+struct FactionOCL {
+  std::string faction;
+  std::string ocl;
+};
+
 struct OCL : public Module {
   bool createAtEdge = true;
+  bool factionTriggered = true;
+  std::list<FactionOCL> factionOCLs;
   std::string ocl; // OCL
   Duration maxDelayMs = 1000;
   Duration minDelayMs = 0;
@@ -1203,6 +1212,10 @@ struct StealthDetector : public Module {
   float range = 5.0f;
 };
 
+struct TechBuilding : public Module {
+  std::list<std::string> effects; // TODO FXList
+  Duration rateMs = 1000;
+};
 
 struct Topple : public Module {
   std::string toppleEffect; // TODO FXList
