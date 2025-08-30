@@ -11,19 +11,22 @@ ObjectLoader::ObjectLoader(ResourceLoader& iniLoader) : iniLoader(iniLoader) {}
 bool ObjectLoader::init() {
   TRACY(ZoneScoped);
 
-  auto it = iniLoader.findByPrefix("data\\ini\\object\\natureprop.ini");
-  std::vector<std::string> keys;
-
-  for (; it != iniLoader.cend(); ++it) {
-    keys.push_back(it.key());
-  }
+  std::vector<std::string> keys = {
+      "data\\ini\\object\\civilianbuilding.ini"
+    , "data\\ini\\object\\civilianprop.ini"
+    , "data\\ini\\object\\natureprop.ini"
+  };
 
 #pragma omp parallel num_threads(4)
   {
     TRACY(ZoneScoped);
 #pragma omp for
     for (size_t i = 0; i < keys.size(); ++i) {
-      auto fs = iniLoader.getFileStream(keys[i]);
+      std::optional<ResourceLoader::MemoryStream> fs;
+#pragma omp critical
+      {
+        fs = iniLoader.getFileStream(keys[i]);
+      }
       if (!fs) {
         continue;
       }
