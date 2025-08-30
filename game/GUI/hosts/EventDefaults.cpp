@@ -14,6 +14,8 @@ void assignComponentDefaultEvents(ZH::GUI::Component& component, EventDispatcher
     case ZH::GUI::WND::Window::Type::PUSHBUTTON:
       assignButtonClickSounds(component, dispatcher);
       break;
+    default: /* OK */
+      break;
   }
 
   for (auto& child : component.getChildren()) {
