@@ -176,21 +176,63 @@ static INIApplierMap<Objects::ArmorSet> ArmorSetKVMap = {
   { "DamageFX", [](Objects::ArmorSet& as, INIFile& f) { as.damage = f.parseString(); return !as.damage.empty(); } }
 };
 
-static INIApplierMap<Objects::AssistetedTargeting> AssistetedTargetingKVMap = {
-  { "AssistingClipSize", [](Objects::AssistetedTargeting& as, INIFile& f) {
+static INIApplierMap<Objects::AssistedTargeting> AssistedTargetingKVMap = {
+  { "AssistingClipSize", [](Objects::AssistedTargeting& as, INIFile& f) {
       auto opt = f.parseSignedInteger();
       as.numShots = opt.value_or(as.numShots);
       return opt.has_value();
     }
   },
-  { "AssistingWeaponSlot", [](Objects::AssistetedTargeting& as, INIFile& f) {
+  { "AssistingWeaponSlot", [](Objects::AssistedTargeting& as, INIFile& f) {
       auto opt = f.parseEnum<Objects::WeaponSlot>(CALL(Objects::getWeaponSlot));
       as.slot = opt.value_or(as.slot);
       return opt.has_value();
     }
   },
-  { "LaserFromAssisted", [](Objects::AssistetedTargeting& as, INIFile& f) { as.laserFrom = f.parseString(); return !as.laserFrom.empty(); } },
-  { "LaserToTarget", [](Objects::AssistetedTargeting& as, INIFile& f) { as.laserTo = f.parseString(); return !as.laserTo.empty(); } },
+  { "LaserFromAssisted", [](Objects::AssistedTargeting& as, INIFile& f) { as.laserFrom = f.parseString(); return !as.laserFrom.empty(); } },
+  { "LaserToTarget", [](Objects::AssistedTargeting& as, INIFile& f) { as.laserTo = f.parseString(); return !as.laserTo.empty(); } },
+};
+
+static INIApplierMap<Objects::AutoDeposit> AutoDepositKVMap = {
+  { "DepositAmount", [](Objects::AutoDeposit& ad, INIFile& f) {
+      auto opt = f.parseSignedShort();
+      ad.amount = opt.value_or(ad.amount);
+      return opt.has_value();
+    }
+  },
+  { "DepositTiming", [](Objects::AutoDeposit& ad, INIFile& f) {
+      auto opt = f.parseInteger();
+      ad.intervalMs = opt.value_or(ad.intervalMs);
+      return opt.has_value();
+    }
+  },
+  { "InitialCaptureBonus", [](Objects::AutoDeposit& ad, INIFile& f) {
+      auto opt = f.parseSignedShort();
+      ad.captureBonus = opt.value_or(ad.captureBonus);
+      return opt.has_value();
+    }
+  },
+  { "UpgradedBoost", [](Objects::AutoDeposit& ad, INIFile& f) {
+      auto values = f.parseAttributes();
+      if (values.size() < 2) {
+        return false;
+      }
+
+      if (!values.contains("UpgradeType") || !values.contains("Boost")) {
+        return false;
+      }
+
+      auto opt = f.parseSignedInteger(values["Boost"]);
+      if (!opt) {
+        return false;
+      }
+
+      ad.boostValue = *opt;
+      ad.upgrade = std::move(values["UpgradeType"]);
+
+      return true;
+    }
+  },
 };
 
 static INIApplierMap<Objects::AutoFindHealing> AutoFindHealingKVMap = {
@@ -250,6 +292,121 @@ static INIApplierMap<Objects::AutoHeal> AutoHealKVMap = {
   },
   { "SkipSelfForHealing", [](Objects::AutoHeal& ah, INIFile& f) { ah.skipSelf = f.parseBool(); return true; } },
   { "StartsActive", [](Objects::AutoHeal& ah, INIFile& f) { ah.enabled = f.parseBool(); return true; } }
+};
+
+static INIApplierMap<Objects::BaikonurLaunchPower> BaikonurLaunchPowerKVMap = {
+  { "DetonationObject", [](Objects::BaikonurLaunchPower& blp, INIFile& f) { blp.detonationObject = f.parseString(); return !blp.detonationObject.empty(); } }
+};
+
+static bool parseBoneFXItem(INIFile& f, Objects::BoneFXItems& items, size_t damageIdx, size_t itemIdx) {
+  auto values = f.parseStringList();
+  if (values.size() < 5) {
+    return false;
+  }
+
+  if (!values[0].starts_with("bone:")) {
+    return false;
+  }
+
+  Objects::BoneFXItem item;
+  item.bone = values[0].substr(5);
+
+  if (!values[1].starts_with("OnlyOnce:")) {
+    return false;
+  }
+  item.once = f.parseBool(values[1].substr(9));
+
+  auto opt = f.parseInteger(values[2]);
+  if (!opt) {
+    return false;
+  }
+  item.minDelayMs = *opt;
+
+  opt = f.parseInteger(values[3]);
+  if (!opt) {
+    return false;
+  }
+  item.maxDelayMs = *opt;
+
+  if (values[4].starts_with("FXList:")) {
+    item.itemName = values[4].substr(7);
+  } else if (values[4].starts_with("PSys:")) {
+    item.itemName = values[4].substr(5);
+  } else {
+    return false;
+  }
+
+  items[damageIdx][itemIdx] = std::move(item);
+
+  return true;
+}
+
+static INIApplierMap<Objects::BoneFX> BoneFXKVMap = {
+  { "DamageFXTypes", [](Objects::BoneFX& bfx, INIFile& f) {
+      return f.parseEnumSet<Objects::DamageType>(bfx.damageEffectTypes, CALL(Objects::getDamageType));
+    }
+  },
+  { "DamageParticleTypes", [](Objects::BoneFX& bfx, INIFile& f) {
+      return f.parseEnumSet<Objects::DamageType>(bfx.damageParticleTypes, CALL(Objects::getDamageType));
+    }
+  },
+  { "RubbleFXList1", [](Objects::BoneFX& bfx, INIFile& f) { return parseBoneFXItem(f, bfx.effects, 3, 0); } },
+  { "RubbleParticleSystem1", [](Objects::BoneFX& bfx, INIFile& f) { return parseBoneFXItem(f, bfx.particles, 3, 0); } },
+};
+
+static bool parseBridgeDieEffect(INIFile& f, std::list<Objects::BridgeDieItem>& list) {
+  auto values = f.parseAttributes();
+  if (values.size() < 3) {
+    return false;
+  }
+
+  if (!values.contains("Delay") || !values.contains("Bone")) {
+    return false;
+  }
+
+  Objects::BridgeDieItem item;
+  item.bone = std::move(values["Bone"]);
+
+  auto opt = f.parseInteger(values["Delay"]);
+  if (!opt) {
+    return false;
+  }
+  item.delayMs = *opt;
+
+  if (values.contains("FX")) {
+    item.name = std::move(values["FX"]);
+  } else if (values.contains("OCL")) {
+    item.name = std::move(values["OCL"]);
+  } else {
+    return false;
+  }
+
+  list.emplace_back(std::move(item));
+
+  return true;
+};
+
+static INIApplierMap<Objects::Bridge> BridgeKVMap = {
+  { "BridgeDieFX", [](Objects::Bridge& b, INIFile& f) {
+      return parseBridgeDieEffect(f, b.dieEffects);
+    }
+  },
+  { "BridgeDieOCL", [](Objects::Bridge& b, INIFile& f) {
+      return parseBridgeDieEffect(f, b.dieCreationLists);
+    }
+  },
+  { "LateralScaffoldSpeed", [](Objects::Bridge& b, INIFile& f) {
+      auto opt = f.parseFloat();
+      b.lateralScaffoldSpeed = opt.value_or(b.lateralScaffoldSpeed);
+      return opt.has_value();
+    }
+  },
+  { "VerticalScaffoldSpeed", [](Objects::Bridge& b, INIFile& f) {
+      auto opt = f.parseFloat();
+      b.verticalScaffoldSpeed = opt.value_or(b.verticalScaffoldSpeed);
+      return opt.has_value();
+    }
+  },
 };
 
 // TODO
@@ -498,6 +655,19 @@ static INIApplierMap<Objects::CreateObjectDie> CreateObjectDieKVMap = {
   }
 };
 
+static INIApplierMap<Objects::CostModifierUpgrade> CostModifierUpgradeKVMap = {
+  { "EffectKindOf", [](Objects::CostModifierUpgrade& cmu, INIFile& f) {
+      return f.parseEnumSet<Objects::Attribute>(cmu.affecting, CALL(Objects::getAttribute));
+    }
+  },
+  { "Percentage", [](Objects::CostModifierUpgrade& cmu, INIFile& f) {
+      auto opt = f.parsePercent();
+      cmu.percentage = opt.value_or(cmu.percentage);
+      return opt.has_value();
+    }
+  },
+};
+
 static INIApplierMap<Objects::DefaultProductionExit> DefaultProductionExitKVMap = {
   { "NaturalRallyPoint", [](Objects::DefaultProductionExit& dp, INIFile& f) {
       auto coords = f.parseCoord3D();
@@ -679,6 +849,33 @@ static INIApplierMap<Objects::FireWeaponCollision> FireWeaponCollisionDataKVMap 
       return f.parseEnumSet<Objects::Status>(c.requiredStates, CALL(Objects::getStatus));
     }
   },
+};
+
+static INIApplierMap<Objects::FireWeaponWhenDamaged> FireWeaponWhenDamagedKVMap = {
+  { "ContinuousWeaponPristine", [](Objects::FireWeaponWhenDamaged& fwd, INIFile& f) { fwd.continuousWeaponPristine = f.parseString(); return !fwd.continuousWeaponPristine.empty(); } },
+  { "ContinuousWeaponDamaged", [](Objects::FireWeaponWhenDamaged& fwd, INIFile& f) { fwd.continuousWeaponDamaged = f.parseString(); return !fwd.continuousWeaponDamaged.empty(); } },
+  { "ContinuousWeaponReallyDamaged", [](Objects::FireWeaponWhenDamaged& fwd, INIFile& f) { fwd.continuousWeaponReallyDamaged = f.parseString(); return !fwd.continuousWeaponReallyDamaged.empty(); } },
+  { "ContinuousWeaponRubble", [](Objects::FireWeaponWhenDamaged& fwd, INIFile& f) { fwd.continuousWeaponRubble = f.parseString(); return !fwd.continuousWeaponRubble.empty(); } },
+  { "DamageAmount", [](Objects::FireWeaponWhenDamaged& fwd, INIFile& f) {
+      auto opt = f.parseFloat();
+      fwd.damageAmount = opt.value_or(fwd.damageAmount);
+      return opt.has_value();
+    }
+  },
+  { "DamageTypes", [](Objects::FireWeaponWhenDamaged& fwd, INIFile& f) {
+      return f.parseEnumSet<Objects::DamageType>(fwd.damageTypes, CALL(Objects::getDamageType));
+    }
+  },
+  { "ReactionWeaponPristine", [](Objects::FireWeaponWhenDamaged& fwd, INIFile& f) { fwd.reactionWeaponPristine = f.parseString(); return !fwd.reactionWeaponPristine.empty(); } },
+  { "ReactionWeaponDamaged", [](Objects::FireWeaponWhenDamaged& fwd, INIFile& f) { fwd.reactionWeaponDamaged = f.parseString(); return !fwd.reactionWeaponDamaged.empty(); } },
+  { "ReactionWeaponReallyDamaged", [](Objects::FireWeaponWhenDamaged& fwd, INIFile& f) { fwd.reactionWeaponReallyDamaged = f.parseString(); return !fwd.reactionWeaponReallyDamaged.empty(); } },
+  { "ReactionWeaponRubble", [](Objects::FireWeaponWhenDamaged& fwd, INIFile& f) { fwd.reactionWeaponRubble = f.parseString(); return !fwd.reactionWeaponRubble.empty(); } },
+  { "StartsActive", [](Objects::FireWeaponWhenDamaged& fwd, INIFile& f) { fwd.active = f.parseBool(); return true; } },
+};
+
+static INIApplierMap<Objects::FireWeaponWhenDead> FireWeaponWhenDeadKVMap = {
+  { "DeathWeapon", [](Objects::FireWeaponWhenDead& fwd, INIFile& f) { fwd.weapon = f.parseString(); return !fwd.weapon.empty(); } },
+  { "StartsActive", [](Objects::FireWeaponWhenDead& fwd, INIFile& f) { fwd.active = f.parseBool(); return true; } },
 };
 
 static INIApplierMap<Objects::FireSpread> FireSpreadKVMap = {
@@ -1254,7 +1451,7 @@ static INIApplierMap<Objects::ModelDrawData> ModelDrawDataKVMap = {
   },
   { "DefaultConditionState", [](Objects::ModelDrawData& dd, INIFile& f) { return f.parseAttributeBlock(dd.defaultConditionState, ConditionStateKVMap); } },
   { "ExtraPublicBone", [](Objects::ModelDrawData& dd, INIFile& f) {
-      auto value = f.parseString();
+      auto value = f.parseLooseValue();
       if (value.empty()) {
         return false;
       }
@@ -1669,6 +1866,37 @@ static INIApplierMap<Objects::TransportContain> TransportContainKVMap = {
   }
 };
 
+static INIApplierMap<Objects::SupplyWarehouseCrippling> SupplyWarehouseCripplingKVMap = {
+  { "SelfHealAmount", [](Objects::SupplyWarehouseCrippling& swc, INIFile& f) {
+      auto opt = f.parseInteger();
+      swc.healAmount = opt.value_or(swc.healAmount);
+      return opt.has_value();
+    }
+  },
+  { "SelfHealDelay", [](Objects::SupplyWarehouseCrippling& swc, INIFile& f) {
+      auto opt = f.parseInteger();
+      swc.healIntervalMs = opt.value_or(swc.healIntervalMs);
+      return opt.has_value();
+    }
+  },
+  { "SelfHealSupression", [](Objects::SupplyWarehouseCrippling& swc, INIFile& f) {
+      auto opt = f.parseInteger();
+      swc.healSuppressionMs = opt.value_or(swc.healSuppressionMs);
+      return opt.has_value();
+    }
+  }
+};
+
+static INIApplierMap<Objects::SupplyWarehouseDock> SupplyWarehouseDockKVMap = {
+  { "DeleteWhenEmpty", [](Objects::SupplyWarehouseDock& swd, INIFile& f) { swd.deleteWhenEmpty = f.parseBool(); return true; } },
+  { "StartingBoxes", [](Objects::SupplyWarehouseDock& swd, INIFile& f) {
+      auto opt = f.parseInteger();
+      swd.numBoxes = opt.value_or(swd.numBoxes);
+      return opt.has_value();
+    }
+  }
+};
+
 static bool parseTransitionDamageFX(INIFile& f, Objects::TransitionDamageFXSlots slots, size_t damageTypeIdx, size_t effectIdx) {
   auto values = f.parseAttributes();
   auto& damage = slots[damageTypeIdx][effectIdx];
@@ -1715,13 +1943,36 @@ static bool parseTransitionDamageParticles(INIFile& f, Objects::TransitionDamage
 };
 
 static INIApplierMap<Objects::TransitionDamageFX> TransitionDamageFXKVMap = {
+  { "DamageFXTypes", [](Objects::TransitionDamageFX& fx, INIFile& f) {
+      return f.parseEnumSet<Objects::DamageType>(fx.damageEffectTypes, CALL(Objects::getDamageType));
+    }
+  },
   { "DamagedFXList1", [](Objects::TransitionDamageFX& fx, INIFile& f) { return parseTransitionDamageFX(f, fx.effects, 1, 0); } },
+  { "DamageParticleTypes", [](Objects::TransitionDamageFX& fx, INIFile& f) {
+      return f.parseEnumSet<Objects::DamageType>(fx.damageParticleTypes, CALL(Objects::getDamageType));
+    }
+  },
   { "DamagedParticleSystem1", [](Objects::TransitionDamageFX& fx, INIFile& f) { return parseTransitionDamageParticles(f, fx.particleSystems, 1, 0); } },
+  { "DamagedParticleSystem4", [](Objects::TransitionDamageFX& fx, INIFile& f) { return parseTransitionDamageParticles(f, fx.particleSystems, 1, 3); } },
+  { "DamagedParticleSystem5", [](Objects::TransitionDamageFX& fx, INIFile& f) { return parseTransitionDamageParticles(f, fx.particleSystems, 1, 4); } },
+  { "DamagedParticleSystem6", [](Objects::TransitionDamageFX& fx, INIFile& f) { return parseTransitionDamageParticles(f, fx.particleSystems, 1, 5); } },
   { "ReallyDamagedFXList1", [](Objects::TransitionDamageFX& fx, INIFile& f) { return parseTransitionDamageFX(f, fx.effects, 2, 0); } },
   { "ReallyDamagedParticleSystem1", [](Objects::TransitionDamageFX& fx, INIFile& f) { return parseTransitionDamageParticles(f, fx.particleSystems, 2, 0); } },
   { "ReallyDamagedParticleSystem2", [](Objects::TransitionDamageFX& fx, INIFile& f) { return parseTransitionDamageParticles(f, fx.particleSystems, 2, 1); } },
   { "ReallyDamagedParticleSystem3", [](Objects::TransitionDamageFX& fx, INIFile& f) { return parseTransitionDamageParticles(f, fx.particleSystems, 2, 2); } },
+  { "ReallyDamagedParticleSystem4", [](Objects::TransitionDamageFX& fx, INIFile& f) { return parseTransitionDamageParticles(f, fx.particleSystems, 2, 3); } },
+  { "ReallyDamagedParticleSystem5", [](Objects::TransitionDamageFX& fx, INIFile& f) { return parseTransitionDamageParticles(f, fx.particleSystems, 2, 4); } },
+  { "ReallyDamagedParticleSystem6", [](Objects::TransitionDamageFX& fx, INIFile& f) { return parseTransitionDamageParticles(f, fx.particleSystems, 2, 5); } },
+  { "ReallyDamagedParticleSystem7", [](Objects::TransitionDamageFX& fx, INIFile& f) { return parseTransitionDamageParticles(f, fx.particleSystems, 2, 6); } },
+  { "ReallyDamagedParticleSystem8", [](Objects::TransitionDamageFX& fx, INIFile& f) { return parseTransitionDamageParticles(f, fx.particleSystems, 2, 7); } },
+  { "RubbleFXList1", [](Objects::TransitionDamageFX& fx, INIFile& f) { return parseTransitionDamageFX(f, fx.effects, 3, 0); } },
   { "RubbleParticleSystem1", [](Objects::TransitionDamageFX& fx, INIFile& f) { return parseTransitionDamageParticles(f, fx.particleSystems, 3, 0); } },
+  { "RubbleParticleSystem2", [](Objects::TransitionDamageFX& fx, INIFile& f) { return parseTransitionDamageParticles(f, fx.particleSystems, 3, 1); } },
+  { "RubbleParticleSystem3", [](Objects::TransitionDamageFX& fx, INIFile& f) { return parseTransitionDamageParticles(f, fx.particleSystems, 3, 2); } },
+  { "RubbleParticleSystem4", [](Objects::TransitionDamageFX& fx, INIFile& f) { return parseTransitionDamageParticles(f, fx.particleSystems, 3, 3); } },
+  { "RubbleParticleSystem5", [](Objects::TransitionDamageFX& fx, INIFile& f) { return parseTransitionDamageParticles(f, fx.particleSystems, 3, 4); } },
+  { "RubbleParticleSystem6", [](Objects::TransitionDamageFX& fx, INIFile& f) { return parseTransitionDamageParticles(f, fx.particleSystems, 3, 5); } },
+  { "RubbleParticleSystem7", [](Objects::TransitionDamageFX& fx, INIFile& f) { return parseTransitionDamageParticles(f, fx.particleSystems, 3, 6); } },
 };
 
 static bool parseSound(Objects::ObjectBuilder& b, INIFile& f, Objects::Noise noise) {
@@ -2091,6 +2342,7 @@ static INIApplierMap<Objects::ObjectBuilder> ObjectDataKVMap = {
       return value.has_value();
     }
   },
+  { "IsBridge", [](Objects::ObjectBuilder& b, INIFile& f) { b.isBridge = f.parseBool(); return true; } },
   { "IsTrainable", [](Objects::ObjectBuilder& b, INIFile& f) { b.trainable = f.parseBool(); return true; } },
   { "KindOf", [](Objects::ObjectBuilder& b, INIFile& f) {
       return f.parseEnumSet<Objects::Attribute>(b.attributes, CALL(Objects::getAttribute));
@@ -2196,6 +2448,8 @@ static INIApplierMap<Objects::ObjectBuilder> ObjectDataKVMap = {
   },
   { "Side", [](Objects::ObjectBuilder& b, INIFile& f) { b.side = f.parseString(); return !b.side.empty(); } },
   { "SoundAmbient", [](Objects::ObjectBuilder& b, INIFile& f) { return parseSound(b, f, Objects::Noise::SOUND_AMBIENT); } },
+  { "SoundAmbientDamaged", [](Objects::ObjectBuilder& b, INIFile& f) { return parseSound(b, f, Objects::Noise::SOUND_AMBIENT_DAMAGED); } },
+  { "SoundAmbientReallyDamaged", [](Objects::ObjectBuilder& b, INIFile& f) { return parseSound(b, f, Objects::Noise::SOUND_AMBIENT_REALLY_DAMAGED); } },
   { "SoundAmbientRubble", [](Objects::ObjectBuilder& b, INIFile& f) { return parseSound(b, f, Objects::Noise::SOUND_AMBIENT_RUBBLE); } },
   { "SoundEnter", [](Objects::ObjectBuilder& b, INIFile& f) { return parseSound(b, f, Objects::Noise::SOUND_ENTER); } },
   { "SoundExit", [](Objects::ObjectBuilder& b, INIFile& f) { return parseSound(b, f, Objects::Noise::SOUND_EXIT); } },
@@ -2696,6 +2950,152 @@ static INIApplierMap<Objects::StealthDetector> StealthDetectorKVMap = {
   { "InitiallyDisabled", [](Objects::StealthDetector& sd, INIFile& f) { sd.disabled = f.parseBool(); return true; } },
 };
 
+std::optional<Objects::CollapseEvent> parseStructureCollapse(INIFile& f) {
+  auto values = f.parseStringList();
+  if (values.size() != 2) {
+    return {};
+  }
+
+  Objects::CollapseEvent event;
+  auto opt = Objects::getStructureCollapsePhase(values[0]);
+  if (!opt) {
+    return {};
+  }
+  event.phase = *opt;
+  event.event = std::move(values[1]);
+
+  return {std::move(event)};
+};
+
+static INIApplierMap<Objects::StructureCollapse> StructureCollapseKVMap = {
+  { "BigBurstFrequency", [](Objects::StructureCollapse& sc, INIFile& f) {
+      auto opt = f.parseSignedInteger();
+      sc.bigBurstFrequency = opt.value_or(sc.bigBurstFrequency);
+      return opt.has_value();
+    }
+  },
+  { "CollapseDamping", [](Objects::StructureCollapse& sc, INIFile& f) {
+      auto opt = f.parseFloat();
+      sc.collapseDampening = opt.value_or(sc.collapseDampening);
+      return opt.has_value();
+    }
+  },
+  { "FXList", [](Objects::StructureCollapse& sc, INIFile& f) {
+      auto opt = parseStructureCollapse(f);
+      if (!opt) {
+        return false;
+      }
+
+      sc.effects.emplace_back(std::move(*opt));
+      return true;
+    }
+  },
+  { "MaxBurstDelay", [](Objects::StructureCollapse& sc, INIFile& f) {
+      auto opt = f.parseInteger();
+      sc.maxBurstDelayMs = opt.value_or(sc.maxBurstDelayMs);
+      return opt.has_value();
+    }
+  },
+  { "MaxCollapseDelay", [](Objects::StructureCollapse& sc, INIFile& f) {
+      auto opt = f.parseInteger();
+      sc.maxCollapseDelayMs = opt.value_or(sc.maxCollapseDelayMs);
+      return opt.has_value();
+    }
+  },
+  { "MaxShudder", [](Objects::StructureCollapse& sc, INIFile& f) {
+      auto opt = f.parseFloat();
+      sc.maxShudder = opt.value_or(sc.maxShudder);
+      return opt.has_value();
+    }
+  },
+  { "MinBurstDelay", [](Objects::StructureCollapse& sc, INIFile& f) {
+      auto opt = f.parseInteger();
+      sc.minBurstDelayMs = opt.value_or(sc.minBurstDelayMs);
+      return opt.has_value();
+    }
+  },
+  { "MinCollapseDelay", [](Objects::StructureCollapse& sc, INIFile& f) {
+      auto opt = f.parseInteger();
+      sc.minCollapseDelayMs = opt.value_or(sc.minCollapseDelayMs);
+      return opt.has_value();
+    }
+  },
+  { "OCL", [](Objects::StructureCollapse& sc, INIFile& f) {
+      auto opt = parseStructureCollapse(f);
+      if (!opt) {
+        return false;
+      }
+
+      sc.creationLists.emplace_back(std::move(*opt));
+      return true;
+    }
+  }
+};
+
+static INIApplierMap<Objects::StructureTopple> StructureToppleKVMap = {
+  { "AngleFX", [](Objects::StructureTopple& st, INIFile& f) {
+      auto values = f.parseStringList();
+      if (values.size() != 2) {
+        return false;
+      }
+
+      auto opt = f.parseFloat(values[0]);
+      if (!opt) {
+        return false;
+      }
+      st.effectAngle = *opt;
+      st.angleEffectName = std::move(values[1]);
+
+      return true;
+    }
+  },
+  { "CrushingFX", [](Objects::StructureTopple& st, INIFile& f) { st.crushingEffect = f.parseString(); return !st.crushingEffect.empty(); } },
+  { "CrushingWeaponName", [](Objects::StructureTopple& st, INIFile& f) { st.crushingWeapon = f.parseString(); return !st.crushingWeapon.empty(); } },
+  { "DamageFXTypes", [](Objects::StructureTopple& st, INIFile& f) {
+      return f.parseEnumSet<Objects::DamageType>(st.damageTypes, CALL(Objects::getDamageType));
+    }
+  },
+  { "MaxToppleBurstDelay", [](Objects::StructureTopple& st, INIFile& f) {
+      auto opt = f.parseInteger();
+      st.maxToppleBurstDelayMs = opt.value_or(st.maxToppleBurstDelayMs);
+      return opt.has_value();
+    }
+  },
+  { "MaxToppleDelay", [](Objects::StructureTopple& st, INIFile& f) {
+      auto opt = f.parseInteger();
+      st.maxToppleDelayMs = opt.value_or(st.maxToppleDelayMs);
+      return opt.has_value();
+    }
+  },
+  { "MinToppleBurstDelay", [](Objects::StructureTopple& st, INIFile& f) {
+      auto opt = f.parseInteger();
+      st.minToppleBurstDelayMs = opt.value_or(st.minToppleBurstDelayMs);
+      return opt.has_value();
+    }
+  },
+  { "MinToppleDelay", [](Objects::StructureTopple& st, INIFile& f) {
+      auto opt = f.parseInteger();
+      st.minToppleDelayMs = opt.value_or(st.minToppleDelayMs);
+      return opt.has_value();
+    }
+  },
+  { "StructuralDecay", [](Objects::StructureTopple& st, INIFile& f) {
+      auto opt = f.parseFloat();
+      st.decay = opt.value_or(st.decay);
+      return opt.has_value();
+    }
+  },
+  { "StructuralIntegrity", [](Objects::StructureTopple& st, INIFile& f) {
+      auto opt = f.parseFloat();
+      st.integrity = opt.value_or(st.integrity);
+      return opt.has_value();
+    }
+  },
+  { "ToppleDelayFX", [](Objects::StructureTopple& st, INIFile& f) { st.topplingDelayEffect = f.parseString(); return !st.topplingDelayEffect.empty(); } },
+  { "ToppleDoneFX", [](Objects::StructureTopple& st, INIFile& f) { st.topplingDoneEffect = f.parseString(); return !st.topplingDoneEffect.empty(); } },
+  { "ToppleStartFX", [](Objects::StructureTopple& st, INIFile& f) { st.topplingStartEffect = f.parseString(); return !st.topplingStartEffect.empty(); } },
+};
+
 static INIApplierMap<Objects::Topple> ToppleKVMap = {
   { "BounceFX", [](Objects::Topple& t, INIFile& f) { t.bounceEffect = f.parseString(); return !t.bounceEffect.empty(); } },
   { "BounceVelocityPercent", [](Objects::Topple& t, INIFile& f) {
@@ -2776,6 +3176,10 @@ static INIApplierMap<Objects::TruckDrawData> TruckDrawDataKVMap = {
       return value.has_value();
     }
   },
+};
+
+static INIApplierMap<Objects::SupplyDrawData> SupplyDrawDataKVMap = {
+  { "SupplyBonePrefix", [](Objects::SupplyDrawData& sd, INIFile& f) { sd.supplyBonePrefix = f.parseString(); return !sd.supplyBonePrefix.empty(); } },
 };
 
 static INIApplierMap<Objects::VeterancyCrateCollision> VeterancyCrateCollisionKVMap = {
@@ -2876,13 +3280,17 @@ bool ObjectsINI::parseBehavior(Objects::ObjectBuilder& builder) {
 
   switch (behavior.type) {
     case Objects::ModuleType::BASE_REGENERATE:
+    case Objects::ModuleType::BONE_FX_DAMAGE:
+    case Objects::ModuleType::BRIDGE_TOWER:
     case Objects::ModuleType::COMMAND_BUTTON_HUNT:
+    case Objects::ModuleType::DAM_DIE:
     case Objects::ModuleType::KEEP_OBJECT_DIE:
     case Objects::ModuleType::PREORDER_CREATE:
     case Objects::ModuleType::SPECIAL_POWER_CREATE:
     case Objects::ModuleType::SPY_VISION:
     case Objects::ModuleType::SQUISH_COLLIDE:
     case Objects::ModuleType::SUPPLY_CENTER:
+    case Objects::ModuleType::SUPPLY_WAREHOUSE:
     case Objects::ModuleType::TECH_BUILDING:
       return parseEmptyAttributeBlock();
 
@@ -2890,13 +3298,26 @@ bool ObjectsINI::parseBehavior(Objects::ObjectBuilder& builder) {
     case Objects::ModuleType::TRANSPORT_AI:
       return parseSubtypedAttributeBlock<Objects::AI>(std::move(behavior.moduleData), AIKVMap);
     case Objects::ModuleType::ASSISTED_TARGETING:
-      return parseSubtypedAttributeBlock<Objects::AssistetedTargeting>(std::move(behavior.moduleData), AssistetedTargetingKVMap);
+      return parseSubtypedAttributeBlock<Objects::AssistedTargeting>(std::move(behavior.moduleData), AssistedTargetingKVMap);
+    case Objects::ModuleType::AUTO_DEPOSIT:
+      return parseSubtypedAttributeBlock<Objects::AutoDeposit>(std::move(behavior.moduleData), AutoDepositKVMap);
     case Objects::ModuleType::AUTO_FIND_HEALING:
       return parseSubtypedAttributeBlock<Objects::AutoFindHealing>(std::move(behavior.moduleData), AutoFindHealingKVMap);
     case Objects::ModuleType::AUTO_HEAL:
       return parseSubtypedAttributeBlock<Objects::AutoHeal>(std::move(behavior.moduleData), AutoHealKVMap);
+    case Objects::ModuleType::BAIKONUR_LAUNCH_POWER:
+      return
+        parseSubtypedAttributeBlocks<Objects::BaikonurLaunchPower>(
+            std::move(behavior.moduleData)
+          , BaikonurLaunchPowerKVMap
+          , SpecialPowerKVMap
+        );
     case Objects::ModuleType::BATTLE_PLAN:
       return parseSubtypedAttributeBlock<Objects::BattlePlan>(std::move(behavior.moduleData), BattlePlanKVMap);
+    case Objects::ModuleType::BONE_FX:
+      return parseSubtypedAttributeBlock<Objects::BoneFX>(std::move(behavior.moduleData), BoneFXKVMap);
+    case Objects::ModuleType::BRIDGE:
+      return parseSubtypedAttributeBlock<Objects::Bridge>(std::move(behavior.moduleData), BridgeKVMap);
     case Objects::ModuleType::CHINOOK_AI:
       return parseSubtypedAttributeBlock<Objects::ChinookAI>(std::move(behavior.moduleData), ChinookAIKVMap);
     case Objects::ModuleType::CLEANUP_AREA:
@@ -2918,6 +3339,13 @@ bool ObjectsINI::parseBehavior(Objects::ObjectBuilder& builder) {
             std::move(behavior.moduleData)
           , CreateObjectDieKVMap
           , DieKVMap
+        );
+    case Objects::ModuleType::COST_MODIFIER_UPGRADE:
+      return
+        parseSubtypedAttributeBlocks<Objects::CostModifierUpgrade>(
+            std::move(behavior.moduleData)
+          , CostModifierUpgradeKVMap
+          , UpgradeKVMap
         );
     case Objects::ModuleType::DEFAULT_PRORDUCTION_EXIT:
     case Objects::ModuleType::SUPPLY_CENTER_PRODUCTION_EXIT:
@@ -2973,6 +3401,10 @@ bool ObjectsINI::parseBehavior(Objects::ObjectBuilder& builder) {
             std::move(behavior.moduleData)
           , FireWeaponCollisionDataKVMap
         );
+    case Objects::ModuleType::FIRE_WEAPON_WHEN_DAMAGED:
+      return parseSubtypedAttributeBlock<Objects::FireWeaponWhenDamaged>(std::move(behavior.moduleData), FireWeaponWhenDamagedKVMap);
+    case Objects::ModuleType::FIRE_WEAPON_WHEN_DEAD:
+      return parseSubtypedAttributeBlock<Objects::FireWeaponWhenDead>(std::move(behavior.moduleData), FireWeaponWhenDeadKVMap);
     case Objects::ModuleType::FLAMMABLE:
       return parseSubtypedAttributeBlock<Objects::Flammable>(std::move(behavior.moduleData), FlammableDataKVMap);
     case Objects::ModuleType::FX_LIST_DIE:
@@ -3137,10 +3569,23 @@ bool ObjectsINI::parseBehavior(Objects::ObjectBuilder& builder) {
       return parseSubtypedAttributeBlock<Objects::Stealth>(std::move(behavior.moduleData), StealthKVMap);
     case Objects::ModuleType::STEALTH_DETECTOR:
       return parseSubtypedAttributeBlock<Objects::StealthDetector>(std::move(behavior.moduleData), StealthDetectorKVMap);
+    case Objects::ModuleType::STRUCTURE_COLLAPSE:
+      return parseSubtypedAttributeBlock<Objects::StructureCollapse>(std::move(behavior.moduleData), StructureCollapseKVMap);
+    case Objects::ModuleType::STRUCTURE_TOPPLE:
+      return parseSubtypedAttributeBlock<Objects::StructureTopple>(std::move(behavior.moduleData), StructureToppleKVMap);
     case Objects::ModuleType::SUPPLY_CENTER_DOCK:
       return
         parseSubtypedAttributeBlocks<Objects::SupplyCenterDock>(
             std::move(behavior.moduleData)
+          , DockKVMap
+        );
+    case Objects::ModuleType::SUPPLY_WAREHOUSE_CRIPPLING:
+      return parseSubtypedAttributeBlock<Objects::SupplyWarehouseCrippling>(std::move(behavior.moduleData), SupplyWarehouseCripplingKVMap);
+    case Objects::ModuleType::SUPPLY_WAREHOUSE_DOCK:
+      return
+        parseSubtypedAttributeBlocks<Objects::SupplyWarehouseDock>(
+            std::move(behavior.moduleData)
+          , SupplyWarehouseDockKVMap
           , DockKVMap
         );
     case Objects::ModuleType::TRANSITION_DAMAGE_FX:
@@ -3263,6 +3708,7 @@ bool ObjectsINI::parseClientUpdate(Objects::ObjectBuilder& builder) {
             std::move(builder.clientUpdate->moduleData)
           , LaserKVMap
         );
+    case Objects::ModuleType::ANIMATED_PARTICLE_SYS_BONE_CLIENT:
     case Objects::ModuleType::SWAY_CLIENT:
       return parseEmptyAttributeBlock();
     default:
@@ -3296,6 +3742,8 @@ bool ObjectsINI::parseDraw(Objects::ObjectBuilder& builder) {
     builder.drawMetaData.type = Objects::DrawType::TREE_DRAW;
   } else if (token == "W3DTruckDraw") {
     builder.drawMetaData.type = Objects::DrawType::TRUCK_DRAW;
+  } else if (token == "W3DSupplyDraw") {
+    builder.drawMetaData.type = Objects::DrawType::SUPPLY_DRAW;
   } else {
     WARN_ZH("ObjectsINI", "Unsupported draw type {}", token);
   }
@@ -3343,6 +3791,13 @@ bool ObjectsINI::parseDraw(Objects::ObjectBuilder& builder) {
         parseSubtypedAttributeBlocks<Objects::TruckDrawData>(
             std::move(builder.drawMetaData.drawData)
           , TruckDrawDataKVMap
+          , ModelDrawDataKVMap
+        );
+    case Objects::DrawType::SUPPLY_DRAW:
+      return
+        parseSubtypedAttributeBlocks<Objects::SupplyDrawData>(
+            std::move(builder.drawMetaData.drawData)
+          , SupplyDrawDataKVMap
           , ModelDrawDataKVMap
         );
     default:

@@ -22,6 +22,7 @@ struct Module {
 enum class ModuleType {
     ACTIVE_BODY
   , AI
+  , ANIMATED_PARTICLE_SYS_BONE_CLIENT
   , ANIMATION_STEERING
   , ARMOR_UPGRADE
   , ASSAULT_TRANSPORT
@@ -34,7 +35,9 @@ enum class ModuleType {
   , BATTLE_BUS_SLOW_DEATH
   , BATTLE_PLAN
   , BONE_FX
+  , BONE_FX_DAMAGE
   , BRIDGE
+  , BRIDGE_TOWER
   , BUNKER_BUSTER
   , BODY
   , CASH_BOUNTY
@@ -48,7 +51,7 @@ enum class ModuleType {
   , COMMAND_SET_UPGRADE
   , CONVERT_TO_CAR_BOMB
   , CONVERT_TO_HIJACK
-  , COST_MODIFIER
+  , COST_MODIFIER_UPGRADE
   , COUNTERMEASURE
   , CRATE_COLLISION
   , CREATE
@@ -80,8 +83,8 @@ enum class ModuleType {
   , FIRE_WEAPON_COLLISION
   , FIRE_WEAPON_POWER
   , FIRE_WEAPON
-  , FIRE_WEAPON_WHEN_DAMAGED_UPGRADE
-  , FIRE_WEAPON_WHEN_DEAD_UPGRADE
+  , FIRE_WEAPON_WHEN_DAMAGED
+  , FIRE_WEAPON_WHEN_DEAD
   , FLAMMABLE
   , FLIGHT_DECK
   , FLOAT
@@ -148,10 +151,15 @@ enum class ModuleType {
   , SUPPLY_CENTER_DOCK
   , SUPPLY_CENTER_PRODUCTION_EXIT
   , SUPPLY_TRUCK_AI
+  , SUPPLY_WAREHOUSE
+  , SUPPLY_WAREHOUSE_CRIPPLING
+  , SUPPLY_WAREHOUSE_DOCK
   , STEALTH
   , STEALTH_UPGRADE
   , STEALTH_DETECTOR
   , STRUCTURE_BODY
+  , STRUCTURE_COLLAPSE
+  , STRUCTURE_TOPPLE
   , SWAY_CLIENT
   , TECH_BUILDING
   , TOPPLE
@@ -214,7 +222,7 @@ struct AssaultTransport : public AI {
   bool clearRangeForAttackMove = true;
 };
 
-struct AssistetedTargeting : public Module {
+struct AssistedTargeting : public Module {
   int32_t numShots = 1;
   WeaponSlot slot = WeaponSlot::NONE;
   std::string laserFrom; // object names
@@ -222,12 +230,12 @@ struct AssistetedTargeting : public Module {
 };
 
 struct AutoDeposit : public Module {
-  uint32_t depositTimingMs;
-  Money depositAmount;
+  Duration intervalMs;
+  Money amount;
   Money captureBonus;
   bool actualMoney;
-  std::string upgradeToBoost; // TODO Upgrade
-  uint8_t boostValue = 1;
+  std::string upgrade; // TODO Upgrade
+  int32_t boostValue = 1;
 };
 
 struct AutoFindHealing : public Module {
@@ -292,27 +300,37 @@ struct Body : public Module {
   float subdueDamageHealAmount = 1.0f;
 };
 
+// EVAL naming
+
+struct BoneFXItem {
+  std::string bone;
+  std::string itemName; // TODO particle system/OCL/FXList
+  Duration maxDelayMs = 1000;
+  Duration minDelayMs = 0;
+  bool once;
+};
+
+using BoneFXItems = std::array<std::array<BoneFXItem, 4>, 8>;
+
 struct BoneFX : public Module {
-  // EVAL Investigate further
+  BoneFXItems creationLists;
+  std::set<DamageType> damageEffectTypes;
+  std::set<DamageType> damageParticleTypes;
+  BoneFXItems effects;
+  BoneFXItems particles;
 };
 
-struct BridgeDieEffect {
-  std::string effect; // TODO FXList
-  uint32_t delayMs = 1000;
-  std::string bone; // TODO ?!
-};
-
-struct BridgeDieConstruction {
-  std::string creationList; // TODO ObjectCreationList
-  uint32_t delayMs = 1000;
-  std::string bone; // TODO ?!
+struct BridgeDieItem {
+  std::string name; // TODO FXList/OCL
+  Duration delayMs = 1000;
+  std::string bone;
 };
 
 struct Bridge : public Module {
+  std::list<BridgeDieItem> dieCreationLists;
+  std::list<BridgeDieItem> dieEffects;
   float lateralScaffoldSpeed = 1.0f;
   float verticalScaffoldSpeed = 1.0f;
-  std::list<BridgeDieEffect> dieEffects;
-  std::list<BridgeDieConstruction> dieConstructions;
 };
 
 struct BunkerBuster : public Module {
@@ -585,6 +603,25 @@ struct FireWeapon : public Module {
   std::string weapon;
   Duration initialDelayMs = 0;
   Duration exclusiveWeaponDelayMs = 0;
+};
+
+struct FireWeaponWhenDamaged : public Module {
+  bool active = true;
+  std::string continuousWeaponPristine;
+  std::string continuousWeaponDamaged;
+  std::string continuousWeaponReallyDamaged;
+  std::string continuousWeaponRubble;
+  std::set<DamageType> damageTypes;
+  float damageAmount = 1.0f;
+  std::string reactionWeaponPristine;
+  std::string reactionWeaponDamaged;
+  std::string reactionWeaponReallyDamaged;
+  std::string reactionWeaponRubble;
+};
+
+struct FireWeaponWhenDead : public Module {
+  bool active = true;
+  std::string weapon; // TODO Weapon
 };
 
 struct Flammable : public Module {
@@ -1084,11 +1121,6 @@ struct CleanupArea : public SpecialPower {
   float maxMoveDistance = 1.0f;
 };
 
-struct CostModifier : public SpecialPower {
-  std::set<Attribute> affecting; // EVAL
-  Percent percentage = 1;
-};
-
 struct FireWeaponPower : public SpecialPower {
   uint32_t maxShots = 1;
 };
@@ -1164,6 +1196,25 @@ struct Stealth : public Module {
   std::string ownDetectionEvaEvent; // EvaEvent
 };
 
+struct StructureTopple : public Module {
+  std::string creationList;
+  std::string crushingEffect;
+  std::string crushingWeapon;
+  std::set<DamageType> damageTypes;
+  float decay = 0.0f;
+  float effectAngle = 0.0f;
+  std::string angleEffectName;
+  float integrity = 1.0f;
+  Duration maxToppleBurstDelayMs = 1000;
+  Duration maxToppleDelayMs = 1000;
+  Duration minToppleBurstDelayMs = 0;
+  Duration minToppleDelayMs = 0;
+  std::string topplingEffect;
+  std::string topplingDelayEffect;
+  std::string topplingDoneEffect;
+  std::string topplingStartEffect;
+};
+
 struct SupplyCenterDock : public Dock {
   Duration temporaryStealthMs = 5000;
 };
@@ -1174,6 +1225,17 @@ struct SupplyTruckAI : public AI {
   uint32_t warehouseDelay = 3;
   float warehouseScanDistance = 10.0f;
   std::string depletedSound;
+};
+
+struct SupplyWarehouseCrippling : public Module {
+  Health healAmount = 10.0f;
+  Duration healIntervalMs = 1000;
+  Duration healSuppressionMs = 1000;
+};
+
+struct SupplyWarehouseDock : public Dock {
+  bool deleteWhenEmpty = false;
+  int32_t numBoxes = 100;
 };
 
 struct ChinookAI : public SupplyTruckAI {
@@ -1210,6 +1272,23 @@ struct StealthDetector : public Module {
   std::string gridParticles;
   Duration rateMs = 1000;
   float range = 5.0f;
+};
+
+struct CollapseEvent {
+  StructureCollapsePhase phase;
+  std::string event;
+};
+
+struct StructureCollapse : public Module {
+  int32_t bigBurstFrequency = 1;
+  float collapseDampening = 0.0f;
+  Duration maxBurstDelayMs = 1000;
+  Duration maxCollapseDelayMs = 1000;
+  float maxShudder = 0.0f;
+  Duration minBurstDelayMs = 0;
+  Duration minCollapseDelayMs = 0;
+  std::list<CollapseEvent> creationLists; // OCL
+  std::list<CollapseEvent> effects; // FXList
 };
 
 struct TechBuilding : public Module {
@@ -1264,6 +1343,11 @@ struct CommandSetUpgrade : public Upgrade {
   std::string commandSet1; // TODO CommandSet
   std::string commandSet2; // TODO CommandSet
   std::string trigger; // TODO Upgrade
+};
+
+struct CostModifierUpgrade : public Upgrade {
+  std::set<Attribute> affecting; // EVAL
+  Percent percentage = 0;
 };
 
 struct ExperienceScalarUpgrade : public Upgrade {

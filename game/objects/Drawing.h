@@ -24,6 +24,7 @@ enum class DrawType {
   , TANK_DRAW
   , TREE_DRAW
   , TRUCK_DRAW
+  , SUPPLY_DRAW
 };
 
 struct WeaponFX {
@@ -149,6 +150,10 @@ struct TruckDrawData : public ModelDrawData {
   std::array<std::string, 10> tireBones;
   std::string trailerBone;
   float trailerRotationFactor = 1.0f;
+};
+
+struct SupplyDrawData : public ModelDrawData {
+  std::string supplyBonePrefix;
 };
 
 }

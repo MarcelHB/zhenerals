@@ -398,6 +398,8 @@ using Money = uint16_t;
 enum class Noise {
     SOUND_AFTERBURNER
   , SOUND_AMBIENT
+  , SOUND_AMBIENT_DAMAGED
+  , SOUND_AMBIENT_REALLY_DAMAGED
   , SOUND_AMBIENT_RUBBLE
   , SOUND_DEPLOY
   , SOUND_EJECT
@@ -449,7 +451,7 @@ enum class Noise {
   , VOICE_UNLOAD
 };
 
-using Percent = uint8_t;
+using Percent = int8_t;
 
 enum class OCLLocation {
     NEAR_SOURCE
@@ -540,6 +542,13 @@ enum class StealthLevel {
   , TAKING_DAMAGE
   , RIDERS_ATTACKING
   , ALL
+};
+
+enum class StructureCollapsePhase {
+    INITIAL
+  , DELAY
+  , BURST
+  , FINAL
 };
 
 enum class Veterancy {

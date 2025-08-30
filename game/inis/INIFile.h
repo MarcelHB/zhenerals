@@ -65,7 +65,7 @@ class INIFile {
     std::optional<std::pair<int16_t, int16_t>> parseSignedShortPair();
     std::optional<std::pair<uint16_t, uint16_t>> parseShortPair();
 
-    std::optional<uint8_t> parsePercent();
+    std::optional<int8_t> parsePercent();
     Color parseRGB();
     Color parseRGBA();
     std::string parseString();

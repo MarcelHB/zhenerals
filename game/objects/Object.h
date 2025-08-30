@@ -188,6 +188,7 @@ std::optional<Shadow> getShadow(const std::string_view&);
 std::optional<SlowDeathPhase> getSlowDeathPhase(const std::string_view&);
 std::optional<Status> getStatus(const std::string_view&);
 std::optional<StealthLevel> getStealthLevel(const std::string_view&);
+std::optional<StructureCollapsePhase> getStructureCollapsePhase(const std::string_view&);
 std::optional<Veterancy> getVeterancy(const std::string_view&);
 std::optional<WeaponSlot> getWeaponSlot(const std::string_view&);
 std::optional<WeaponSet::Condition> getWeaponSetCondition(const std::string_view&);

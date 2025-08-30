@@ -773,18 +773,32 @@ std::optional<ModuleType> getModuleType(const std::string_view& value) {
     return {ModuleType::ACTIVE_BODY};
   } else if (value == "AIUpdateInterface") {
     return {ModuleType::AI};
+  } else if (value == "AnimatedParticleSysBoneClientUpdate") {
+    return {ModuleType::ANIMATED_PARTICLE_SYS_BONE_CLIENT};
   } else if (value == "ArmorUpgrade") {
     return {ModuleType::ARMOR_UPGRADE};
   } else if (value == "AssistedTargetingUpdate") {
     return {ModuleType::ASSISTED_TARGETING};
+  } else if (value == "AutoDepositUpdate") {
+    return {ModuleType::AUTO_DEPOSIT};
   } else if (value == "AutoFindHealingUpdate") {
     return {ModuleType::AUTO_FIND_HEALING};
   } else if (value == "AutoHealBehavior") {
     return {ModuleType::AUTO_HEAL};
+  } else if (value == "BaikonurLaunchPower") {
+    return {ModuleType::BAIKONUR_LAUNCH_POWER};
   } else if (value == "BaseRegenerateUpdate") {
     return {ModuleType::BASE_REGENERATE};
   } else if (value == "BattlePlanUpdate") {
     return {ModuleType::BATTLE_PLAN};
+  } else if (value == "BoneFXDamage") {
+    return {ModuleType::BONE_FX_DAMAGE};
+  } else if (value == "BoneFXUpdate") {
+    return {ModuleType::BONE_FX};
+  } else if (value == "BridgeBehavior") {
+    return {ModuleType::BRIDGE};
+  } else if (value == "BridgeTowerBehavior") {
+    return {ModuleType::BRIDGE_TOWER};
   } else if (value == "ChinookAIUpdate") {
     return {ModuleType::CHINOOK_AI};
   } else if (value == "CleanupAreaPower") {
@@ -795,10 +809,14 @@ std::optional<ModuleType> getModuleType(const std::string_view& value) {
     return {ModuleType::COMMAND_BUTTON_HUNT};
   } else if (value == "CountermeasuresBehavior") {
     return {ModuleType::COUNTERMEASURE};
+  } else if (value == "CostModifierUpgrade") {
+    return {ModuleType::COST_MODIFIER_UPGRADE};
   } else if (value == "CreateCrateDie") {
     return {ModuleType::CREATE_CRATE_DIE};
   } else if (value == "CreateObjectDie") {
     return {ModuleType::CREATE_OBJECT_DIE};
+  } else if (value == "DamDie") {
+    return {ModuleType::DAM_DIE};
   } else if (value == "DefaultProductionExitUpdate") {
     return {ModuleType::DEFAULT_PRORDUCTION_EXIT};
   } else if (value == "DeletionUpdate") {
@@ -823,6 +841,10 @@ std::optional<ModuleType> getModuleType(const std::string_view& value) {
     return {ModuleType::FIRE_WEAPON_COLLISION};
   } else if (value == "FireWeaponUpdate") {
     return {ModuleType::FIRE_WEAPON};
+  } else if (value == "FireWeaponWhenDamagedBehavior") {
+    return {ModuleType::FIRE_WEAPON_WHEN_DAMAGED};
+  } else if (value == "FireWeaponWhenDeadBehavior") {
+    return {ModuleType::FIRE_WEAPON_WHEN_DEAD};
   } else if (value == "FlammableUpdate") {
     return {ModuleType::FLAMMABLE};
   } else if (value == "FXListDie") {
@@ -933,12 +955,22 @@ std::optional<ModuleType> getModuleType(const std::string_view& value) {
     return {ModuleType::STEALTH_DETECTOR};
   } else if (value == "StructureBody") {
     return {ModuleType::STRUCTURE_BODY};
+  } else if (value == "StructureCollapseUpdate") {
+    return {ModuleType::STRUCTURE_COLLAPSE};
+  } else if (value == "StructureToppleUpdate") {
+    return {ModuleType::STRUCTURE_TOPPLE};
   } else if (value == "SupplyCenterCreate") {
     return {ModuleType::SUPPLY_CENTER};
   } else if (value == "SupplyCenterDockUpdate") {
     return {ModuleType::SUPPLY_CENTER_DOCK};
   } else if (value == "SupplyCenterProductionExitUpdate") {
     return {ModuleType::SUPPLY_CENTER_PRODUCTION_EXIT};
+  } else if (value == "SupplyWarehouseCreate") {
+    return {ModuleType::SUPPLY_WAREHOUSE};
+  } else if (value == "SupplyWarehouseCripplingBehavior") {
+    return {ModuleType::SUPPLY_WAREHOUSE_CRIPPLING};
+  } else if (value == "SupplyWarehouseDockUpdate") {
+    return {ModuleType::SUPPLY_WAREHOUSE_DOCK};
   } else if (value == "SwayClientUpdate") {
     return {ModuleType::SWAY_CLIENT};
   } else if (value == "TechBuildingBehavior") {
@@ -1147,6 +1179,20 @@ std::optional<StealthLevel> getStealthLevel(const std::string_view& value) {
     return {StealthLevel::TAKING_DAMAGE};
   } else if (value == "RIDERS_ATTACKING") {
     return {StealthLevel::RIDERS_ATTACKING};
+  } else {
+    return {};
+  }
+}
+
+std::optional<StructureCollapsePhase> getStructureCollapsePhase(const std::string_view& value) {
+  if (value == "INITIAL") {
+    return {StructureCollapsePhase::INITIAL};
+  } else if (value == "DELAY") {
+    return {StructureCollapsePhase::DELAY};
+  } else if (value == "BURST") {
+    return {StructureCollapsePhase::BURST};
+  } else if (value == "FINAL") {
+    return {StructureCollapsePhase::FINAL};
   } else {
     return {};
   }

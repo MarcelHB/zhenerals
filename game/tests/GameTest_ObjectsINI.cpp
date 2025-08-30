@@ -62,6 +62,19 @@ TEST(ObjectsINITest, parsingAirforceGeneral) {
   objectsINI.parse();
 }
 
+TEST(ObjectsINITest, parsingCivilianBuilding) {
+  Config config;
+  ResourceLoader w3dLoader {{"INIZH.big"}, config.baseDir};
+
+  auto fileStream =
+    w3dLoader.getFileStream("data\\ini\\object\\civilianbuilding.ini");
+
+  auto stream = fileStream->getStream();
+  ObjectsINI objectsINI {stream};
+
+  objectsINI.parse();
+}
+
 TEST(ObjectsINITest, parsingCivilianProp) {
   Config config;
   ResourceLoader w3dLoader {{"INIZH.big"}, config.baseDir};
