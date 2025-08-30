@@ -166,7 +166,7 @@ std::u16string ComponentFactory::getNAString(const std::string& key) {
   std::vector<char> buffer;
   buffer.resize(key.size() * 2);
   for (size_t i = 0; i < key.size(); ++i) {
-    if (key[i] < 0x80) {
+    if (static_cast<uint8_t>(key[i]) < 0x80) {
       buffer[i*2] = key[i];
     } else {
       buffer[i*2] = '_';
