@@ -35,7 +35,7 @@ TEST(W3DTest, parsing) {
   EXPECT_GE(model->boundingSphereRadius, 0);
 }
 
-TEST(W3DTest, parsing2) {
+TEST(W3DTest, parsingPtPalm02) {
   Config config;
   ResourceLoader w3dLoader {{"ZH_Generals/W3D.big"}, config.baseDir};
 
@@ -46,7 +46,7 @@ TEST(W3DTest, parsing2) {
   ASSERT_EQ(2, models.size());
 }
 
-TEST(W3DTest, parsing3) {
+TEST(W3DTest, parsingPRG02) {
   Config config;
   ResourceLoader w3dLoader {{"W3DZH.big"}, config.baseDir};
 
@@ -55,6 +55,17 @@ TEST(W3DTest, parsing3) {
   W3DFile w3d {stream};
   auto models = w3d.parse();
   ASSERT_EQ(1, models.size());
+}
+
+TEST(W3DTest, parsingSwing) {
+  Config config;
+  ResourceLoader w3dLoader {{"ZH_Generals/W3D.big"}, config.baseDir};
+
+  auto fileStream = w3dLoader.getFileStream("art\\w3d\\pmswing.w3d");
+  auto stream = fileStream->getStream();
+  W3DFile w3d {stream};
+  auto models = w3d.parse();
+  ASSERT_EQ(3, models.size());
 }
 
 }

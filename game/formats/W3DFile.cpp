@@ -90,6 +90,7 @@ size_t W3DFile::parseNextChunk(std::vector<std::shared_ptr<W3DModel>>& models) {
       case 0x30: // textures (subs)
       case 0x48: // texture stage
       case 0x100: // meta data?
+      case 0x200: // animations
       case 0x700: // LOD ff
       case 0x702:
         break;
@@ -104,7 +105,7 @@ size_t W3DFile::parseNextChunk(std::vector<std::shared_ptr<W3DModel>>& models) {
       totalBytes += numBytes;
     }
   } else {
-    if (model == nullptr && !(chunkType >= 0x101 && chunkType <= 0x103)) {
+    if (model == nullptr && !(chunkType >= 0x101 && chunkType <= 0x203)) {
       broken = true;
       return totalBytes;
     }
@@ -116,6 +117,9 @@ size_t W3DFile::parseNextChunk(std::vector<std::shared_ptr<W3DModel>>& models) {
       case 0x101:
       case 0x102:
       case 0x103:
+      case 0x201:
+      case 0x202:
+      case 0x203:
       case 0x701:
       case 0x703:
       case 0x704:
