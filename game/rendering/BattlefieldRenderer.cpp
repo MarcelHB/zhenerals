@@ -300,6 +300,7 @@ bool BattlefieldRenderer::prepareModelData(Objects::Instance& instance) {
   if (base->drawMetaData.type == Objects::DrawType::DEPENDENCY_MODEL_DRAW
       || base->drawMetaData.type == Objects::DrawType::MODEL_DRAW
       || base->drawMetaData.type == Objects::DrawType::OVERLORD_AIRCRAFT_DRAW
+      || base->drawMetaData.type == Objects::DrawType::SUPPLY_DRAW
       || base->drawMetaData.type == Objects::DrawType::TANK_DRAW
       || base->drawMetaData.type == Objects::DrawType::TRUCK_DRAW
   ) {
@@ -322,9 +323,18 @@ bool BattlefieldRenderer::prepareModelDrawData(Objects::Instance& instance) {
   auto drawData = static_pointer_cast<Objects::ModelDrawData>(base->drawMetaData.drawData);
 
   // EVAL condition states
+  if (drawData->defaultConditionState.model.empty() && drawData->conditionStates.empty()) {
+    WARN_ZH("BattlefieldRenderer", "No suitable condition state for {}", instance.getBase()->name);
+    return false;
+  }
+
   auto models = modelCache.getModels(drawData->defaultConditionState.model);
   if (models == nullptr) {
-    WARN_ZH("BattlefieldRenderer", "Unable to find models for {}", drawData->defaultConditionState.model);
+    models = modelCache.getModels(drawData->conditionStates.begin()->model);
+  }
+
+  if (models == nullptr) {
+    WARN_ZH("BattlefieldRenderer", "Unable to find models for {}", instance.getBase()->name);
     return false;
   }
 
