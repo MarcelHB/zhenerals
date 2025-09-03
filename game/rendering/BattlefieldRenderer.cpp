@@ -162,6 +162,8 @@ bool BattlefieldRenderer::prepareTerrainPipeline(
   pipelineSetup.addVertexInput(VK_FORMAT_R32_SFLOAT, 40, 4, 0);
   pipelineSetup.addVertexInput(VK_FORMAT_R32G32_SFLOAT, 44, 8, 0);
 
+  pipelineSetup.vkPipelineRasterizationStateCreateInfo.cullMode = VK_CULL_MODE_BACK_BIT;
+
   terrainPipeline =
     std::make_unique<Vugl::Pipeline>(vuglContext.createPipeline(pipelineSetup, renderPass.getVkRenderPass()));
 
