@@ -21,16 +21,41 @@ bool Overlay::processEvent(const SDL_Event& event) {
 
   switch (event.type) {
     case SDL_EVENT_MOUSE_BUTTON_DOWN:
-      onCursorClickDown();
+      if (event.button.button == SDL_BUTTON_RIGHT
+          && cameraControlMode == CameraControlMode::NONE) {
+        cameraControlMode = CameraControlMode::DIRECTIONAL;
+      } else if (event.button.button == SDL_BUTTON_LEFT
+          && cameraControlMode == CameraControlMode::DIRECTIONAL) {
+        cameraControlMode = CameraControlMode::AXES;
+      } else if (event.button.button == SDL_BUTTON_LEFT) {
+        onCursorClickDown();
+      }
       break;
     case SDL_EVENT_MOUSE_BUTTON_UP:
-      onCursorClickUp();
+      if (event.button.button == SDL_BUTTON_LEFT
+          && cameraControlMode == CameraControlMode::AXES) {
+        cameraControlMode = CameraControlMode::DIRECTIONAL;
+      } else if (event.button.button == SDL_BUTTON_RIGHT
+          && cameraControlMode == CameraControlMode::DIRECTIONAL) {
+        cameraControlMode = CameraControlMode::NONE;
+      } else if (event.button.button == SDL_BUTTON_LEFT) {
+        onCursorClickUp();
+      }
       break;
     case SDL_EVENT_MOUSE_MOTION:
-      auto childPos = (*children.begin())->getPositionOffset();
-      Point pos {event.motion.x - childPos.x, event.motion.y - childPos.y};
-      Point movement {event.motion.xrel, event.motion.yrel};
-      onCursorOver(pos, movement);
+      if (cameraControlMode == CameraControlMode::AXES) {
+        getBattlefield()->moveCameraAxially(event.motion.xrel, -event.motion.yrel);
+      } else if (cameraControlMode == CameraControlMode::DIRECTIONAL) {
+        getBattlefield()->moveCameraDirectionally(-event.motion.xrel, event.motion.yrel);
+      } else {
+        auto childPos = (*children.begin())->getPositionOffset();
+        Point pos {event.motion.x - childPos.x, event.motion.y - childPos.y};
+        Point movement {event.motion.xrel, event.motion.yrel};
+        onCursorOver(pos, movement);
+      }
+      break;
+    case SDL_EVENT_MOUSE_WHEEL:
+      getBattlefield()->zoomCamera(-event.wheel.y);
       break;
   }
 

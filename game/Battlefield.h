@@ -21,6 +21,10 @@ class Battlefield {
     std::shared_ptr<Map> getMap() const;
 
     std::list<std::shared_ptr<Objects::Instance>>& getObjectInstances();
+
+    void moveCameraAxially(float x, float y);
+    void moveCameraDirectionally(float x, float y);
+    void zoomCamera(float in);
   private:
     std::shared_ptr<Map> map;
     Objects::InstanceFactory& instanceFactory;

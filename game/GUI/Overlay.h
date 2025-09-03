@@ -20,8 +20,15 @@ class Overlay : public Component {
     bool processEvent(const SDL_Event&);
     void setBattlefield(std::shared_ptr<Battlefield>);
   private:
-    std::recursive_mutex mutex;
+    enum class CameraControlMode {
+        NONE
+      , AXES
+      , DIRECTIONAL
+    };
+
     std::shared_ptr<Battlefield> battlefield;
+    CameraControlMode cameraControlMode = CameraControlMode::NONE;
+    std::recursive_mutex mutex;
 };
 
 }

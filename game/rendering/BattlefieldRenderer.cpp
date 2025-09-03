@@ -519,7 +519,8 @@ void BattlefieldRenderer::renderObjectInstance(Objects::Instance& instance, Vugl
     renderData->modelData.sunlight = sunlightNormal;
     renderData->modelData.normalMatrix = normalMatrix;
 
-    instance.setRedrawn();
+    // TODO improve redraw criteria (cam movement)
+    // instance.setRedrawn();
   }
 
   renderData->uniformBuffer->writeData(renderData->modelData, frameIdx);

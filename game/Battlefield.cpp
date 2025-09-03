@@ -87,4 +87,53 @@ void Battlefield::loadInstances(MapBuilder& mapBuilder) {
   }
 }
 
+void Battlefield::moveCameraAxially(float x, float y) {
+  auto screenXAxis =
+    glm::cross(
+        glm::normalize(cameraTarget - cameraPos)
+      , {0.0f, -1.0f, 0.0f}
+    );
+
+  screenXAxis *= x;
+  cameraPos.x += screenXAxis.x;
+  cameraPos.y += y;
+  cameraPos.z += screenXAxis.z;
+
+  cameraTarget.x += screenXAxis.x;
+  cameraTarget.y += y;
+  cameraTarget.z += screenXAxis.z;
+}
+
+void Battlefield::moveCameraDirectionally(float x, float y) {
+  auto direction = glm::normalize(cameraTarget - cameraPos);
+
+  auto screenXAxis =
+    glm::cross(
+        direction
+      , {0.0f, -1.0f, 0.0f}
+    );
+
+  auto rotXMatrix =
+    glm::rotate(
+        glm::mat4{1.0f}
+      , glm::radians(y)
+      , screenXAxis
+    );
+  auto rotYMatrix =
+    glm::rotate(
+        glm::mat4{1.0f}
+      , glm::radians(x)
+      , {0.0f, -1.0f, 0.0f}
+    );
+  auto rotMatrix = rotYMatrix * rotXMatrix;
+
+  cameraTarget = cameraPos + glm::vec3{rotMatrix * glm::vec4{direction, 1.0f}};
+}
+
+void Battlefield::zoomCamera(float in) {
+  auto direction = glm::normalize(cameraPos - cameraTarget);
+  cameraPos += direction * in;
+  cameraTarget += direction * in;
+}
+
 }
