@@ -15,7 +15,7 @@ class Battlefield {
       , Objects::InstanceFactory& instanceFactory
     );
 
-    glm::mat4 getCameraMatrix() const;
+    const glm::mat4& getCameraMatrix() const;
     glm::mat4 getObjectToWorldMatrix(const glm::vec3& pos, float radAngle) const;
     Daytime getDaytime() const;
     std::shared_ptr<Map> getMap() const;
@@ -30,10 +30,12 @@ class Battlefield {
     Objects::InstanceFactory& instanceFactory;
     glm::vec3 cameraPos;
     glm::vec3 cameraTarget;
+    glm::mat4 cameraMatrix;
 
     std::list<std::shared_ptr<Objects::Instance>> instances;
 
     void loadInstances(MapBuilder& mapBuilder);
+    void updateCameraMatrix();
 };
 
 }
