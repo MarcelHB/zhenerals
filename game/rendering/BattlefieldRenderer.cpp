@@ -246,6 +246,8 @@ bool BattlefieldRenderer::prepareWaterPipeline(Vugl::RenderPass& renderPass) {
   pipelineSetup.addVertexInput(VK_FORMAT_R32_SFLOAT, 20, 4, 0);
   pipelineSetup.addVertexInput(VK_FORMAT_R32G32_SFLOAT, 24, 8, 0);
 
+  pipelineSetup.vkPipelineRasterizationStateCreateInfo.cullMode = VK_CULL_MODE_BACK_BIT;
+
   waterPipeline =
     std::make_unique<Vugl::Pipeline>(vuglContext.createPipeline(pipelineSetup, renderPass.getVkRenderPass()));
 
