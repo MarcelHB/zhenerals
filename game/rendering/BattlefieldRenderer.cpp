@@ -320,6 +320,53 @@ bool BattlefieldRenderer::prepareModelData(Objects::Instance& instance) {
   return true;
 }
 
+bool BattlefieldRenderer::prepareModelRenderData(
+    ModelRenderData& modelRenderData
+  , const std::vector<std::shared_ptr<Model>>& models
+) {
+  uint32_t i = 0;
+  for (auto& model : models) {
+    MurmurHash3_32 hasher = {};
+    hasher.feed(modelRenderData.vertexKey);
+    hasher.feed(i);
+    auto key = hasher.getHash();
+
+    auto& descriptorSet =
+      modelRenderData.descriptorSets.emplace_back(modelPipeline->createDescriptorSet());
+
+    auto vertexLookup = vertexData.find(key);
+    if (vertexLookup == vertexData.cend()) {
+      auto modelVertices =
+        std::make_shared<Vugl::ElementBuffer>(vuglContext.createElementBuffer(0));
+
+      modelVertices->setBigIndexBuffer(true);
+      modelVertices->writeData(model->vertexData, model->vertexIndices);
+
+      vuglContext.uploadResource(*modelVertices);
+
+      vertexData.emplace(std::make_pair(key, std::move(modelVertices)));
+    }
+
+    i += 1;
+
+    // EVAL per-triangle texture
+    auto& textureName = model->textures[0];
+    auto sampler = textureCache.getTextureSampler(textureName);
+    if (!sampler) {
+      WARN_ZH("BattlefieldRenderer", "Failed to load model texture {}", textureName);
+      return false;
+    }
+
+    descriptorSet.assignUniformBuffer(*modelRenderData.uniformBuffer);
+    descriptorSet.assignCombinedSampler(*sampler);
+    vuglContext.uploadResource(*sampler);
+
+    descriptorSet.updateDevice();
+  }
+
+  return true;
+}
+
 bool BattlefieldRenderer::prepareModelDrawData(Objects::Instance& instance) {
   auto base = instance.getBase();
   auto drawData = static_pointer_cast<Objects::ModelDrawData>(base->drawMetaData.drawData);
@@ -346,41 +393,14 @@ bool BattlefieldRenderer::prepareModelDrawData(Objects::Instance& instance) {
 
   auto renderData = std::make_shared<ModelRenderData>();
   renderData->vertexKey = key;
-  renderData->descriptorSet =
-    std::make_shared<Vugl::DescriptorSet>(modelPipeline->createDescriptorSet());
+  renderData->numModels = models->size();
   renderData->uniformBuffer =
     std::make_shared<Vugl::UniformBuffer>(vuglContext.createUniformBuffer(sizeof(ModelData)));
 
-  renderData->descriptorSet->assignUniformBuffer(*renderData->uniformBuffer);
-
-  // EVAL all models
-  // TODO better cleanup/avoidance if either setup fails
-  auto& model = models->front();
-  auto vertexLookup = vertexData.find(renderData->vertexKey);
-  if (vertexLookup == vertexData.cend()) {
-    auto modelVertices =
-      std::make_shared<Vugl::ElementBuffer>(vuglContext.createElementBuffer(0));
-
-    modelVertices->setBigIndexBuffer(true);
-    modelVertices->writeData(model->vertexData, model->vertexIndices);
-
-    vuglContext.uploadResource(*modelVertices);
-
-    vertexData.emplace(std::make_pair(renderData->vertexKey, std::move(modelVertices)));
-  }
-
-  // EVAL per-triangle texture
-  auto& textureName = model->textures[0];
-  auto sampler = textureCache.getTextureSampler(textureName);
-  if (!sampler) {
-    WARN_ZH("BattlefieldRenderer", "Failed to load model texture {}", textureName);
+  if (!prepareModelRenderData(*renderData, *models)) {
     return false;
   }
 
-  renderData->descriptorSet->assignCombinedSampler(*sampler);
-  vuglContext.uploadResource(*sampler);
-
-  renderData->descriptorSet->updateDevice();
   modelRenderData.emplace(std::make_pair(instance.getID(), std::move(renderData)));
 
   return true;
@@ -403,41 +423,13 @@ bool BattlefieldRenderer::prepareTreeDrawData(Objects::Instance& instance) {
 
   auto renderData = std::make_shared<ModelRenderData>();
   renderData->vertexKey = key;
-  renderData->descriptorSet =
-    std::make_shared<Vugl::DescriptorSet>(modelPipeline->createDescriptorSet());
   renderData->uniformBuffer =
     std::make_shared<Vugl::UniformBuffer>(vuglContext.createUniformBuffer(sizeof(ModelData)));
 
-  renderData->descriptorSet->assignUniformBuffer(*renderData->uniformBuffer);
-
-  // EVAL all models
-  // TODO better cleanup/avoidance if either setup fails
-  auto& model = models->front();
-  auto vertexLookup = vertexData.find(renderData->vertexKey);
-  if (vertexLookup == vertexData.cend()) {
-    auto modelVertices =
-      std::make_shared<Vugl::ElementBuffer>(vuglContext.createElementBuffer(0));
-
-    modelVertices->setBigIndexBuffer(true);
-    modelVertices->writeData(model->vertexData, model->vertexIndices);
-
-    vuglContext.uploadResource(*modelVertices);
-
-    vertexData.emplace(std::make_pair(renderData->vertexKey, std::move(modelVertices)));
-  }
-
-  // EVAL per-triangle texture
-  auto& textureName = model->textures[0];
-  auto sampler = textureCache.getTextureSampler(textureName);
-  if (!sampler) {
-    WARN_ZH("BattlefieldRenderer", "Failed to load tree model texture {}", textureName);
+  if (!prepareModelRenderData(*renderData, *models)) {
     return false;
   }
 
-  renderData->descriptorSet->assignCombinedSampler(*sampler);
-  vuglContext.uploadResource(*sampler);
-
-  renderData->descriptorSet->updateDevice();
   modelRenderData.emplace(std::make_pair(instance.getID(), std::move(renderData)));
 
   return true;
@@ -490,12 +482,6 @@ void BattlefieldRenderer::renderObjectInstance(Objects::Instance& instance, Vugl
   }
   auto& renderData = renderDataLookup->second;
 
-  auto elementBufferLookup = vertexData.find(renderData->vertexKey);
-  if (elementBufferLookup == vertexData.cend()) {
-    return;
-  }
-  auto& elementBuffer = elementBufferLookup->second;
-
   if (vuglContext.isDebuggingAllowed()) {
     commandBuffer.beginDebugLabel(std::to_string(instance.getID()));
   }
@@ -527,14 +513,27 @@ void BattlefieldRenderer::renderObjectInstance(Objects::Instance& instance, Vugl
 
   renderData->uniformBuffer->writeData(renderData->modelData, frameIdx);
 
-  commandBuffer.bindResource(*renderData->descriptorSet);
-  commandBuffer.bindResource(*elementBuffer);
+  for (size_t i = 0; i < renderData->numModels; ++i) {
+    MurmurHash3_32 hasher;
+    hasher.feed(renderData->vertexKey);
+    hasher.feed(i);
+    auto key = hasher.getHash();
 
-  auto numIndices = elementBuffer->getNumIndices();
-  commandBuffer.draw([numIndices](VkCommandBuffer vkCommandBuffer, uint32_t) {
-    vkCmdDrawIndexed(vkCommandBuffer, numIndices, 1, 0, 0, 0);
-    return VK_SUCCESS;
-  });
+    auto elementBufferLookup = vertexData.find(key);
+    if (elementBufferLookup == vertexData.cend()) {
+      continue;
+    }
+    auto& elementBuffer = elementBufferLookup->second;
+
+    commandBuffer.bindResource(renderData->descriptorSets[i]);
+    commandBuffer.bindResource(*elementBuffer);
+
+    auto numIndices = elementBuffer->getNumIndices();
+    commandBuffer.draw([numIndices](VkCommandBuffer vkCommandBuffer, uint32_t) {
+      vkCmdDrawIndexed(vkCommandBuffer, numIndices, 1, 0, 0, 0);
+      return VK_SUCCESS;
+    });
+  }
 
   if (vuglContext.isDebuggingAllowed()) {
     commandBuffer.endDebugLabel();

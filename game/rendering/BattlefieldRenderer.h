@@ -34,11 +34,11 @@ class BattlefieldRenderer {
     };
 
     struct ModelRenderData : public GFX::FrameDisposable {
-      std::shared_ptr<Vugl::DescriptorSet> descriptorSet;
+      std::vector<Vugl::DescriptorSet> descriptorSets;
       std::shared_ptr<Vugl::UniformBuffer> uniformBuffer;
-      std::shared_ptr<Vugl::CombinedSampler> sampler;
       ModelData modelData;
       uint32_t vertexKey = 0;
+      size_t numModels = 1;
     };
 
     Vugl::Context& vuglContext;
@@ -76,6 +76,10 @@ class BattlefieldRenderer {
     bool prepareModelPipeline(Vugl::RenderPass&);
     bool prepareModelData(Objects::Instance&);
     bool prepareModelDrawData(Objects::Instance&);
+    bool prepareModelRenderData(
+        ModelRenderData& modelRenderData
+      , const std::vector<std::shared_ptr<Model>>& models
+    );
     bool prepareTerrainPipeline(Vugl::RenderPass&, const std::vector<std::string>&);
     bool prepareTerrainVertices();
     bool prepareTreeDrawData(Objects::Instance&);
