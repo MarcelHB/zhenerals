@@ -243,6 +243,7 @@ void Game::draw(void *obj) {
       auto lock = game->overlay->getLock();
       battlefieldSecondary = game->mapRenderer->createRenderList(frameIndex, renderPass);
       guiSecondary = game->renderListFactory->createRenderList(frameIndex, renderPass);
+      game->overlay->frameDoneTick();
     }
 
     if (game->terminate) {

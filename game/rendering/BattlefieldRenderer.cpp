@@ -96,6 +96,7 @@ bool BattlefieldRenderer::init(Vugl::RenderPass& renderPass) {
 std::shared_ptr<Vugl::CommandBuffer> BattlefieldRenderer::createRenderList(size_t frameIdx, Vugl::RenderPass& renderPass) {
   TRACY(ZoneScoped);
 
+  auto newMatrices = battlefield.cameraHasMoved();
   auto commandBuffer = vuglContext.createCommandBuffer(frameIdx, true);
 
   std::array<VkClearValue, 2> clearColors{};
@@ -104,7 +105,7 @@ std::shared_ptr<Vugl::CommandBuffer> BattlefieldRenderer::createRenderList(size_
   commandBuffer.beginRendering(renderPass, clearColors);
 
   renderTerrain(commandBuffer, frameIdx);
-  renderObjectInstances(commandBuffer, frameIdx);
+  renderObjectInstances(commandBuffer, frameIdx, newMatrices);
   renderWater(commandBuffer, frameIdx);
 
   commandBuffer.closeRendering();
@@ -437,7 +438,13 @@ bool BattlefieldRenderer::prepareTreeDrawData(Objects::Instance& instance) {
   return true;
 }
 
-void BattlefieldRenderer::renderObjectInstances(Vugl::CommandBuffer& commandBuffer, size_t frameIdx) {
+void BattlefieldRenderer::renderObjectInstances(
+    Vugl::CommandBuffer& commandBuffer
+  , size_t frameIdx
+  , bool newMatrices
+) {
+  TRACY(ZoneScoped);
+
   for (auto& pair : modelRenderData) {
     pair.second->increaseMiss();
   }
@@ -461,7 +468,7 @@ void BattlefieldRenderer::renderObjectInstances(Vugl::CommandBuffer& commandBuff
 
   for (auto& instance : battlefield.getObjectInstances()) {
     // TODO visibility check
-    renderObjectInstance(*instance, commandBuffer, frameIdx);
+    renderObjectInstance(*instance, commandBuffer, frameIdx, newMatrices);
   }
 
   if (vuglContext.isDebuggingAllowed()) {
@@ -477,7 +484,12 @@ void BattlefieldRenderer::renderObjectInstances(Vugl::CommandBuffer& commandBuff
   }
 }
 
-void BattlefieldRenderer::renderObjectInstance(Objects::Instance& instance, Vugl::CommandBuffer& commandBuffer, size_t frameIdx) {
+void BattlefieldRenderer::renderObjectInstance(
+    Objects::Instance& instance
+  , Vugl::CommandBuffer& commandBuffer
+  , size_t frameIdx
+  , bool newMatrices
+) {
   auto renderDataLookup = modelRenderData.find(instance.getID());
   if (renderDataLookup == modelRenderData.cend()) {
     return;
@@ -488,7 +500,7 @@ void BattlefieldRenderer::renderObjectInstance(Objects::Instance& instance, Vugl
     commandBuffer.beginDebugLabel(std::to_string(instance.getID()));
   }
 
-  if (instance.needsRedraw()) {
+  if (newMatrices || instance.needsRedraw()) {
     auto modelMatrix =
       battlefield.getObjectToWorldMatrix(
           instance.getPosition()
@@ -509,8 +521,7 @@ void BattlefieldRenderer::renderObjectInstance(Objects::Instance& instance, Vugl
     renderData->modelData.sunlight = sunlightNormal;
     renderData->modelData.normalMatrix = normalMatrix;
 
-    // TODO improve redraw criteria (cam movement)
-    // instance.setRedrawn();
+    instance.setRedrawn();
   }
 
   renderData->uniformBuffer->writeData(renderData->modelData, frameIdx);

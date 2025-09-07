@@ -35,6 +35,14 @@ Battlefield::Battlefield(
   updateCameraMatrix();
 }
 
+bool Battlefield::cameraHasMoved() const {
+  return newMatrices;
+}
+
+void Battlefield::frameDoneTick() {
+  newMatrices = false;
+}
+
 const glm::mat4& Battlefield::getCameraMatrix() const {
   return cameraMatrix;
 }
@@ -140,6 +148,8 @@ void Battlefield::updateCameraMatrix() {
       , cameraTarget
       , glm::vec3 {0.0f, -1.0f, 0.0f}
     );
+
+  newMatrices = true;
 }
 
 void Battlefield::zoomCamera(float in) {

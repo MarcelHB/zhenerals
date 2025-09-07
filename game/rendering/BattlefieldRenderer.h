@@ -86,8 +86,8 @@ class BattlefieldRenderer {
     bool prepareWaterPipeline(Vugl::RenderPass&);
     bool prepareWaterVertices();
 
-    void renderObjectInstances(Vugl::CommandBuffer&, size_t frameIdx);
-    void renderObjectInstance(Objects::Instance&, Vugl::CommandBuffer&, size_t frameIdx);
+    void renderObjectInstances(Vugl::CommandBuffer&, size_t frameIdx, bool);
+    void renderObjectInstance(Objects::Instance&, Vugl::CommandBuffer&, size_t frameIdx, bool);
     void renderTerrain(Vugl::CommandBuffer&, size_t frameIdx);
     void renderWater(Vugl::CommandBuffer&, size_t frameIdx);
 };

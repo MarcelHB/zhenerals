@@ -17,6 +17,7 @@ class Overlay : public Component {
 
     std::shared_ptr<Battlefield> getBattlefield() const;
     std::unique_lock<std::recursive_mutex> getLock();
+    void frameDoneTick();
     bool processEvent(const SDL_Event&);
     void setBattlefield(std::shared_ptr<Battlefield>);
   private:

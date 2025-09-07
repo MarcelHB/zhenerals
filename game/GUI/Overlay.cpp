@@ -6,6 +6,10 @@ Overlay::Overlay(Size size) : Component(WND::Window::Type::OVERLAY) {
   setSize(size);
 }
 
+void Overlay::frameDoneTick() {
+  getBattlefield()->frameDoneTick();
+}
+
 std::shared_ptr<Battlefield> Overlay::getBattlefield() const {
   return battlefield;
 }

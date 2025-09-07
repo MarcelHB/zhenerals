@@ -15,6 +15,9 @@ class Battlefield {
       , Objects::InstanceFactory& instanceFactory
     );
 
+    bool cameraHasMoved() const;
+    void frameDoneTick();
+
     const glm::mat4& getCameraMatrix() const;
     glm::mat4 getObjectToWorldMatrix(const glm::vec3& pos, float radAngle) const;
     Daytime getDaytime() const;
@@ -31,6 +34,7 @@ class Battlefield {
     glm::vec3 cameraPos;
     glm::vec3 cameraTarget;
     glm::mat4 cameraMatrix;
+    bool newMatrices = true;
 
     std::list<std::shared_ptr<Objects::Instance>> instances;
 
