@@ -1,4 +1,3 @@
-#include <atomic>
 #include <cstddef>
 
 #include "common.h"
@@ -13,6 +12,12 @@ void* operator new(size_t count) {
 }
 
 void operator delete(void* ptr, std::size_t sz) noexcept {
+  free(ptr);
+
+  TracyFree(ptr);
+}
+
+void operator delete(void* ptr) noexcept {
   free(ptr);
 
   TracyFree(ptr);
