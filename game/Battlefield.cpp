@@ -18,21 +18,19 @@ Battlefield::Battlefield(
   loadInstances(mapBuilder);
 
   auto size = map->getSize();
-  cameraTarget =
-    glm::vec3 {
-        size.x / 2.0f
-      , map->getCenterHeight(size.x / 2, size.y / 2)
-      , size.y / 2.0f
-    };
-
-  cameraPos =
-    glm::vec3 {
-        size.x * 0.45f
-      , 255 * 0.15f
-      , size.y * 0.45f
-    };
-
-  updateCameraMatrix();
+  camera.reposition(
+      glm::vec3 {
+          size.x * 0.45f
+        , 255 * 0.15f
+        , size.y * 0.45f
+      }
+    , glm::vec3 {
+          size.x / 2.0f
+        , map->getCenterHeight(size.x / 2, size.y / 2)
+        , size.y / 2.0f
+      }
+    , glm::vec3 { 0.0f, -1.0f, 0.0f }
+  );
 }
 
 bool Battlefield::cameraHasMoved() const {
@@ -43,8 +41,8 @@ void Battlefield::frameDoneTick() {
   newMatrices = false;
 }
 
-const glm::mat4& Battlefield::getCameraMatrix() const {
-  return cameraMatrix;
+const GFX::Camera& Battlefield::getCamera() const {
+  return camera;
 }
 
 glm::mat4 Battlefield::getObjectToWorldMatrix(const glm::vec3& pos, float radAngle) const {
@@ -95,69 +93,29 @@ void Battlefield::loadInstances(MapBuilder& mapBuilder) {
 }
 
 void Battlefield::moveCameraAxially(float x, float y) {
-  auto screenXAxis =
-    glm::cross(
-        glm::normalize(cameraTarget - cameraPos)
-      , {0.0f, -1.0f, 0.0f}
-    );
-
-  screenXAxis *= x;
-  cameraPos.x += screenXAxis.x;
-  cameraPos.y += y;
-  cameraPos.z += screenXAxis.z;
-
-  cameraTarget.x += screenXAxis.x;
-  cameraTarget.y += y;
-  cameraTarget.z += screenXAxis.z;
-
-  updateCameraMatrix();
+  camera.moveAxially(x, y);
+  newMatrices = true;
 }
 
 void Battlefield::moveCameraDirectionally(float x, float y) {
-  auto direction = glm::normalize(cameraTarget - cameraPos);
-
-  auto screenXAxis =
-    glm::cross(
-        direction
-      , {0.0f, -1.0f, 0.0f}
-    );
-
-  auto rotXMatrix =
-    glm::rotate(
-        glm::mat4{1.0f}
-      , glm::radians(y)
-      , screenXAxis
-    );
-  auto rotYMatrix =
-    glm::rotate(
-        glm::mat4{1.0f}
-      , glm::radians(x)
-      , {0.0f, -1.0f, 0.0f}
-    );
-  auto rotMatrix = rotYMatrix * rotXMatrix;
-
-  cameraTarget = cameraPos + glm::vec3{rotMatrix * glm::vec4{direction, 1.0f}};
-
-  updateCameraMatrix();
+  camera.moveDirectionally(x, y);
+  newMatrices = true;
 }
 
-void Battlefield::updateCameraMatrix() {
-  cameraMatrix =
-    glm::lookAt(
-        cameraPos
-      , cameraTarget
-      , glm::vec3 {0.0f, -1.0f, 0.0f}
-    );
-
+void Battlefield::setPerspectiveProjection(
+    float near
+  , float far
+  , float fovDeg
+  , float width
+  , float height
+) {
+  camera.setPerspectiveProjection(near, far, fovDeg, width, height);
   newMatrices = true;
 }
 
 void Battlefield::zoomCamera(float in) {
-  auto direction = glm::normalize(cameraPos - cameraTarget);
-  cameraPos += direction * in;
-  cameraTarget += direction * in;
-
-  updateCameraMatrix();
+  camera.zoom(in);
+  newMatrices = true;
 }
 
 }

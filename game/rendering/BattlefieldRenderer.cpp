@@ -37,13 +37,13 @@ bool BattlefieldRenderer::init(Vugl::RenderPass& renderPass) {
   auto size = map->getSize();
 
   auto vp = vuglContext.getViewport();
-  projectMatrix =
-    glm::perspective(
-        glm::radians(90.0f)
-      , vp.width / static_cast<float>(vp.height)
-      , 0.1f
-      , 1000.0f
-    );
+  battlefield.setPerspectiveProjection(
+      0.1f
+    , 1000.0f
+    , 90.0f
+    , vp.width * 1.0f
+    , vp.height * 1.0f
+  );
 
   auto lightTarget =
     glm::vec3 {
@@ -516,8 +516,11 @@ void BattlefieldRenderer::renderObjectInstance(
     auto normalMatrix =
       glm::rotate(axisFlip, instance.getAngle(), glm::vec3{0.0f, 1.0f, 0.0f});
 
+    auto& camera = battlefield.getCamera();
     renderData->modelData.mvp =
-      projectMatrix * battlefield.getCameraMatrix() * modelMatrix;
+      camera.getProjectionMatrix()
+      * camera.getCameraMatrix()
+      * modelMatrix;
     renderData->modelData.sunlight = sunlightNormal;
     renderData->modelData.normalMatrix = normalMatrix;
 
@@ -559,8 +562,9 @@ void BattlefieldRenderer::renderTerrain(Vugl::CommandBuffer& commandBuffer, size
   }
 
   TerrainScene scene;
+  auto& camera = battlefield.getCamera();
   scene.mvp =
-    projectMatrix * battlefield.getCameraMatrix();
+    camera.getProjectionMatrix() * camera.getCameraMatrix();
   scene.sunlight = sunlightNormal;
   terrainUniformBuffer->writeData(scene, frameIdx);
 
@@ -591,7 +595,9 @@ void BattlefieldRenderer::renderWater(Vugl::CommandBuffer& commandBuffer, size_t
 
   auto map = battlefield.getMap();
   WaterScene scene;
-  scene.mvp = projectMatrix * battlefield.getCameraMatrix();
+  auto& camera = battlefield.getCamera();
+  scene.mvp =
+    camera.getProjectionMatrix() * camera.getCameraMatrix();
   waterUniformBuffer->writeData(scene, frameIdx);
 
   commandBuffer.bindResource(*waterPipeline);

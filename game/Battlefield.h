@@ -4,6 +4,7 @@
 #include "common.h"
 #include "Map.h"
 #include "objects/InstanceFactory.h"
+#include "gfx/Camera.h"
 
 namespace ZH {
 
@@ -18,7 +19,7 @@ class Battlefield {
     bool cameraHasMoved() const;
     void frameDoneTick();
 
-    const glm::mat4& getCameraMatrix() const;
+    const GFX::Camera& getCamera() const;
     glm::mat4 getObjectToWorldMatrix(const glm::vec3& pos, float radAngle) const;
     Daytime getDaytime() const;
     std::shared_ptr<Map> getMap() const;
@@ -27,19 +28,23 @@ class Battlefield {
 
     void moveCameraAxially(float x, float y);
     void moveCameraDirectionally(float x, float y);
+    void setPerspectiveProjection(
+        float near
+      , float far
+      , float fovDeg
+      , float width
+      , float height
+    );
     void zoomCamera(float in);
   private:
     std::shared_ptr<Map> map;
     Objects::InstanceFactory& instanceFactory;
-    glm::vec3 cameraPos;
-    glm::vec3 cameraTarget;
-    glm::mat4 cameraMatrix;
+    GFX::Camera camera;
     bool newMatrices = true;
 
     std::list<std::shared_ptr<Objects::Instance>> instances;
 
     void loadInstances(MapBuilder& mapBuilder);
-    void updateCameraMatrix();
 };
 
 }
