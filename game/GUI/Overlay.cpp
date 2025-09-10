@@ -59,7 +59,7 @@ bool Overlay::processEvent(const SDL_Event& event) {
       }
       break;
     case SDL_EVENT_MOUSE_WHEEL:
-      getBattlefield()->zoomCamera(-event.wheel.y);
+      getBattlefield()->zoomCamera(event.wheel.y);
       break;
   }
 

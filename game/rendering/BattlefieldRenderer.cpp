@@ -24,8 +24,8 @@ BattlefieldRenderer::BattlefieldRenderer(
   , const WaterINI::WaterSettings& waterSettings
 ) : vuglContext(vuglContext)
   , textureCache(textureCache)
-  , modelCache(modelCache)
   , battlefield(battlefield)
+  , modelRenderer {vuglContext, textureCache, modelCache}
   , terrains(terrains)
   , waterSettings(waterSettings)
 {}
@@ -85,7 +85,7 @@ bool BattlefieldRenderer::init(Vugl::RenderPass& renderPass) {
     hasWater = true;
   }
 
-  if (!prepareModelPipeline(renderPass)) {
+  if (!modelRenderer.preparePipeline(renderPass)) {
     WARN_ZH("BattlefieldRenderer", "Could not setup model rendering");
     return false;
   }
@@ -111,33 +111,6 @@ std::shared_ptr<Vugl::CommandBuffer> BattlefieldRenderer::createRenderList(size_
   commandBuffer.closeRendering();
 
   return std::make_shared<Vugl::CommandBuffer>(std::move(commandBuffer));
-}
-
-bool BattlefieldRenderer::prepareModelPipeline(Vugl::RenderPass& renderPass) {
-  Vugl::PipelineSetup pipelineSetup {vuglContext.getViewport(), vuglContext.getVkSamplingFlag()};
-  pipelineSetup.vkPipelineInputAssemblyStateCreateInfo.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
-  pipelineSetup.vkPipelineDepthStencilCreateInfo.depthTestEnable = VK_TRUE;
-  pipelineSetup.vkPipelineColorBlendAttachmentState.blendEnable = VK_TRUE;
-  pipelineSetup.vkPipelineColorBlendAttachmentState.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
-  pipelineSetup.vkPipelineColorBlendAttachmentState.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
-  pipelineSetup.setVSCode(readFile("shaders/model.vert.spv"));
-  pipelineSetup.setFSCode(readFile("shaders/model.frag.spv"));
-
-  pipelineSetup.reserveUniformBuffer(VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT);
-  pipelineSetup.reserveCombinedSampler(VK_SHADER_STAGE_FRAGMENT_BIT);
-
-  pipelineSetup.addVertexInput(VK_FORMAT_R32G32B32_SFLOAT, 0, 12, 0);
-  pipelineSetup.addVertexInput(VK_FORMAT_R32G32B32_SFLOAT, 12, 12, 0);
-  pipelineSetup.addVertexInput(VK_FORMAT_R32G32_SFLOAT, 24, 8, 0);
-
-  modelPipeline =
-    std::make_unique<Vugl::Pipeline>(vuglContext.createPipeline(pipelineSetup, renderPass.getVkRenderPass()));
-
-  if (modelPipeline->getLastResult() != VK_SUCCESS) {
-    return false;
-  }
-
-  return true;
 }
 
 bool BattlefieldRenderer::prepareTerrainPipeline(
@@ -293,13 +266,6 @@ bool BattlefieldRenderer::prepareWaterVertices() {
 }
 
 bool BattlefieldRenderer::prepareModelData(Objects::Instance& instance) {
-  auto lookup = modelRenderData.find(instance.getID());
-
-  if (lookup != modelRenderData.cend()) {
-    lookup->second->decreaseMiss();
-    return true;
-  }
-
   auto base = instance.getBase();
   // TODO differentiation
   if (base->drawMetaData.type == Objects::DrawType::DEPENDENCY_MODEL_DRAW
@@ -323,53 +289,6 @@ bool BattlefieldRenderer::prepareModelData(Objects::Instance& instance) {
   return true;
 }
 
-bool BattlefieldRenderer::prepareModelRenderData(
-    ModelRenderData& modelRenderData
-  , const std::vector<std::shared_ptr<Model>>& models
-) {
-  uint32_t i = 0;
-  for (auto& model : models) {
-    MurmurHash3_32 hasher = {};
-    hasher.feed(modelRenderData.vertexKey);
-    hasher.feed(i);
-    auto key = hasher.getHash();
-
-    auto& descriptorSet =
-      modelRenderData.descriptorSets.emplace_back(modelPipeline->createDescriptorSet());
-
-    auto vertexLookup = vertexData.find(key);
-    if (vertexLookup == vertexData.cend()) {
-      auto modelVertices =
-        std::make_shared<Vugl::ElementBuffer>(vuglContext.createElementBuffer(0));
-
-      modelVertices->setBigIndexBuffer(true);
-      modelVertices->writeData(model->vertexData, model->vertexIndices);
-
-      vuglContext.uploadResource(*modelVertices);
-
-      vertexData.emplace(std::make_pair(key, std::move(modelVertices)));
-    }
-
-    i += 1;
-
-    // EVAL per-triangle texture
-    auto& textureName = model->textures[0];
-    auto sampler = textureCache.getTextureSampler(textureName);
-    if (!sampler) {
-      WARN_ZH("BattlefieldRenderer", "Failed to load model texture {}", textureName);
-      return false;
-    }
-
-    descriptorSet.assignUniformBuffer(*modelRenderData.uniformBuffer);
-    descriptorSet.assignCombinedSampler(*sampler);
-    vuglContext.uploadResource(*sampler);
-
-    descriptorSet.updateDevice();
-  }
-
-  return true;
-}
-
 bool BattlefieldRenderer::prepareModelDrawData(Objects::Instance& instance) {
   auto base = instance.getBase();
   auto drawData = static_pointer_cast<Objects::ModelDrawData>(base->drawMetaData.drawData);
@@ -380,31 +299,17 @@ bool BattlefieldRenderer::prepareModelDrawData(Objects::Instance& instance) {
     return false;
   }
 
-  auto models = modelCache.getModels(drawData->defaultConditionState.model);
-  if (models == nullptr) {
-    models = modelCache.getModels(drawData->conditionStates.begin()->model);
+  std::string modelName;
+  if (!drawData->defaultConditionState.model.empty()) {
+    modelName = drawData->defaultConditionState.model;
+  } else {
+    modelName = drawData->conditionStates.begin()->model;
   }
 
-  if (models == nullptr) {
+  if (!modelRenderer.prepareModel(instance.getID(), modelName)) {
     WARN_ZH("BattlefieldRenderer", "Unable to find models for {}", instance.getBase()->name);
     return false;
   }
-
-  MurmurHash3_32 hasher;
-  hasher.feed(drawData->defaultConditionState.model);
-  uint32_t key = hasher.getHash();
-
-  auto renderData = std::make_shared<ModelRenderData>();
-  renderData->vertexKey = key;
-  renderData->numModels = models->size();
-  renderData->uniformBuffer =
-    std::make_shared<Vugl::UniformBuffer>(vuglContext.createUniformBuffer(sizeof(ModelData)));
-
-  if (!prepareModelRenderData(*renderData, *models)) {
-    return false;
-  }
-
-  modelRenderData.emplace(std::make_pair(instance.getID(), std::move(renderData)));
 
   return true;
 }
@@ -413,27 +318,10 @@ bool BattlefieldRenderer::prepareTreeDrawData(Objects::Instance& instance) {
   auto base = instance.getBase();
   auto drawData = static_pointer_cast<Objects::TreeDrawData>(base->drawMetaData.drawData);
 
-  // EVAL condition states
-  auto models = modelCache.getModels(drawData->model);
-  if (models == nullptr) {
-    WARN_ZH("BattlefieldRenderer", "Unable to find tree models for {}", drawData->model);
+  if (!modelRenderer.prepareModel(instance.getID(), drawData->model)) {
+    WARN_ZH("BattlefieldRenderer", "Unable to find models for {}", instance.getBase()->name);
     return false;
   }
-
-  MurmurHash3_32 hasher;
-  hasher.feed(drawData->model);
-  uint32_t key = hasher.getHash();
-
-  auto renderData = std::make_shared<ModelRenderData>();
-  renderData->vertexKey = key;
-  renderData->uniformBuffer =
-    std::make_shared<Vugl::UniformBuffer>(vuglContext.createUniformBuffer(sizeof(ModelData)));
-
-  if (!prepareModelRenderData(*renderData, *models)) {
-    return false;
-  }
-
-  modelRenderData.emplace(std::make_pair(instance.getID(), std::move(renderData)));
 
   return true;
 }
@@ -445,9 +333,7 @@ void BattlefieldRenderer::renderObjectInstances(
 ) {
   TRACY(ZoneScoped);
 
-  for (auto& pair : modelRenderData) {
-    pair.second->increaseMiss();
-  }
+  modelRenderer.beginResourceCounting();
 
   for (auto& instance : battlefield.getObjectInstances()) {
     if (!prepareModelData(*instance)) {
@@ -464,7 +350,7 @@ void BattlefieldRenderer::renderObjectInstances(
     commandBuffer.beginDebugLabel("Objects");
   }
 
-  commandBuffer.bindResource(*modelPipeline);
+  modelRenderer.bindPipeline(commandBuffer);
 
   for (auto& instance : battlefield.getObjectInstances()) {
     // TODO visibility check
@@ -475,13 +361,7 @@ void BattlefieldRenderer::renderObjectInstances(
     commandBuffer.endDebugLabel();
   }
 
-  for (auto it = modelRenderData.begin(); it != modelRenderData.end();) {
-    if (it->second->getMisses() >= 2) {
-      it = modelRenderData.erase(it);
-    } else {
-      it++;
-    }
-  }
+  modelRenderer.finishResourceCounting();
 }
 
 void BattlefieldRenderer::renderObjectInstance(
@@ -490,17 +370,15 @@ void BattlefieldRenderer::renderObjectInstance(
   , size_t frameIdx
   , bool newMatrices
 ) {
-  auto renderDataLookup = modelRenderData.find(instance.getID());
-  if (renderDataLookup == modelRenderData.cend()) {
-    return;
-  }
-  auto& renderData = renderDataLookup->second;
 
   if (vuglContext.isDebuggingAllowed()) {
     commandBuffer.beginDebugLabel(std::to_string(instance.getID()));
   }
 
-  if (newMatrices || instance.needsRedraw()) {
+  if (newMatrices
+      || instance.needsRedraw()
+      || modelRenderer.needsUpdate(instance.getID(), frameIdx)
+  ) {
     auto modelMatrix =
       battlefield.getObjectToWorldMatrix(
           instance.getPosition()
@@ -517,39 +395,24 @@ void BattlefieldRenderer::renderObjectInstance(
       glm::rotate(axisFlip, instance.getAngle(), glm::vec3{0.0f, 1.0f, 0.0f});
 
     auto& camera = battlefield.getCamera();
-    renderData->modelData.mvp =
+    auto mvp =
       camera.getProjectionMatrix()
       * camera.getCameraMatrix()
       * modelMatrix;
-    renderData->modelData.sunlight = sunlightNormal;
-    renderData->modelData.normalMatrix = normalMatrix;
+
+    modelRenderer.updateModel(
+        instance.getID()
+      , frameIdx
+      , newMatrices
+      , mvp
+      , normalMatrix
+      , sunlightNormal
+    );
 
     instance.setRedrawn();
   }
 
-  renderData->uniformBuffer->writeData(renderData->modelData, frameIdx);
-
-  for (size_t i = 0; i < renderData->numModels; ++i) {
-    MurmurHash3_32 hasher;
-    hasher.feed(renderData->vertexKey);
-    hasher.feed(i);
-    auto key = hasher.getHash();
-
-    auto elementBufferLookup = vertexData.find(key);
-    if (elementBufferLookup == vertexData.cend()) {
-      continue;
-    }
-    auto& elementBuffer = elementBufferLookup->second;
-
-    commandBuffer.bindResource(renderData->descriptorSets[i]);
-    commandBuffer.bindResource(*elementBuffer);
-
-    auto numIndices = elementBuffer->getNumIndices();
-    commandBuffer.draw([numIndices](VkCommandBuffer vkCommandBuffer, uint32_t) {
-      vkCmdDrawIndexed(vkCommandBuffer, numIndices, 1, 0, 0, 0);
-      return VK_SUCCESS;
-    });
-  }
+  modelRenderer.renderModel(instance.getID(), commandBuffer);
 
   if (vuglContext.isDebuggingAllowed()) {
     commandBuffer.endDebugLabel();
