@@ -130,6 +130,25 @@ ENDIF()
 # Workaround against truncation-to-fit-relocation errors
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mcmodel=large")
 
+SET(vugl_sources
+  game/vugl/vma_loader.cpp
+  game/vugl/vugl_combined_sampler.cpp
+  game/vugl/vugl_command_buffer.cpp
+  game/vugl/vugl_compute_pipeline.cpp
+  game/vugl/vugl_context.cpp
+  game/vugl/vugl_descriptor_set.cpp
+  game/vugl/vugl_element_buffer.cpp
+  game/vugl/vugl_frame.cpp
+  game/vugl/vugl_pipeline.cpp
+  game/vugl/vugl_pipeline_setup.cpp
+  game/vugl/vugl_render_pass.cpp
+  game/vugl/vugl_render_pass_setup.cpp
+  game/vugl/vugl_resource_allocator.cpp
+  game/vugl/vugl_sampler.cpp
+  game/vugl/vugl_texture.cpp
+  game/vugl/vugl_uniform_buffer.cpp
+)
+
 # main executable
 ADD_EXECUTABLE(zhen
   game/audio/Backend.cpp
@@ -203,22 +222,7 @@ ADD_EXECUTABLE(zhen
   game/Window.cpp
   game/WindowFactory.cpp
 
-  game/vugl/vma_loader.cpp
-  game/vugl/vugl_combined_sampler.cpp
-  game/vugl/vugl_command_buffer.cpp
-  game/vugl/vugl_compute_pipeline.cpp
-  game/vugl/vugl_context.cpp
-  game/vugl/vugl_descriptor_set.cpp
-  game/vugl/vugl_element_buffer.cpp
-  game/vugl/vugl_frame.cpp
-  game/vugl/vugl_pipeline.cpp
-  game/vugl/vugl_pipeline_setup.cpp
-  game/vugl/vugl_render_pass.cpp
-  game/vugl/vugl_render_pass_setup.cpp
-  game/vugl/vugl_resource_allocator.cpp
-  game/vugl/vugl_sampler.cpp
-  game/vugl/vugl_texture.cpp
-  game/vugl/vugl_uniform_buffer.cpp
+  ${vugl_sources}
 )
 
 IF(WIN32)
@@ -252,6 +256,51 @@ ADD_EXECUTABLE(decompress
   game/InflatingStream.cpp
   tools/decompress.cpp
 )
+
+# w3d viewer
+ADD_EXECUTABLE(w3dview
+  game/common.cpp
+  game/formats/BIGFile.cpp
+  game/formats/DDSFile.cpp
+  game/formats/TGAFile.cpp
+  game/formats/W3DFile.cpp
+  game/gfx/Camera.cpp
+  # maybe this can be dropped somehow
+  game/gfx/font/Atlas.cpp
+  game/gfx/font/FontManager.cpp
+  game/gfx/font/TextureGenerator.cpp
+  game/gfx/FrameDisposable.cpp
+  game/gfx/HostTexture.cpp
+  game/gfx/Model.cpp
+  game/gfx/ModelCache.cpp
+  game/gfx/TextureCache.cpp
+  game/gfx/TextureLoader.cpp
+  game/gfx/TextureLookup.cpp
+  game/inis/INIFile.cpp
+  game/inis/MappedImageINI.cpp
+  game/Logger.cpp
+  game/Logging.cpp
+  game/MemoryViewStream.cpp
+  game/MurmurHash.cpp
+  game/rendering/ModelRenderer.cpp
+  game/ResourceLoader.cpp
+  game/Window.cpp
+  tools/w3dview.cpp
+
+  ${vugl_sources}
+)
+
+TARGET_LINK_LIBRARIES(w3dview
+  fmt::fmt
+  ${FREETYPE_LIBRARIES}
+  glm::glm
+  ${SDL3_LIBRARIES}
+  ${Vulkan_LIBRARY}
+)
+
+IF (USE_TRACY)
+  TARGET_LINK_LIBRARIES(w3dview Tracy::TracyClient)
+ENDIF()
 
 ADD_CUSTOM_TARGET(always_run
   ALL
