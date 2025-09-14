@@ -1,5 +1,7 @@
 #define GLM_FORCE_RADIANS
+#define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/rotate_vector.hpp>
 
 #include "Camera.h"
 
@@ -11,6 +13,27 @@ const glm::mat4& Camera::getCameraMatrix() const {
 
 const glm::mat4& Camera::getProjectionMatrix() const {
   return projectionMatrix;
+}
+
+void Camera::moveAround(float x, float y, const glm::vec3& p) {
+  auto rayAxis = glm::normalize(position - p);
+  auto screenAxis = glm::cross(rayAxis, up);
+
+  auto rotXAxis = glm::cross(rayAxis, screenAxis);
+  auto rotX = glm::rotate(x, rotXAxis);
+
+  auto rotYAxis = glm::cross(position, up);
+  auto rotY = glm::rotate(-y, rotYAxis);
+
+  auto rot = rotY * rotX;
+
+  position = rot * glm::vec4 {position, 1.0};
+  up = rot * glm::vec4 {up, 1.0};
+
+  updateCameraMatrix();
+
+  direction = glm::normalize(p - position);
+  cameraMatrix = glm::lookAt(position, p, up);
 }
 
 void Camera::moveAxially(float x, float y) {
@@ -29,19 +52,19 @@ void Camera::moveDirectionally(float x, float y) {
 
   auto rotXMatrix =
     glm::rotate(
-        glm::mat4{1.0f}
+        glm::mat4 {1.0f}
       , glm::radians(y)
       , screenXAxis
     );
   auto rotYMatrix =
     glm::rotate(
-        glm::mat4{1.0f}
+        glm::mat4 {1.0f}
       , glm::radians(x)
       , up
     );
   auto rotMatrix = rotYMatrix * rotXMatrix;
 
-  direction = glm::vec3{rotMatrix * glm::vec4{direction, 1.0f}};
+  direction = glm::vec3{rotMatrix * glm::vec4 {direction, 1.0f}};
 
   updateCameraMatrix();
 }

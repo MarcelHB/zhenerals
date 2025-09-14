@@ -10,6 +10,7 @@ class Camera {
     const glm::mat4& getCameraMatrix() const;
     const glm::mat4& getProjectionMatrix() const;
 
+    void moveAround(float x, float y, const glm::vec3&);
     void moveAxially(float x, float y);
     void moveDirectionally(float x, float y);
     void reposition(
