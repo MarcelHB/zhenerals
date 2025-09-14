@@ -1,3 +1,4 @@
+#include <glm/gtc/matrix_transform.hpp>
 #include <SDL3/SDL.h>
 
 #include "../game/Config.h"
@@ -21,6 +22,7 @@ class Viewer {
     std::shared_ptr<ZH::GFX::TextureCache> textureCache;
     std::shared_ptr<ZH::GFX::TextureLoader> textureLoader;
     std::string modelName;
+    std::array<glm::vec3, 2> modelExtremes;
     ZH::GFX::Camera camera;
 
   public:
@@ -72,6 +74,7 @@ class Viewer {
         return false;
       }
 
+      modelExtremes = (*models)[0]->getExtremes();
       this->modelName = std::move(modelName);
 
       return true;
@@ -83,6 +86,46 @@ class Viewer {
       clearColors[1].depthStencil = {1.0f, 0};
 
       auto& vuglContext = window.getVuglContext();
+
+      bool updateMatrices = true;
+      bool mouseDown = false;
+
+      glm::mat4 mvp {1.0f};
+      auto vp = vuglContext.getViewport();
+      camera.setPerspectiveProjection(
+          0.1f
+        , 1000.0f
+        , 90
+        , vp.width * 1.0f
+        , vp.height * 1.0f
+      );
+
+      auto align = [](float max, float min) -> float {
+        return -min - (max - min) * 0.5f;
+      };
+
+      glm::vec3 moveVector {
+          align(modelExtremes[1].x, modelExtremes[0].x)
+        , align(modelExtremes[1].y, modelExtremes[0].y)
+        , align(modelExtremes[1].z, modelExtremes[0].z)
+      };
+
+      camera.reposition(
+          glm::vec3 {
+              moveVector.x * 4.0f
+            , moveVector.y * 4.0f
+            , moveVector.z * 4.0f
+          }
+        , glm::vec3 {0.0f, 0.0f, 0.0f}
+        , glm::vec3 {0.0f, 1.0f, 0.0f}
+      );
+
+      auto modelMatrix =
+        glm::translate(
+            glm::mat4 {1.0f}
+          , moveVector
+        );
+
       Vugl::RenderPassSetup renderPassSetup{vuglContext.getVkSurfaceFormat(), vuglContext.getVkSamplingFlag()};
       auto renderPass = vuglContext.createRenderPass(renderPassSetup);
 
@@ -98,6 +141,30 @@ class Viewer {
           auto event = eventOpt->get();
 
           switch (event.type) {
+            case SDL_EVENT_MOUSE_BUTTON_DOWN:
+              if (event.button.button == SDL_BUTTON_LEFT) {
+                mouseDown = true;
+              }
+              break;
+            case SDL_EVENT_MOUSE_BUTTON_UP:
+              if (event.button.button == SDL_BUTTON_LEFT) {
+                mouseDown = false;
+              }
+              break;
+            case SDL_EVENT_MOUSE_MOTION:
+              if (mouseDown) {
+                camera.moveAround(
+                    event.motion.xrel / 100.0f
+                  , event.motion.yrel / 80.0f
+                  , glm::vec3 {0.0f}
+                );
+                updateMatrices = true;
+              }
+              break;
+            case SDL_EVENT_MOUSE_WHEEL:
+              camera.zoom(event.wheel.y * 5.0f);
+              updateMatrices = true;
+              break;
             case SDL_EVENT_WINDOW_CLOSE_REQUESTED:
               return;
             case SDL_EVENT_KEY_DOWN:
@@ -112,34 +179,24 @@ class Viewer {
         auto& frame = vuglContext.getNextFrame();
         auto frameIndex = frame.getImageIndex();
 
-        if (modelRenderer->needsUpdate(1, frameIndex)) {
-          camera.reposition(
-              glm::vec3 {25.0f, 25.0f, 25.0f}
-            , glm::vec3 {0.0f, 0.0f, 0.0f}
-            , glm::vec3 {0.0f, 1.0f, 0.0f}
-          );
-
-          auto vp = vuglContext.getViewport();
-          camera.setPerspectiveProjection(
-              0.1f
-            , 100.0f
-            , 90
-            , vp.width * 1.0f
-            , vp.height * 1.0f
-          );
-
-          auto mvp =
-            camera.getProjectionMatrix()
-              * camera.getCameraMatrix();
+        if (updateMatrices || modelRenderer->needsUpdate(1, frameIndex)) {
+          if (updateMatrices) {
+            mvp =
+              camera.getProjectionMatrix()
+                * camera.getCameraMatrix()
+                * modelMatrix;
+          }
 
           modelRenderer->updateModel(
               1
             , frameIndex
-            , false
+            , updateMatrices
             , mvp
             , glm::mat4 {1.0f}
             , glm::vec3 {-1.0f, 0.0f, 0.0f}
           );
+
+          updateMatrices = false;
         }
 
         Vugl::CommandBuffer primary {vuglContext.createCommandBuffer(frameIndex)};
