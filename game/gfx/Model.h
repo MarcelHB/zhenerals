@@ -1,6 +1,7 @@
 #ifndef H_GAME_GFX_MODEL
 #define H_GAME_GFX_MODEL
 
+#include <array>
 #include <vector>
 
 #include <glm/glm.hpp>
@@ -23,6 +24,7 @@ struct Model {
   std::vector<uint32_t> textureIndices;
 
   static Model fromW3D(const W3DModel&);
+  std::array<glm::vec3, 2> getExtremes() const;
 };
 
 }

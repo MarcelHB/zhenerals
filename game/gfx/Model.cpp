@@ -1,3 +1,5 @@
+#include <limits>
+
 #include "Model.h"
 
 namespace ZH {
@@ -28,6 +30,28 @@ Model Model::fromW3D(const W3DModel& w3d) {
   model.textureIndices = materialPass.textureIndices;
 
   return model;
+}
+
+std::array<glm::vec3, 2> Model::getExtremes() const {
+  // min, max
+  std::array<glm::vec3, 2> extremes;
+  extremes[0] = glm::vec3 {std::numeric_limits<float>::max()};
+  extremes[1] = glm::vec3 {std::numeric_limits<float>::min()};
+
+  for (auto& vd : vertexData) {
+    auto& v = vd.position;
+
+    for (size_t i = 0; i < 3; ++i) {
+      if (v[i] < extremes[0][i]) {
+        extremes[0][i] = v[i];
+      }
+      if (v[i] > extremes[1][i]) {
+        extremes[1][i] = v[i];
+      }
+    }
+  }
+
+  return extremes;
 }
 
 }
