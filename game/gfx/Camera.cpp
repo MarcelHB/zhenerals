@@ -11,6 +11,10 @@ const glm::mat4& Camera::getCameraMatrix() const {
   return cameraMatrix;
 }
 
+const glm::vec3& Camera::getDirectionVector() const {
+  return direction;
+}
+
 const glm::mat4& Camera::getProjectionMatrix() const {
   return projectionMatrix;
 }

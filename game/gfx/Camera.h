@@ -8,6 +8,7 @@ namespace ZH::GFX {
 class Camera {
   public:
     const glm::mat4& getCameraMatrix() const;
+    const glm::vec3& getDirectionVector() const;
     const glm::mat4& getProjectionMatrix() const;
 
     void moveAround(float x, float y, const glm::vec3&);
