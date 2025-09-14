@@ -193,7 +193,7 @@ class Viewer {
             , updateMatrices
             , mvp
             , glm::mat4 {1.0f}
-            , glm::vec3 {-1.0f, 0.0f, 0.0f}
+            , camera.getDirectionVector()
           );
 
           updateMatrices = false;
