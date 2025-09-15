@@ -8,6 +8,7 @@
 #include "../game/gfx/TextureCache.h"
 #include "../game/gfx/TextureLoader.h"
 #include "../game/Logger.h"
+#include "../game/rendering/LineRenderer.h"
 #include "../game/rendering/ModelRenderer.h"
 #include "../game/ResourceLoader.h"
 #include "../game/Window.h"
@@ -15,6 +16,7 @@
 class Viewer {
   private:
     ZH::Window& window;
+    std::shared_ptr<ZH::LineRenderer> lineRenderer;
     std::shared_ptr<ZH::GFX::ModelCache> modelCache;
     std::shared_ptr<ZH::ResourceLoader> modelLoader;
     std::shared_ptr<ZH::ModelRenderer> modelRenderer;
@@ -67,6 +69,8 @@ class Viewer {
           , *textureCache
           , *modelCache
         );
+
+      lineRenderer = std::make_shared<ZH::LineRenderer>(window.getVuglContext());
 
       auto models = modelCache->getModels(modelName);
       if (!models) {
@@ -132,6 +136,27 @@ class Viewer {
       modelRenderer->preparePipeline(renderPass);
       modelRenderer->prepareModel(1, modelName);
 
+      lineRenderer->preparePipeline(renderPass);
+      auto axes =
+        lineRenderer->createLines(
+            {
+                {0.0f, 0.0f, 0.0f}
+              , {1.0f, 0.0f, 0.0f}
+              , {0.0f, 0.0f, 0.0f}
+              , {0.0f, 1.0f, 0.0f}
+              , {0.0f, 0.0f, 0.0f}
+              , {0.0f, 0.0f, 1.0f}
+            }
+          , {
+                {255, 0, 0}
+              , {255, 0, 0}
+              , {0, 255, 0}
+              , {0, 255, 0}
+              , {0, 0, 255}
+              , {0, 0, 255}
+            }
+        );
+
       while (true) {
         while (auto eventOpt = window.getEvent()) {
           if (!eventOpt) {
@@ -196,6 +221,8 @@ class Viewer {
             , camera.getDirectionVector()
           );
 
+          axes.setMatrix(camera.getProjectionMatrix() * camera.getCameraMatrix());
+
           updateMatrices = false;
         }
 
@@ -206,6 +233,10 @@ class Viewer {
 
         modelRenderer->bindPipeline(secondary);
         modelRenderer->renderModel(1, secondary);
+
+        lineRenderer->bindPipeline(secondary);
+        axes.writeMatrix(frameIndex);
+        lineRenderer->renderLines(axes, secondary);
 
         secondary.closeRendering();
         primary.executeSecondary(secondary);
