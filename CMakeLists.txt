@@ -282,6 +282,7 @@ ADD_EXECUTABLE(w3dview
   game/Logging.cpp
   game/MemoryViewStream.cpp
   game/MurmurHash.cpp
+  game/rendering/LineRenderer.cpp
   game/rendering/ModelRenderer.cpp
   game/ResourceLoader.cpp
   game/Window.cpp
