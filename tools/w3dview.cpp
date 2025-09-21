@@ -84,6 +84,27 @@ class Viewer {
       return true;
     }
 
+    void putCameratAt(uint8_t pos) {
+      glm::vec3 orientation {1.0f, 0.0f, 0.0f};
+      if (pos == 1) {
+        orientation = {-1.0f, 0.0f, 0.0f};
+      } else if (pos == 2) {
+        orientation = {0.0f, 0.0f, 1.0f};
+      } else if (pos == 3) {
+        orientation = {0.0f, 0.0f, -1.0f};
+      }
+
+      camera.reposition(
+          glm::vec3 {
+              std::abs(modelExtremes[1].x - modelExtremes[0].x) * 1.2f
+            , std::abs(modelExtremes[1].y - modelExtremes[0].y) * 1.2f
+            , std::abs(modelExtremes[1].z - modelExtremes[0].z) * 1.2f
+          } * orientation
+        , glm::vec3 {0.0f,  0.0f, 0.0f}
+        , glm::vec3 {0.0f, -1.0f, 0.0f}
+      );
+    };
+
     void loop() {
       std::array<VkClearValue, 2> clearColors{};
       clearColors[0].color = {0.0f, 0.0f, 0.0f, 1.0f};
@@ -130,7 +151,7 @@ class Viewer {
           , moveVector
         );
 
-      Vugl::RenderPassSetup renderPassSetup{vuglContext.getVkSurfaceFormat(), vuglContext.getVkSamplingFlag()};
+      Vugl::RenderPassSetup renderPassSetup {vuglContext.getVkSurfaceFormat(), vuglContext.getVkSamplingFlag()};
       auto renderPass = vuglContext.createRenderPass(renderPassSetup);
 
       modelRenderer->preparePipeline(renderPass);
@@ -193,8 +214,25 @@ class Viewer {
             case SDL_EVENT_WINDOW_CLOSE_REQUESTED:
               return;
             case SDL_EVENT_KEY_DOWN:
-              if (event.key.key == SDLK_ESCAPE) {
-                return;
+              switch (event.key.key) {
+                case SDLK_ESCAPE: return;
+                case SDLK_LEFT:
+                  putCameratAt(0);
+                  updateMatrices = true;
+                  break;
+                case SDLK_RIGHT:
+                  putCameratAt(1);
+                  updateMatrices = true;
+                  break;
+                case SDLK_DOWN:
+                  putCameratAt(2);
+                  updateMatrices = true;
+                  break;
+                case SDLK_UP:
+                  putCameratAt(3);
+                  updateMatrices = true;
+                  break;
+                default: break;
               }
               // fallthrough
             default: break;
