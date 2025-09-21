@@ -61,7 +61,7 @@ glm::mat4 Battlefield::getObjectToGridMatrix(const glm::vec3& pos, float radAngl
   auto worldTranslation =
     glm::translate(
         glm::mat4 {1.0f}
-      , glm::vec3 {pos.x, 0, pos.y}
+      , glm::vec3 {pos.x, pos.z, pos.y}
     );
 
   auto gridTranslation =

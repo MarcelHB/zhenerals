@@ -564,7 +564,10 @@ size_t MAPFile::parseObject(MapBuilder& mapBuilder, const ChunkMetaData& metaDat
     readf()
     object.location[i] = bufferf;
   }
-  object.location[2] = 0.0f;
+
+  if (metaData.version <= 2) {
+    object.location[2] = 0.0f;
+  }
 
   bytesRead = stream.read(reinterpret_cast<char*>(&object.angle), 4);
   totalBytes += bytesRead;
