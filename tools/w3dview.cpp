@@ -110,15 +110,15 @@ class Viewer {
 
       glm::vec3 moveVector {
           align(modelExtremes[1].x, modelExtremes[0].x)
-        , align(modelExtremes[1].y, modelExtremes[0].y)
         , align(modelExtremes[1].z, modelExtremes[0].z)
+        , align(modelExtremes[1].y, modelExtremes[0].y)
       };
 
       camera.reposition(
           glm::vec3 {
               std::abs(modelExtremes[1].x - modelExtremes[0].x) * 2.0f
-            , std::abs(modelExtremes[1].y - modelExtremes[0].y) * 2.0f
             , std::abs(modelExtremes[1].z - modelExtremes[0].z) * 2.0f
+            , std::abs(modelExtremes[1].y - modelExtremes[0].y) * 2.0f
           }
         , glm::vec3 {0.0f,  0.0f, 0.0f}
         , glm::vec3 {0.0f, -1.0f, 0.0f}

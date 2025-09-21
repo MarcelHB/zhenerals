@@ -25,9 +25,9 @@ Map::Map(MapBuilder& builder)
     glm::scale(
         glm::translate(
           glm::mat4(1.0),
-          glm::vec3(padding, padding, 0.0f)
+          glm::vec3(padding, 0.0f, padding)
         )
-      , glm::vec3(0.1f, 0.1f, HEIGHT_SCALE)
+      , glm::vec3(0.1f, HEIGHT_SCALE, 0.1f)
     );
 
   prepareTextureIndex(builder.textureClasses);
@@ -44,6 +44,14 @@ Map::Map(MapBuilder& builder)
 void Map::prepareWaters(const std::vector<PolygonTrigger>& polygonTriggers) {
   TRACY(ZoneScoped);
 
+  glm::mat4 axisFlip {1.0f};
+  axisFlip[1][1] = 0.0f;
+  axisFlip[1][2] = 1.0f;
+  axisFlip[2][1] = 1.0f;
+  axisFlip[2][2] = 0.0f;
+
+  auto waterMatrix = axisFlip * worldToGridMatrix * axisFlip;
+
   size_t numWaterTiles = 0;
   for (auto& pt : polygonTriggers) {
     if (!pt.water || pt.points.empty()) {
@@ -54,7 +62,7 @@ void Map::prepareWaters(const std::vector<PolygonTrigger>& polygonTriggers) {
       waterState.resize(size.x * size.y);
     }
 
-    auto waterPoints = getPointsInPolygon(size, pt.points, worldToGridMatrix);
+    auto waterPoints = getPointsInPolygon(size, pt.points, waterMatrix);
     auto waterHeight = static_cast<uint16_t>(pt.points[0].z);
 
     for (size_t y = 0; y < size.y; ++y) {

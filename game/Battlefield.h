@@ -20,7 +20,7 @@ class Battlefield {
     void frameDoneTick();
 
     const GFX::Camera& getCamera() const;
-    glm::mat4 getObjectToWorldMatrix(const glm::vec3& pos, float radAngle) const;
+    glm::mat4 getObjectToGridMatrix(const glm::vec3& pos, float radAngle) const;
     Daytime getDaytime() const;
     std::shared_ptr<Map> getMap() const;
 

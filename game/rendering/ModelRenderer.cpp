@@ -148,9 +148,15 @@ void ModelRenderer::updateModel(
     return;
   }
 
+  glm::mat4 axisFlip {1.0f};
+  axisFlip[1][1] = 0.0f;
+  axisFlip[1][2] = 1.0f;
+  axisFlip[2][1] = 1.0f;
+  axisFlip[2][2] = 0.0f;
+
   auto& renderData = lookup->second;
-  renderData->modelData.mvp = mvp;
-  renderData->modelData.normalMatrix = normal;
+  renderData->modelData.mvp = mvp * axisFlip;
+  renderData->modelData.normalMatrix = normal * axisFlip;
   renderData->modelData.sunlight = sunlightNormal;
   if (newMatrices) {
     renderData->frameIdxSet = 0;

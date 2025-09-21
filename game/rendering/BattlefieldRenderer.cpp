@@ -380,19 +380,13 @@ void BattlefieldRenderer::renderObjectInstance(
       || modelRenderer.needsUpdate(instance.getID(), frameIdx)
   ) {
     auto modelMatrix =
-      battlefield.getObjectToWorldMatrix(
+      battlefield.getObjectToGridMatrix(
           instance.getPosition()
         , instance.getAngle()
       );
 
-    glm::mat4 axisFlip {1.0f};
-    axisFlip[1][1] = 0.0f;
-    axisFlip[1][2] = 1.0f;
-    axisFlip[2][1] = 1.0f;
-    axisFlip[2][2] = 0.0f;
-
     auto normalMatrix =
-      glm::rotate(axisFlip, instance.getAngle(), glm::vec3{0.0f, 1.0f, 0.0f});
+      glm::rotate(glm::mat4 {1.0f}, instance.getAngle(), glm::vec3{0.0f, 1.0f, 0.0f});
 
     auto& camera = battlefield.getCamera();
     auto mvp =

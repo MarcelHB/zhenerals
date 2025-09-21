@@ -45,28 +45,36 @@ const GFX::Camera& Battlefield::getCamera() const {
   return camera;
 }
 
-glm::mat4 Battlefield::getObjectToWorldMatrix(const glm::vec3& pos, float radAngle) const {
-  glm::mat4 axisFlip {1.0f};
-  axisFlip[1][1] = 0.0f;
-  axisFlip[1][2] = 1.0f;
-  axisFlip[2][1] = 1.0f;
-  axisFlip[2][2] = 0.0f;
-
+glm::mat4 Battlefield::getObjectToGridMatrix(const glm::vec3& pos, float radAngle) const {
   auto gridPos =
-    glm::vec3{map->getWorldToGridMatrix() * glm::vec4{pos, 1.0f}};
+    glm::vec3 {map->getWorldToGridMatrix() * glm::vec4 {pos.x, 0, pos.y, 1.0f}};
 
-  auto height = map->getCenterHeight(gridPos.x, gridPos.y) / (0.0625f / 1.0f);
+  auto height = map->getCenterHeight(gridPos.x, gridPos.z);
+
+  auto rotation =
+    glm::rotate(
+        glm::mat4 {1.0f}
+      , -radAngle
+      , glm::vec3 {0.0f, 1.0f, 0.0f}
+    );
+
+  auto worldTranslation =
+    glm::translate(
+        glm::mat4 {1.0f}
+      , glm::vec3 {pos.x, 0, pos.y}
+    );
+
+  auto gridTranslation =
+    glm::translate(
+        glm::mat4 {1.0f}
+      , glm::vec3 {0, height, 0}
+    );
 
   return
-    glm::rotate(
-        glm::translate(
-            axisFlip
-            * map->getWorldToGridMatrix()
-          , {pos.x, pos.y, height}
-        )
-      , radAngle
-      , {0.0f, 0.0f, 1.0f}
-    );
+      gridTranslation
+      * map->getWorldToGridMatrix()
+      * worldTranslation
+      * rotation;
 }
 
 Daytime Battlefield::getDaytime() const {
