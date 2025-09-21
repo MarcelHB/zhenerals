@@ -57,6 +57,7 @@ size_t Dict::parse(
       case DictType::U16STRING:
         totalBytes += readU16String(stream, keyName);
         break;
+      default: break; // COUNT, handled above
     }
   }
 
