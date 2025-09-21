@@ -419,7 +419,8 @@ float Map::getCenterHeight(size_t x, size_t y) {
    auto h3 = getHeight(x, y, 2);
    auto h4 = getHeight(x, y, 3);
 
-   return (h1 + h2 + h3 + h4) / 4.0f;
+   // EVAL not accurate but apparently better than avg
+   return std::max(h1, std::max(h2, std::max(h3, h4)));
 }
 
 float Map::getHeight(size_t x, size_t y, uint8_t corner) {
