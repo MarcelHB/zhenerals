@@ -13,7 +13,7 @@ layout(location = 0) out vec2 uvOut;
 layout(location = 1) out vec3 normalOut;
 
 void main() {
-  uvOut = uvIn;
+  uvOut = vec2(uvIn.x, 1.0 - uvIn.y);
   normalOut = normalize(scene.normalMatrix * vec4(normalIn, 1.0)).xyz;
 
   gl_Position = scene.mvpMatrix * vec4(position, 1.0);
