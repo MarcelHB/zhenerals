@@ -2,6 +2,7 @@
 #define H_W3D_FILE
 
 #include <istream>
+#include <optional>
 #include <vector>
 
 #include <glm/glm.hpp>
@@ -38,11 +39,18 @@ struct W3DModel {
   glm::vec3 boundingBoxFrom;
   glm::vec3 boundingBoxTo;
   glm::vec3 boundingSphere;
-  float boundingSphereRadius;
+  float boundingSphereRadius = 1.0f;
+  glm::mat4 transformation {1.0f};
 };
 
 class W3DFile {
   public:
+    struct Pivot {
+      std::string name;
+      std::optional<uint32_t> parentIdx = {};
+      glm::mat4 transformation {1.0f};
+    };
+
     W3DFile(std::istream&);
     std::vector<std::shared_ptr<W3DModel>> parse();
   private:
@@ -51,6 +59,9 @@ class W3DFile {
     std::optional<size_t> currentTextureIdx;
     std::optional<size_t> currentMaterialPassIdx;
     std::istream& stream;
+
+    glm::vec3 hierarchyCenter {0.0f, 0.0f, 0.0f};
+    std::vector<Pivot> pivots;
 
     size_t parseHeader(W3DModel&);
     size_t parseMaterialInfo(W3DModel&);

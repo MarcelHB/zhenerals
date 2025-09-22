@@ -1,6 +1,9 @@
 #include <array>
 #include <cstdint>
 
+#include <glm/gtc/quaternion.hpp>
+#include <glm/ext/quaternion_float.hpp>
+
 #include "../common.h"
 #include "W3DFile.h"
 
@@ -38,6 +41,8 @@ std::vector<std::shared_ptr<W3DModel>> W3DFile::parse() {
 
   return models;
 }
+
+// TODO: prevent a potential memory overkill over some non-plausible num values
 
 size_t W3DFile::parseNextChunk(std::vector<std::shared_ptr<W3DModel>>& models) {
   uint32_t buffer4 = 0;
@@ -89,7 +94,7 @@ size_t W3DFile::parseNextChunk(std::vector<std::shared_ptr<W3DModel>>& models) {
       case 0x2A: // vertex materials (subs)
       case 0x30: // textures (subs)
       case 0x48: // texture stage
-      case 0x100: // meta data?
+      case 0x100: // hierarchy tree
       case 0x200: // animations
       case 0x700: // LOD ff
       case 0x702:
@@ -114,8 +119,6 @@ size_t W3DFile::parseNextChunk(std::vector<std::shared_ptr<W3DModel>>& models) {
       case 0x22: // shade indices, skip
       case 0x2D: // vertex material info (?)
       case 0x3B: // vertex diffuse colors
-      case 0x101:
-      case 0x102:
       case 0x103:
       case 0x201:
       case 0x202:
@@ -132,7 +135,7 @@ size_t W3DFile::parseNextChunk(std::vector<std::shared_ptr<W3DModel>>& models) {
       case 0x3:  // normals
         totalBytes += parseContiguous(model->normals, chunkSize);
         break;
-      case 0x1F: // headerstd::shared_ptr<
+      case 0x1F: // header
         totalBytes += parseHeader(*model);
         break;
       case 0x20: // triangles
@@ -171,7 +174,13 @@ size_t W3DFile::parseNextChunk(std::vector<std::shared_ptr<W3DModel>>& models) {
           // trailing '\0'
           str.resize(chunkSize - 1);
           stream.read(str.data(), chunkSize - 1);
-          totalBytes += stream.gcount();
+          bytesRead = stream.gcount();
+          totalBytes += bytesRead;
+
+          if (bytesRead != chunkSize - 1) {
+            return totalBytes;
+          }
+
           stream.seekg(1, std::ios::cur);
           totalBytes += 1;
         }
@@ -232,6 +241,63 @@ size_t W3DFile::parseNextChunk(std::vector<std::shared_ptr<W3DModel>>& models) {
             );
         }
         break;
+      case 0x101: { // hierarchy tree header
+        stream.seekg(20, std::ios::cur);
+        totalBytes += 20;
+
+        read4()
+        pivots.resize(buffer4);
+
+        float bufferf = 0.0f;
+        for (size_t i = 0; i < 3; ++i) {
+          readf()
+          hierarchyCenter[i] = bufferf;
+        }
+
+        break;
+      }
+      case 0x102:
+        for (auto& pivot : pivots) {
+          auto& str = pivot.name;
+          str.resize(16);
+          stream.read(str.data(), 16);
+          bytesRead = stream.gcount();
+          totalBytes += bytesRead;
+          if (bytesRead != 16) {
+            return totalBytes;
+          }
+
+          auto nullPos = str.find('\0');
+          if (nullPos != std::string::npos) {
+            str.resize(nullPos);
+          }
+
+          read4()
+          if (buffer4 != 0xFFFFFFFF) {
+            pivot.parentIdx = {buffer4};
+          }
+
+          float bufferf = 0.0f;
+          glm::vec3 translation;
+          for (size_t i = 0; i < 3; ++i) {
+            readf()
+            translation[i] = bufferf;
+          }
+
+          stream.seekg(12, std::ios::cur);
+          totalBytes += 12;
+
+          glm::quat q;
+          for (size_t i = 0; i < 4; ++i) {
+            readf()
+            q[i] = bufferf;
+          }
+
+          pivot.transformation =
+            glm::mat4_cast(q) *
+              glm::translate(pivot.transformation, translation);
+        }
+        break;
       default:
         WARN_ZH("W3DFile", "Unknown chunk type {}", chunkType);
         stream.seekg(chunkSize, std::ios::cur);
@@ -240,7 +306,7 @@ size_t W3DFile::parseNextChunk(std::vector<std::shared_ptr<W3DModel>>& models) {
   }
 
   if (totalBytes != chunkSize + 8) {
-    WARN_ZH("W3DFile", "Error at chunk {}: {} vs. {}", chunkType, totalBytes, chunkSize + 8);
+    WARN_ZH("W3DFile", "Error at chunk {}: {} (read) vs. {} (spec.)", chunkType, totalBytes, chunkSize + 8);
     broken = true;
   }
 
@@ -294,6 +360,13 @@ size_t W3DFile::parseHeader(W3DModel& model) {
     model.name.resize(nullPos);
   }
 
+  for (auto& pivot : pivots) {
+    if (pivot.name == model.name) {
+      model.transformation = pivot.transformation;
+      break;
+    }
+  }
+
   stream.read(model.containerName.data(), 16);
   bytesRead = stream.gcount();
   totalBytes += bytesRead;
@@ -316,7 +389,13 @@ size_t W3DFile::parseHeader(W3DModel& model) {
   model.materials.resize(buffer4);
 
   // ignore for now, whatever it is
-  stream.seekg(24, std::ios::cur);
+  stream.seekg(16, std::ios::cur);
+
+  read4()
+  uint32_t vertexChannels = buffer4;
+
+  read4()
+  uint32_t faceChannels = buffer4;
 
   std::array<glm::vec3, 3> vectors;
   for (uint8_t i = 0; i < 3; ++i) {
@@ -332,7 +411,7 @@ size_t W3DFile::parseHeader(W3DModel& model) {
   readf()
   model.boundingSphereRadius = bufferf;
 
-  return totalBytes + 28;
+  return totalBytes + 20;
 }
 
 }
