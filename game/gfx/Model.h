@@ -22,6 +22,7 @@ struct Model {
   std::vector<uint32_t> vertexIndices;
   std::vector<std::string> textures;
   std::vector<uint32_t> textureIndices;
+  glm::mat4 transformation {1.0f};
 
   static Model fromW3D(const W3DModel&);
   std::array<glm::vec3, 2> getExtremes() const;

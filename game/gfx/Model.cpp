@@ -28,6 +28,7 @@ Model Model::fromW3D(const W3DModel& w3d) {
 
   model.textures = w3d.textures;
   model.textureIndices = materialPass.textureIndices;
+  model.transformation = w3d.transformation;
 
   return model;
 }
@@ -39,7 +40,8 @@ std::array<glm::vec3, 2> Model::getExtremes() const {
   extremes[1] = glm::vec3 {std::numeric_limits<float>::min()};
 
   for (auto& vd : vertexData) {
-    auto& v = vd.position;
+    auto& pos = vd.position;
+    auto v = transformation * glm::vec4 {pos, 1.0f};
 
     for (size_t i = 0; i < 3; ++i) {
       if (v[i] < extremes[0][i]) {

@@ -43,8 +43,9 @@ class ModelRenderer {
 
     struct RenderData : public GFX::FrameDisposable {
       std::vector<Vugl::DescriptorSet> descriptorSets;
+      std::vector<glm::mat4> transformations;
       std::shared_ptr<Vugl::UniformBuffer> uniformBuffer;
-      ShaderData modelData;
+      ShaderData shaderData;
       uint32_t vertexKey = 0;
       size_t numModels = 1;
       uint64_t frameIdxSet = 0;
