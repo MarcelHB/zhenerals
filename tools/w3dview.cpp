@@ -151,6 +151,12 @@ class Viewer {
           , moveVector
         );
 
+      glm::mat4 axisFlip {1.0f};
+      axisFlip[1][1] = 0.0f;
+      axisFlip[1][2] = 1.0f;
+      axisFlip[2][1] = 1.0f;
+      axisFlip[2][2] = 0.0f;
+
       Vugl::RenderPassSetup renderPassSetup {vuglContext.getVkSurfaceFormat(), vuglContext.getVkSamplingFlag()};
       auto renderPass = vuglContext.createRenderPass(renderPassSetup);
 
@@ -177,6 +183,26 @@ class Viewer {
               , {0, 0, 255}
             }
         );
+
+      std::vector<glm::vec3> normalsData;
+      std::vector<ZH::Color> normalsColor;
+
+      auto models = modelCache->getModels(modelName);
+      auto modelTransformation = (*models)[0]->transformation;
+
+      size_t i = 0;
+      for (auto model: *models) {
+        normalsData.resize(normalsData.size() + model->vertexData.size() * 2);
+        normalsColor.resize(normalsColor.size() + model->vertexData.size() * 2);
+
+        for (size_t j = 0; j < model->vertexData.size(); ++j, i += 2) {
+          normalsData[i] = model->vertexData[j].position;
+          normalsData[i + 1] = model->vertexData[j].position + model->vertexData[j].normal;
+          normalsColor[i] = normalsColor[i + 1] = ZH::Color {255, 255, 0};
+        }
+      }
+
+      auto normals = lineRenderer->createLines(normalsData, normalsColor);
 
       while (true) {
         while (auto eventOpt = window.getEvent()) {
@@ -255,11 +281,18 @@ class Viewer {
             , frameIndex
             , updateMatrices
             , mvp
-            , glm::mat4 {1.0f}
+            , modelMatrix
             , camera.getDirectionVector()
           );
 
           axes.setMatrix(camera.getProjectionMatrix() * camera.getCameraMatrix());
+          normals.setMatrix(
+              camera.getProjectionMatrix()
+                * camera.getCameraMatrix()
+                * modelMatrix
+                * axisFlip
+                * modelTransformation
+              );
 
           updateMatrices = false;
         }
@@ -275,6 +308,9 @@ class Viewer {
         lineRenderer->bindPipeline(secondary);
         axes.writeMatrix(frameIndex);
         lineRenderer->renderLines(axes, secondary);
+
+        normals.writeMatrix(frameIndex);
+        lineRenderer->renderLines(normals, secondary);
 
         secondary.closeRendering();
         primary.executeSecondary(secondary);
