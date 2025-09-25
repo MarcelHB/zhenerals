@@ -203,6 +203,7 @@ class Viewer {
       }
 
       auto normals = lineRenderer->createLines(normalsData, normalsColor);
+      bool showNormals = false;
 
       while (true) {
         while (auto eventOpt = window.getEvent()) {
@@ -258,6 +259,9 @@ class Viewer {
                   putCameratAt(3);
                   updateMatrices = true;
                   break;
+                case SDLK_N:
+                  showNormals = !showNormals;
+                  break;
                 default: break;
               }
               // fallthrough
@@ -309,8 +313,10 @@ class Viewer {
         axes.writeMatrix(frameIndex);
         lineRenderer->renderLines(axes, secondary);
 
-        normals.writeMatrix(frameIndex);
-        lineRenderer->renderLines(normals, secondary);
+        if (showNormals) {
+          normals.writeMatrix(frameIndex);
+          lineRenderer->renderLines(normals, secondary);
+        }
 
         secondary.closeRendering();
         primary.executeSecondary(secondary);
