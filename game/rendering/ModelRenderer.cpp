@@ -75,8 +75,7 @@ bool ModelRenderer::prepareModel(uint64_t id, const std::string& modelName) {
   renderData->vertexKey = vertexKey;
   renderData->transformations.resize(models->size());
   renderData->numModels = models->size();
-  renderData->uniformBuffer =
-    std::make_shared<Vugl::UniformBuffer>(vuglContext.createUniformBuffer(sizeof(ShaderData)));
+  renderData->shaderData.resize(models->size());
 
   uint32_t i = 0;
   for (auto& model : *models) {
@@ -87,6 +86,8 @@ bool ModelRenderer::prepareModel(uint64_t id, const std::string& modelName) {
 
     auto& descriptorSet =
       renderData->descriptorSets.emplace_back(pipeline->createDescriptorSet());
+    auto& uniformBuffer =
+      renderData->uniformBuffers.emplace_back(vuglContext.createUniformBuffer(sizeof(ShaderData)));
     renderData->transformations[i] = model->transformation;
 
     auto vertexLookup = vertexData.find(key);
@@ -112,7 +113,7 @@ bool ModelRenderer::prepareModel(uint64_t id, const std::string& modelName) {
       return false;
     }
 
-    descriptorSet.assignUniformBuffer(*renderData->uniformBuffer);
+    descriptorSet.assignUniformBuffer(uniformBuffer);
     descriptorSet.assignCombinedSampler(*sampler);
     vuglContext.uploadResource(*sampler);
 
@@ -159,22 +160,21 @@ void ModelRenderer::updateModel(
   axisFlip[2][2] = 0.0f;
 
   auto& renderData = lookup->second;
-  // EVAL multi part models with different transformation
-  glm::mat4 transformRotation = renderData->transformations[0];
-  transformRotation[3] = glm::vec4 {0.0f};
+  for (size_t i = 0; i < renderData->numModels; ++i) {
+    auto& shaderData = renderData->shaderData[i];
+    shaderData.mvp = mvp * axisFlip * renderData->transformations[i];
+    shaderData.normalMatrix =
+      normal
+        * axisFlip
+        * renderData->transformations[i];
+    shaderData.sunlight = sunlightNormal;
+    if (newMatrices) {
+      renderData->frameIdxSet = 0;
+    }
+    renderData->frameIdxSet |= (1 << frameIdx);
 
-  renderData->shaderData.mvp = mvp * axisFlip * renderData->transformations[0];
-  renderData->shaderData.normalMatrix =
-    normal
-      * axisFlip
-      * transformRotation;
-  renderData->shaderData.sunlight = sunlightNormal;
-  if (newMatrices) {
-    renderData->frameIdxSet = 0;
+    renderData->uniformBuffers[i].writeData(shaderData, frameIdx);
   }
-  renderData->frameIdxSet |= (1 << frameIdx);
-
-  renderData->uniformBuffer->writeData(renderData->shaderData, frameIdx);
 }
 
 bool ModelRenderer::renderModel(uint64_t id, Vugl::CommandBuffer& commandBuffer) {
