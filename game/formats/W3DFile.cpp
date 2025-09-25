@@ -360,10 +360,18 @@ size_t W3DFile::parseHeader(W3DModel& model) {
     model.name.resize(nullPos);
   }
 
-  for (auto& pivot : pivots) {
-    if (pivot.name == model.name) {
-      model.transformation = pivot.transformation;
-      break;
+  auto lookup =
+    std::find_if(pivots.cbegin(), pivots.cend(), [&model](const Pivot& p) {
+      return model.name == p.name;
+    });
+
+  if (lookup != pivots.cend()) {
+    model.transformation = lookup->transformation;
+
+    auto *p = &*lookup;
+    while (p->parentIdx) {
+      p = &pivots[*p->parentIdx];
+      model.transformation *= p->transformation;
     }
   }
 
