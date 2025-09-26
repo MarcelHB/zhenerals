@@ -40,7 +40,7 @@ bool BattlefieldRenderer::init(Vugl::RenderPass& renderPass) {
   battlefield.setPerspectiveProjection(
       0.1f
     , 1000.0f
-    , 90.0f
+    , 60.0f
     , vp.width * 1.0f
     , vp.height * 1.0f
   );

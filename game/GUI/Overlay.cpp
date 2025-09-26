@@ -48,9 +48,9 @@ bool Overlay::processEvent(const SDL_Event& event) {
       break;
     case SDL_EVENT_MOUSE_MOTION:
       if (cameraControlMode == CameraControlMode::AXES) {
-        getBattlefield()->moveCameraAxially(event.motion.xrel, -event.motion.yrel);
+        getBattlefield()->moveCameraAxially(event.motion.xrel / 4.0f, -event.motion.yrel / 4.0f);
       } else if (cameraControlMode == CameraControlMode::DIRECTIONAL) {
-        getBattlefield()->moveCameraDirectionally(-event.motion.xrel, event.motion.yrel);
+        getBattlefield()->moveCameraDirectionally(-event.motion.xrel / 4.0f, event.motion.yrel / 4.0f);
       } else {
         auto childPos = (*children.begin())->getPositionOffset();
         Point pos {event.motion.x - childPos.x, event.motion.y - childPos.y};
