@@ -73,6 +73,7 @@ bool Window::init() {
 
   VkPhysicalDeviceFeatures vkDeviceFeatures = {};
   vkDeviceFeatures.fillModeNonSolid = true;
+  vkDeviceFeatures.samplerAnisotropy = true;
 
   VkPhysicalDeviceDescriptorIndexingFeaturesEXT nextDeviceFeatures = {};
   nextDeviceFeatures.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_INDEXING_FEATURES_EXT;

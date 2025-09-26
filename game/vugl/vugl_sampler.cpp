@@ -22,8 +22,8 @@ Sampler::Sampler (VkDevice vkDevice)
   vkSamplerCreateInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
   vkSamplerCreateInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
   vkSamplerCreateInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-  vkSamplerCreateInfo.anisotropyEnable = VK_FALSE;
-  vkSamplerCreateInfo.maxAnisotropy = 16.0f;
+  vkSamplerCreateInfo.anisotropyEnable = VK_TRUE;
+  vkSamplerCreateInfo.maxAnisotropy = 4.0f;
   vkSamplerCreateInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
   vkSamplerCreateInfo.unnormalizedCoordinates = VK_FALSE;
   vkSamplerCreateInfo.compareEnable = VK_FALSE;
