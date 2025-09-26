@@ -161,12 +161,15 @@ void ModelRenderer::updateModel(
 
   auto& renderData = lookup->second;
   for (size_t i = 0; i < renderData->numModels; ++i) {
+    glm::mat4 transformRotation = renderData->transformations[i];
+    transformRotation[3] = glm::vec4 {0.0f};
+
     auto& shaderData = renderData->shaderData[i];
     shaderData.mvp = mvp * axisFlip * renderData->transformations[i];
     shaderData.normalMatrix =
       normal
         * axisFlip
-        * renderData->transformations[i];
+        * transformRotation;
     shaderData.sunlight = sunlightNormal;
     if (newMatrices) {
       renderData->frameIdxSet = 0;
