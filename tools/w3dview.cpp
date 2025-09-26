@@ -188,7 +188,6 @@ class Viewer {
       std::vector<ZH::Color> normalsColor;
 
       auto models = modelCache->getModels(modelName);
-      auto modelTransformation = (*models)[0]->transformation;
 
       size_t i = 0;
       for (auto model: *models) {
@@ -196,9 +195,9 @@ class Viewer {
         normalsColor.resize(normalsColor.size() + model->vertexData.size() * 2);
 
         for (size_t j = 0; j < model->vertexData.size(); ++j, i += 2) {
-          normalsData[i] = model->vertexData[j].position;
-          normalsData[i + 1] = model->vertexData[j].position + model->vertexData[j].normal;
-          normalsColor[i] = normalsColor[i + 1] = ZH::Color {255, 255, 0};
+          normalsData[i]      = glm::vec3 {model->transformation * glm::vec4 {model->vertexData[j].position, 1.0f}};
+          normalsData[i + 1]  = glm::vec3 {model->transformation * glm::vec4 {model->vertexData[j].position + model->vertexData[j].normal, 1.0f}};
+          normalsColor[i]     = normalsColor[i + 1] = ZH::Color {255, 255, 0};
         }
       }
 
@@ -295,7 +294,6 @@ class Viewer {
                 * camera.getCameraMatrix()
                 * modelMatrix
                 * axisFlip
-                * modelTransformation
               );
 
           updateMatrices = false;
