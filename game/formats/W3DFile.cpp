@@ -2,6 +2,7 @@
 #include <cstdint>
 
 #include <glm/gtc/quaternion.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 #include <glm/ext/quaternion_float.hpp>
 
 #include "../common.h"
@@ -371,7 +372,10 @@ size_t W3DFile::parseHeader(W3DModel& model) {
     auto *p = &*lookup;
     while (p->parentIdx) {
       p = &pivots[*p->parentIdx];
+      auto translation = model.transformation[3];
+      model.transformation[3] = glm::vec4 {0.0f, 0.0f, 0.0f, 1.0f};
       model.transformation *= p->transformation;
+      model.transformation = glm::translate(model.transformation, glm::vec3 {translation});
     }
   }
 
