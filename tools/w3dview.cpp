@@ -78,8 +78,25 @@ class Viewer {
         return false;
       }
 
-      modelExtremes = (*models)[0]->getExtremes();
+      size_t j = 0;
       this->modelName = std::move(modelName);
+      for (auto model : *models) {
+        auto extremes = model->getExtremes();
+
+        if (j == 0) {
+          modelExtremes = extremes;
+          j += 1;
+        }
+
+        for (size_t i = 0; i < 3; ++i) {
+          if (extremes[0][i] < modelExtremes[0][i]) {
+            modelExtremes[0][i] = extremes[0][i];
+          }
+          if (extremes[1][i] > modelExtremes[1][i]) {
+            modelExtremes[1][i] = extremes[1][i];
+          }
+        }
+      }
 
       return true;
     }
