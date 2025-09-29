@@ -301,6 +301,7 @@ class Viewer {
             , frameIndex
             , updateMatrices
             , mvp
+            , camera.getCameraMatrix()
             , modelMatrix
             , camera.getDirectionVector()
           );

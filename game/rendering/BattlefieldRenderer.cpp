@@ -399,6 +399,7 @@ void BattlefieldRenderer::renderObjectInstance(
       , frameIdx
       , newMatrices
       , mvp
+      , camera.getCameraMatrix()
       , normalMatrix
       , sunlightNormal
     );

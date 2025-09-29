@@ -29,8 +29,9 @@ class ModelRenderer {
         uint64_t id
       , size_t frameIdx
       , bool newMatrices
-      , const glm::mat4& mvpMatrix
-      , const glm::mat4& normalMatrix
+      , const glm::mat4& mvp
+      , const glm::mat4& camera
+      , const glm::mat4& normal
       , const glm::vec3& sunlightNormal
     );
     bool renderModel(uint64_t id, Vugl::CommandBuffer&);
@@ -49,6 +50,8 @@ class ModelRenderer {
       uint32_t vertexKey = 0;
       size_t numModels = 1;
       uint64_t frameIdxSet = 0;
+      std::vector<glm::vec3> orderData;
+      std::vector<size_t> drawOrder;
     };
 
     Vugl::Context& vuglContext;
@@ -57,6 +60,8 @@ class ModelRenderer {
     GFX::TextureCache& textureCache;
     std::unordered_map<uint64_t, std::shared_ptr<RenderData>> renderDataMap;
     std::unordered_map<uint32_t, std::shared_ptr<Vugl::ElementBuffer>> vertexData;
+
+    void calculateBoundingCorners(const Model&, RenderData&, size_t);
 };
 
 }

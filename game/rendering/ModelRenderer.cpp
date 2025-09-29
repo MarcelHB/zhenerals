@@ -1,3 +1,5 @@
+#include <algorithm>
+
 #include "ModelRenderer.h"
 
 namespace ZH {
@@ -77,6 +79,9 @@ bool ModelRenderer::prepareModel(uint64_t id, const std::string& modelName) {
   renderData->numModels = models->size();
   renderData->shaderData.resize(models->size());
 
+  renderData->orderData.resize(models->size() * 8);
+  renderData->drawOrder.resize(models->size());
+
   uint32_t i = 0;
   for (auto& model : *models) {
     MurmurHash3_32 hasher;
@@ -103,6 +108,8 @@ bool ModelRenderer::prepareModel(uint64_t id, const std::string& modelName) {
       vertexData.emplace(std::make_pair(key, std::move(modelVertices)));
     }
 
+    calculateBoundingCorners(*model, *renderData, i);
+
     i += 1;
 
     // EVAL per-triangle texture
@@ -125,6 +132,20 @@ bool ModelRenderer::prepareModel(uint64_t id, const std::string& modelName) {
   return true;
 }
 
+void ModelRenderer::calculateBoundingCorners(const Model& model, RenderData& renderData, size_t i) {
+  auto x = model.getExtremes();
+
+  auto& od = renderData.orderData;
+  od[i * 8 + 0] = {x[0][0], x[0][1], x[0][2]};
+  od[i * 8 + 1] = {x[1][0], x[0][1], x[0][2]};
+  od[i * 8 + 2] = {x[0][0], x[1][1], x[0][2]};
+  od[i * 8 + 3] = {x[0][0], x[0][1], x[1][2]};
+  od[i * 8 + 4] = {x[1][0], x[1][1], x[1][2]};
+  od[i * 8 + 5] = {x[0][0], x[1][1], x[1][2]};
+  od[i * 8 + 6] = {x[1][0], x[0][1], x[1][2]};
+  od[i * 8 + 7] = {x[1][0], x[1][1], x[0][2]};
+}
+
 void ModelRenderer::bindPipeline(Vugl::CommandBuffer& commandBuffer) {
   commandBuffer.bindResource(*pipeline);
 }
@@ -145,6 +166,7 @@ void ModelRenderer::updateModel(
   , size_t frameIdx
   , bool newMatrices
   , const glm::mat4& mvp
+  , const glm::mat4& camera
   , const glm::mat4& normal
   , const glm::vec3& sunlightNormal
 ) {
@@ -171,12 +193,48 @@ void ModelRenderer::updateModel(
         * axisFlip
         * transformRotation;
     shaderData.sunlight = sunlightNormal;
+
     if (newMatrices) {
       renderData->frameIdxSet = 0;
     }
     renderData->frameIdxSet |= (1 << frameIdx);
 
     renderData->uniformBuffers[i].writeData(shaderData, frameIdx);
+  }
+
+  if (renderData->numModels == 1) {
+    renderData->drawOrder[0] = 0;
+    return;
+  }
+
+  using Order = std::pair<size_t, float>;
+  std::vector<Order> transformedOrder;
+  transformedOrder.resize(renderData->orderData.size());
+
+  for (size_t i = 0; i < renderData->orderData.size(); ++i) {
+    auto& to = transformedOrder[i];
+    auto& od = renderData->orderData[i];
+
+    to.first = i / 8;
+    to.second = glm::vec3 {camera * glm::vec4 {od, 1.0f}}[2];
+  }
+
+  std::sort(
+      transformedOrder.begin()
+    , transformedOrder.end()
+    , [](const Order& a, const Order& b) { return a.second > b.second; }
+  );
+
+  for (size_t i = 0, j = 0; i < transformedOrder.size(); ++i) {
+    auto v = transformedOrder[i].first;
+
+    if (i == 0 || renderData->drawOrder[j - 1] != v) {
+      renderData->drawOrder[j++] = v;
+    }
+
+    if (j == renderData->drawOrder.size()) {
+      break;
+    }
   }
 }
 
@@ -189,7 +247,7 @@ bool ModelRenderer::renderModel(uint64_t id, Vugl::CommandBuffer& commandBuffer)
   auto& renderData = renderDataLookup->second;
   renderData->decreaseMiss();
 
-  for (size_t i = 0; i < renderData->numModels; ++i) {
+  for (auto i : renderData->drawOrder) {
     MurmurHash3_32 hasher;
     hasher.feed(renderData->vertexKey);
     hasher.feed(i);
