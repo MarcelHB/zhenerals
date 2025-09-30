@@ -44,12 +44,8 @@ std::array<glm::vec3, 2> Model::getExtremes() const {
     auto v = transformation * glm::vec4 {pos, 1.0f};
 
     for (size_t i = 0; i < 3; ++i) {
-      if (v[i] < extremes[0][i]) {
-        extremes[0][i] = v[i];
-      }
-      if (v[i] > extremes[1][i]) {
-        extremes[1][i] = v[i];
-      }
+      extremes[0][i] = std::min(extremes[0][i], v[i]);
+      extremes[1][i] = std::max(extremes[1][i], v[i]);
     }
   }
 
