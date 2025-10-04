@@ -128,7 +128,7 @@ IF (${HAS_OPENMP})
 ENDIF()
 
 # Workaround against truncation-to-fit-relocation errors
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mcmodel=large")
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mcmodel=large -Wno-nullability-completeness")
 
 SET(vugl_sources
   game/vugl/vma_loader.cpp
