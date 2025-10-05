@@ -7,9 +7,19 @@ namespace ZH::GFX {
 
 class Camera {
   public:
+    struct Settings {
+      float near = 0.0f;
+      float far = 1.0f;
+      float fovDeg = 90.0f;
+      float width = 3.0f;
+      float height = 2.0f;
+    };
+
     const glm::mat4& getCameraMatrix() const;
     const glm::vec3& getDirectionVector() const;
+    const Settings& getPerspectiveSettings() const;
     const glm::mat4& getProjectionMatrix() const;
+    const glm::vec3& getPosition() const;
 
     void moveAround(float x, float y, const glm::vec3&);
     void moveAxially(float x, float y);
@@ -19,13 +29,7 @@ class Camera {
       , const glm::vec3& target
       , const glm::vec3& up
     );
-    void setPerspectiveProjection(
-        float near
-      , float far
-      , float fovDeg
-      , float width
-      , float height
-    );
+    void setPerspectiveProjection(const Settings& settings);
     void zoom(float in);
 
   private:
@@ -34,12 +38,7 @@ class Camera {
     glm::vec3 up = {0.0f, 1.0f, 0.0f};
     glm::mat4 cameraMatrix = glm::mat4 {1.0f};
     glm::mat4 projectionMatrix = glm::mat4 {1.0f};
-
-    float near = 0.0f;
-    float far = 1.0f;
-    float fovDeg = 90.0f;
-    float width = 3.0f;
-    float height = 2.0f;
+    Settings settings;
 
     void updateCameraMatrix();
     void updateProjectionMatrix();

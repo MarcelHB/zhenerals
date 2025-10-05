@@ -117,7 +117,14 @@ void Battlefield::setPerspectiveProjection(
   , float width
   , float height
 ) {
-  camera.setPerspectiveProjection(near, far, fovDeg, width, height);
+  GFX::Camera::Settings settings;
+  settings.near = near;
+  settings.far = far;
+  settings.fovDeg = fovDeg;
+  settings.width = width;
+  settings.height = height;
+
+  camera.setPerspectiveProjection(settings);
   newMatrices = true;
 }
 

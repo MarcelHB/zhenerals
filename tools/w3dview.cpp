@@ -134,13 +134,15 @@ class Viewer {
 
       glm::mat4 mvp {1.0f};
       auto vp = vuglContext.getViewport();
-      camera.setPerspectiveProjection(
-          0.1f
-        , 1000.0f
-        , 90
-        , vp.width * 1.0f
-        , vp.height * 1.0f
-      );
+
+      ZH::GFX::Camera::Settings settings;
+      settings.near = 0.1f;
+      settings.far = 1000.0f;
+      settings.fovDeg = 90.0f;
+      settings.width = vp.width * 1.0f;
+      settings.height = vp.height * 1.0f;
+
+      camera.setPerspectiveProjection(settings);
 
       auto align = [](float max, float min) -> float {
         return -min - (max - min) * 0.5f;

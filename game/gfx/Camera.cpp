@@ -14,8 +14,16 @@ const glm::vec3& Camera::getDirectionVector() const {
   return direction;
 }
 
+const Camera::Settings& Camera::getPerspectiveSettings() const {
+  return settings;
+}
+
 const glm::mat4& Camera::getProjectionMatrix() const {
   return projectionMatrix;
+}
+
+const glm::vec3& Camera::getPosition() const {
+  return position;
 }
 
 void Camera::moveAround(float x, float y, const glm::vec3& p) {
@@ -84,18 +92,8 @@ void Camera::reposition(
   updateCameraMatrix();
 }
 
-void Camera::setPerspectiveProjection(
-    float near
-  , float far
-  , float fovDeg
-  , float width
-  , float height
-) {
-  this->near = near;
-  this->far = far;
-  this->fovDeg = fovDeg;
-  this->width = width;
-  this->height = height;
+void Camera::setPerspectiveProjection(const Settings& settings) {
+  this->settings = settings;
 
   updateProjectionMatrix();
 }
@@ -107,10 +105,10 @@ void Camera::updateCameraMatrix() {
 void Camera::updateProjectionMatrix() {
   projectionMatrix =
     glm::perspective(
-        glm::radians(fovDeg)
-      , width / height
-      , near
-      , far
+        glm::radians(settings.fovDeg)
+      , settings.width / settings.height
+      , settings.near
+      , settings.far
     );
 }
 
