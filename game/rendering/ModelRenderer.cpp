@@ -148,6 +148,33 @@ void ModelRenderer::bindPipeline(Vugl::CommandBuffer& commandBuffer) {
   commandBuffer.bindResource(*pipeline);
 }
 
+ModelRenderer::BoundingSphere ModelRenderer::getBoundingSphere(uint64_t id) const {
+  auto lookup = renderDataMap.find(id);
+  if (lookup == renderDataMap.cend()) {
+    return {};
+  }
+
+  auto& renderData = lookup->second;
+  glm::vec3 min {std::numeric_limits<float>::max()};
+  glm::vec3 max {std::numeric_limits<float>::min()};
+
+  for (auto& corner : renderData->orderData) {
+    for (uint8_t i = 0; i < 3; ++i) {
+      min[i] = std::min(min[i], corner[i]);
+      max[i] = std::max(max[i], corner[i]);
+    }
+  }
+
+  float maxDistance = 0.0f;
+  glm::vec3 center {0.0f};
+  for (uint8_t i = 0; i < 3; ++i) {
+    maxDistance = std::max(maxDistance, max[i] - min[i]);
+    center[i] = max[i] - (max[i] - min[i]) / 2.0f;
+  }
+
+  return {std::move(center), maxDistance / 2.0f};
+}
+
 bool ModelRenderer::needsUpdate(uint64_t id, size_t frameIdx) const {
   auto lookup = renderDataMap.find(id);
   if (lookup == renderDataMap.cend()) {

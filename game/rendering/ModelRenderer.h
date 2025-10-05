@@ -11,6 +11,14 @@ namespace ZH {
 
 class ModelRenderer {
   public:
+    struct BoundingSphere {
+      BoundingSphere() = default;
+      BoundingSphere(glm::vec3 && pos, float r) : position(std::move(pos)), radius(r) {}
+
+      glm::vec3 position {0.0f};
+      float radius = 0.0f;
+    };
+
     ModelRenderer(
         Vugl::Context&
       , GFX::TextureCache&
@@ -24,6 +32,7 @@ class ModelRenderer {
     bool prepareModel(uint64_t id, const std::string&);
 
     void bindPipeline(Vugl::CommandBuffer&);
+    BoundingSphere getBoundingSphere(uint64_t id) const;
     bool needsUpdate(uint64_t id, size_t frameIdx) const;
     void updateModel(
         uint64_t id
