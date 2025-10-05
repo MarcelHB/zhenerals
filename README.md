@@ -1,6 +1,6 @@
 # ZHenerals
 
-A reimplementation to play _Command & Conquer: Generals Zero Hour_.
+A just-for-fun journey on reimplementing _Command & Conquer: Generals (Zero Hour)_.
 
 ## Roadmap
 
@@ -10,6 +10,7 @@ A reimplementation to play _Command & Conquer: Generals Zero Hour_.
     * platform portability
 * SP campaign
 * SP skirmish
+* better SP AI
 
 Low priority:
 
