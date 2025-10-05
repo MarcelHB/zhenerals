@@ -106,6 +106,7 @@ std::shared_ptr<Vugl::CommandBuffer> BattlefieldRenderer::createRenderList(size_
 
   renderTerrain(commandBuffer, frameIdx);
   renderObjectInstances(commandBuffer, frameIdx, newMatrices);
+  // TODO this still needs better Z ordering
   renderWater(commandBuffer, frameIdx);
 
   commandBuffer.closeRendering();
@@ -266,6 +267,8 @@ bool BattlefieldRenderer::prepareWaterVertices() {
 }
 
 bool BattlefieldRenderer::prepareModelData(Objects::Instance& instance) {
+  bool success = false;
+
   auto base = instance.getBase();
   // TODO differentiation
   if (base->drawMetaData.type == Objects::DrawType::DEPENDENCY_MODEL_DRAW
@@ -275,16 +278,30 @@ bool BattlefieldRenderer::prepareModelData(Objects::Instance& instance) {
       || base->drawMetaData.type == Objects::DrawType::TANK_DRAW
       || base->drawMetaData.type == Objects::DrawType::TRUCK_DRAW
   ) {
-      prepareModelDrawData(instance);
+    success = prepareModelDrawData(instance);
   } else if (base->drawMetaData.type == Objects::DrawType::TREE_DRAW) {
-      prepareTreeDrawData(instance);
+    success = prepareTreeDrawData(instance);
   } else {
     WARN_ZH(
         "BattlefieldRenderer"
       , "Skipping drawing of {}, draw mode not implemented"
       , instance.getBase()->name
     );
+    return true;
   }
+
+  if (!success) {
+    return false;
+  }
+
+  auto instanceID = instance.getID();
+  auto lookup = boundingSpheres.find(instanceID);
+  if (lookup != boundingSpheres.cend()) {
+    return true;
+  }
+
+  auto sphere = modelRenderer.getBoundingSphere(instanceID);
+  boundingSpheres.emplace(instanceID, std::move(sphere));
 
   return true;
 }
@@ -352,9 +369,34 @@ void BattlefieldRenderer::renderObjectInstances(
 
   modelRenderer.bindPipeline(commandBuffer);
 
-  for (auto& instance : battlefield.getObjectInstances()) {
-    // TODO visibility check
-    renderObjectInstance(*instance, commandBuffer, frameIdx, newMatrices);
+  // TODO instance movement, check for new/deleted instances
+  if (newMatrices) {
+    auto map = battlefield.getMap();
+    auto& camMatrix = battlefield.getCamera().getCameraMatrix();
+    drawChecks.clear();
+    drawChecks.reserve(battlefield.getObjectInstances().size());
+
+    for (auto& instance : battlefield.getObjectInstances()) {
+      auto& drawCheck = drawChecks.emplace_back();
+      drawCheck.instance = instance;
+      drawCheck.sphere = boundingSpheres.find(instance->getID())->second;
+
+      auto modelMatrix = battlefield.getObjectToGridMatrix(instance->getPosition(), 0.0f);
+      drawCheck.sphere.position = glm::vec3 {camMatrix * modelMatrix * glm::vec4 {drawCheck.sphere.position, 1.0f}};
+      drawCheck.dist = glm::length(drawCheck.sphere.position);
+    }
+
+    std::sort(
+        drawChecks.begin()
+      , drawChecks.end()
+      , [](const DrawCheck& a, const DrawCheck& b) { return a.dist > b.dist; }
+    );
+  }
+
+  for (auto& dc : drawChecks) {
+    if (dc.draw) {
+      renderObjectInstance(*dc.instance, commandBuffer, frameIdx, newMatrices);
+    }
   }
 
   if (vuglContext.isDebuggingAllowed()) {

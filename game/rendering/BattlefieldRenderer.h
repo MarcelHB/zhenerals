@@ -26,6 +26,13 @@ class BattlefieldRenderer {
     bool init(Vugl::RenderPass&);
     std::shared_ptr<Vugl::CommandBuffer> createRenderList(size_t, Vugl::RenderPass&);
   private:
+    struct DrawCheck {
+      std::shared_ptr<Objects::Instance> instance;
+      ModelRenderer::BoundingSphere sphere;
+      float dist = 0.0f;
+      bool draw = true;
+    };
+
     Vugl::Context& vuglContext;
     GFX::TextureCache& textureCache;
     Battlefield& battlefield;
@@ -44,6 +51,8 @@ class BattlefieldRenderer {
     std::shared_ptr<Vugl::ElementBuffer> terrainVertices;
     std::shared_ptr<Vugl::Sampler> terrainTextureSampler;
     std::vector<std::shared_ptr<Vugl::Texture>> terrainTextures;
+    std::unordered_map<uint64_t, ModelRenderer::BoundingSphere> boundingSpheres;
+    std::vector<DrawCheck> drawChecks;
 
     std::shared_ptr<Vugl::DescriptorSet> waterDescriptorSet;
     std::shared_ptr<Vugl::Pipeline> waterPipeline;
