@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-2.0
+
 #ifndef H_GUI_COMPONENT
 #define H_GUI_COMPONENT
 

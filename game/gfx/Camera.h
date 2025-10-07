@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-2.0
+
 #ifndef H_GFX_CAMERA
 #define H_GFX_CAMERA
 
@@ -20,6 +22,7 @@ class Camera {
     const Settings& getPerspectiveSettings() const;
     const glm::mat4& getProjectionMatrix() const;
     const glm::vec3& getPosition() const;
+    const glm::vec3& getUpVector() const;
 
     void moveAround(float x, float y, const glm::vec3&);
     void moveAxially(float x, float y);

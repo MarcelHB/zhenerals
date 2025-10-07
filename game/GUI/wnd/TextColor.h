@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-2.0
+
 #ifndef H_GUI_WND_TEXT_COLOR
 #define H_GUI_WND_TEXT_COLOR
 

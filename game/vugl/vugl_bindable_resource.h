@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-2.0
+
 #ifndef H_VUGL_BINDABLE_RESOURCE
 #define H_VUGL_BINDABLE_RESOURCE
 

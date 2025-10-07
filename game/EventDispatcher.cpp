@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-2.0
+
 #include <SDL3/SDL.h>
 
 #include "EventDispatcher.h"

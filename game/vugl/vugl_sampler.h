@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-2.0
+
 #ifndef H_VUGL_UPLOAD_SAMPLER
 #define H_VUGL_UPLOAD_SAMPLER
 

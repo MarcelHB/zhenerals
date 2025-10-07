@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-2.0
+
 #define VMA_IMPLEMENTATION
 /*
 #define VMA_LEAK_LOG_FORMAT(format, ...) do { \

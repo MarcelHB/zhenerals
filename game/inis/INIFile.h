@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-2.0
+
 #ifndef H_INI_FILE
 #define H_INI_FILE
 

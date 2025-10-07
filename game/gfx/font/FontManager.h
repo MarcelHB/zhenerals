@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-2.0
+
 #ifndef H_GFX_FONT_FONT_MANAGER
 #define H_GFX_FONT_FONT_MANAGER
 

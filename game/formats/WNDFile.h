@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-2.0
+
 #ifndef H_WND_FILE
 #define H_WND_FILE
 

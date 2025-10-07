@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-2.0
+
 #ifndef H_GAME_OBJECT_ATTRIBUTES
 #define H_GAME_OBJECT_ATTRIBUTES
 

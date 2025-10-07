@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-2.0
+
 #ifndef H_AUDIO_PLAYBACK
 #define H_AUDIO_PLAYBACK
 

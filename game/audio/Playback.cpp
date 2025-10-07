@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-2.0
+
 #include "Playback.h"
 #include "../formats/AudioFile.h"
 #include "../Logging.h"

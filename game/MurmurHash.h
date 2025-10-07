@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-2.0
+
 #ifndef H_MURMUR_HASH
 #define H_MURMUR_HASH
 

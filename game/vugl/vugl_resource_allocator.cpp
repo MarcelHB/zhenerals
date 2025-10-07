@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-2.0
+
 #include "vugl_resource_allocator.h"
 
 namespace Vugl {

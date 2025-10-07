@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-2.0
+
 #include <functional>
 
 #include "vugl_descriptor_set.h"

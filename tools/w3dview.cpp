@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-2.0
+
 #include <glm/gtc/matrix_transform.hpp>
 #include <SDL3/SDL.h>
 

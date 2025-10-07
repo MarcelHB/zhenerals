@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-2.0
+
 #ifndef H_GUI_WND_FONT
 #define H_GUI_WND_FONT
 

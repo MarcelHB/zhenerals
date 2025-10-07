@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-2.0
+
 #ifndef H_VUGL_UNIFORM_BUFFER
 #define H_VUGL_UNIFORM_BUFFER
 

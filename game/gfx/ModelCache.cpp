@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-2.0
+
 #include "fmt/core.h"
 
 #include "../common.h"

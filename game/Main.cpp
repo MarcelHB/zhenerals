@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-2.0
+
 #include "Config.h"
 #include "Game.h"
 #include "Logger.h"

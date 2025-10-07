@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-2.0
+
 #ifndef H_CSF_FILE
 #define H_CSF_FILE
 

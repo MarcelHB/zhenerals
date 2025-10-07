@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-2.0
+
 #ifndef H_GFX_FONT_TEXTURE_GENERATOR
 #define H_GFX_FONT_TEXTURE_GENERATOR
 

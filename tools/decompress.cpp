@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-2.0
+
 #include <filesystem>
 #include <fstream>
 #include <iostream>

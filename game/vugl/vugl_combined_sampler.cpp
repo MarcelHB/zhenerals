@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-2.0
+
 #include "vugl_combined_sampler.h"
 
 namespace Vugl {

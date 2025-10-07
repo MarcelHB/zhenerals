@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-2.0
+
 #include "../../Logging.h"
 #include "EventDefaults.h"
 #include "MainMenu.h"

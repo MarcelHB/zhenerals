@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-2.0
+
 #define GLM_FORCE_RADIANS
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/rotate_vector.hpp>
@@ -24,6 +26,10 @@ const glm::mat4& Camera::getProjectionMatrix() const {
 
 const glm::vec3& Camera::getPosition() const {
   return position;
+}
+
+const glm::vec3& Camera::getUpVector() const {
+  return up;
 }
 
 void Camera::moveAround(float x, float y, const glm::vec3& p) {

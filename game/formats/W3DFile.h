@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-2.0
+
 #ifndef H_W3D_FILE
 #define H_W3D_FILE
 

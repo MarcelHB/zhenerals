@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-2.0
+
 #include "Script.h"
 
 namespace ZH::Script {

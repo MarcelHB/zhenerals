@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-2.0
+
 #ifndef H_INFLATING_STREAM
 #define H_INFLATING_STREAM
 

@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-2.0
+
 #ifndef H_GUI_HOSTS_EVENT_DEFAULTS
 #define H_GUI_HOSTS_EVENT_DEFAULTS
 

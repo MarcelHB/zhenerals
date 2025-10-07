@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-2.0
+
 #ifndef H_BIG_FILE
 #define H_BIG_FILE
 

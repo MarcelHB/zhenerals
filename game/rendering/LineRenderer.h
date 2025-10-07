@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-2.0
+
 #ifndef ZH_RENDERING_LINE
 #define ZH_RENDERING_LINE
 

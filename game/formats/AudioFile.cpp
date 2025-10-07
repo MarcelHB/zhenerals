@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-2.0
+
 extern "C" {
 #include <libavformat/avformat.h>
 #include <libavcodec/avcodec.h>
