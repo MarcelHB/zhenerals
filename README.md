@@ -2,7 +2,7 @@
 
 A just-for-fun journey on reimplementing _Command & Conquer: Generals (Zero Hour)_.
 
-![ZHenerals](https://raw.github.com/MarcelHB/zhenerals/master/title.webp)
+![ZHenerals](title.webp)
 
 ## Roadmap
 
