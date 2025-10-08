@@ -2,6 +2,7 @@
 
 #include <glm/gtc/matrix_transform.hpp>
 #include <SDL3/SDL.h>
+#include <SDL3/SDL_main.h>
 
 #include "../game/Config.h"
 #include "../game/gfx/Camera.h"
