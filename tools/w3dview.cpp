@@ -357,9 +357,9 @@ int main(int argc, char **argv) {
   }
 
   ZH::Config config;
-  ZH::Window window {config};
+  ZH::Window window;
 
-  if (!window.init()) {
+  if (!window.init(config)) {
     ERROR_ZH("Main", "Viewer setup failed, terminating.");
     return 1;
   }

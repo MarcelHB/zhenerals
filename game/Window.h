@@ -17,12 +17,12 @@ namespace ZH {
 
 class Window {
   public:
-    Window (const Config& config);
-    Window (const Window&) = delete;
+    Window() = default;
+    Window(const Window&) = delete;
     ~Window();
 
     Vugl::Context& getVuglContext();
-    bool init();
+    bool init(Config&);
     OptionalCRef<SDL_Event> getEvent();
   private:
     SDL_Event event;

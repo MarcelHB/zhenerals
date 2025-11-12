@@ -14,9 +14,9 @@ int main(int argc, char **argv) {
   LOG_ZH("Main", "Starting Zhenerals");
 
   ZH::Config config;
-  ZH::Window window {config};
+  ZH::Window window;
 
-  if (!window.init()) {
+  if (!window.init(config)) {
     ERROR_ZH("Main", "SDL/Vulkan setup failed, terminating.");
     return 1;
   }

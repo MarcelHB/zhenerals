@@ -26,23 +26,19 @@ const std::vector<const char*> vkInstanceLayersList {
 #endif
 };
 
-Window::Window(const Config& config)
-  : resolution(config.resolution)
-{}
-
 Vugl::Context& Window::getVuglContext() {
   return *vuglContext.get();
 }
 
-bool Window::init() {
+bool Window::init(Config& config) {
   SDL_Init(SDL_INIT_EVENTS | SDL_INIT_VIDEO);
 
   auto props = SDL_CreateProperties();
   SDL_SetStringProperty(props, SDL_PROP_WINDOW_CREATE_TITLE_STRING, "Zhenerals");
   SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_X_NUMBER, SDL_WINDOWPOS_CENTERED);
   SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_Y_NUMBER, SDL_WINDOWPOS_CENTERED);
-  SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_WIDTH_NUMBER, resolution.x);
-  SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_HEIGHT_NUMBER, resolution.y);
+  SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_WIDTH_NUMBER, config.resolution.x);
+  SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_HEIGHT_NUMBER, config.resolution.y);
   SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_VULKAN_BOOLEAN, true);
   sdlWindow = SDL_CreateWindowWithProperties(props);
   SDL_DestroyProperties(props);
@@ -70,8 +66,8 @@ bool Window::init() {
 
   VkSurfaceKHR vkSurface = VK_NULL_HANDLE;
   VkViewport viewport = {};
-  viewport.width = resolution.x;
-  viewport.height = resolution.y;
+  viewport.width = config.resolution.x;
+  viewport.height = config.resolution.y;
 
   VkPhysicalDeviceFeatures vkDeviceFeatures = {};
   vkDeviceFeatures.fillModeNonSolid = true;
@@ -90,6 +86,15 @@ bool Window::init() {
     , vkDeviceFeatures
     , &nextDeviceFeatures
   );
+
+  auto displayId = SDL_GetDisplayForWindow(sdlWindow);
+  auto displayMode = SDL_GetCurrentDisplayMode(displayId);
+  if (displayMode != nullptr) {
+    auto refreshRate = static_cast<uint16_t>(displayMode->refresh_rate);
+    if (refreshRate != 0) {
+      config.refreshRate = {refreshRate};
+    }
+  }
 
   return true;
 }
