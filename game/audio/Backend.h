@@ -18,7 +18,7 @@ class SoundBuffer {
     SoundBuffer() = default;
     SoundBuffer(ALPair);
     SoundBuffer(const SoundBuffer&) = delete;
-    SoundBuffer(SoundBuffer&&);
+    SoundBuffer(SoundBuffer&&) noexcept;
     ~SoundBuffer();
 
     bool isDisposable();
@@ -32,7 +32,7 @@ class SoundEmitter {
     SoundEmitter() = default;
     SoundEmitter(ALPair);
     SoundEmitter(const SoundEmitter&) = delete;
-    SoundEmitter(SoundEmitter&&);
+    SoundEmitter(SoundEmitter&&) noexcept;
     ~SoundEmitter();
 
     bool enqueue(const SoundBuffer&);
@@ -45,7 +45,7 @@ class Backend {
   public:
     Backend() = default;
     Backend(const Backend&) = delete;
-    Backend(Backend&&);
+    Backend(Backend&&) noexcept;
     ~Backend();
 
     bool init();

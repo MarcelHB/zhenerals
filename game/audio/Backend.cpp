@@ -55,7 +55,7 @@ static void configureSource(ALuint source) {
 SoundBuffer::SoundBuffer(ALPair bufferPair) : buffers(bufferPair)
 {}
 
-SoundBuffer::SoundBuffer(SoundBuffer&& other) : buffers(other.buffers) {
+SoundBuffer::SoundBuffer(SoundBuffer&& other) noexcept : buffers(other.buffers) {
   other.buffers = {0, 0};
 }
 
@@ -88,7 +88,7 @@ SoundEmitter::SoundEmitter(ALPair sources) : sources(sources)
   configureSource(sources.first);
 }
 
-SoundEmitter::SoundEmitter(SoundEmitter&& other) : sources(other.sources) {
+SoundEmitter::SoundEmitter(SoundEmitter&& other) noexcept : sources(other.sources) {
   other.sources = {0, 0};
 }
 
@@ -129,7 +129,7 @@ bool SoundEmitter::hasFinishedPlaying() const {
   return state == AL_STOPPED;
 }
 
-Backend::Backend(Backend&& other) : alContext(other.alContext) {
+Backend::Backend(Backend&& other) noexcept : alContext(other.alContext) {
   other.alContext = nullptr;
 }
 
