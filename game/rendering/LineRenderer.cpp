@@ -92,7 +92,7 @@ void LineRenderer::renderLines(Lines& lines, Vugl::CommandBuffer& commandBuffer)
   commandBuffer.bindResource(*lines.descriptor);
   commandBuffer.bindResource(*lines.linesAndColors);
 
-  auto numVertices = lines.linesAndColors->getNumVertices();
+  auto numVertices = lines.linesAndColors->getNumVertices() / 2;
   commandBuffer.draw([numVertices](VkCommandBuffer vkCommandBuffer, uint32_t) {
     vkCmdSetLineWidth(vkCommandBuffer, 1.0f);
     vkCmdDraw(vkCommandBuffer, numVertices, 1, 0, 0);
