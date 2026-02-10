@@ -779,7 +779,4 @@ void RenderListFactory::writePositionMatrices(
   bundle.matrices->writeData(matrices, frameIndex);
 }
 
-void RenderListFactory::onQueueSubmitted() {
-}
-
 }

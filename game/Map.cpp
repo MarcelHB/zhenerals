@@ -26,10 +26,10 @@ Map::Map(MapBuilder& builder)
   worldToGridMatrix =
     glm::scale(
         glm::translate(
-          glm::mat4(1.0),
-          glm::vec3(padding, 0.0f, padding)
+          glm::mat4 {1.0},
+          glm::vec3 {padding, 0.0f, padding}
         )
-      , glm::vec3(0.1f, HEIGHT_SCALE, 0.1f)
+      , glm::vec3 {0.1f, HEIGHT_SCALE, 0.1f}
     );
 
   prepareTextureIndex(builder.textureClasses);

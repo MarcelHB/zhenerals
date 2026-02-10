@@ -217,7 +217,7 @@ void Game::draw(void *obj) {
   auto game = reinterpret_cast<Game*>(obj);
   auto& vuglContext = game->window.getVuglContext();
 
-  Vugl::RenderPassSetup renderPassSetup{vuglContext.getVkSurfaceFormat(), vuglContext.getVkSamplingFlag()};
+  Vugl::RenderPassSetup renderPassSetup {vuglContext.getVkSurfaceFormat(), vuglContext.getVkSamplingFlag()};
   auto renderPass = vuglContext.createRenderPass(renderPassSetup);
 
   if (renderPass.getLastResult() != VK_SUCCESS) {
@@ -260,7 +260,6 @@ void Game::draw(void *obj) {
     primary.closeRendering();
 
     frame.submitAndPresent(primary);
-    game->renderListFactory->onQueueSubmitted();
     TRACY(FrameMark);
   }
 }

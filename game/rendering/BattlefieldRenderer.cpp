@@ -430,7 +430,7 @@ void BattlefieldRenderer::renderObjectInstance(
       );
 
     auto normalMatrix =
-      glm::rotate(glm::mat4 {1.0f}, instance.getAngle(), glm::vec3{0.0f, 1.0f, 0.0f});
+      glm::rotate(glm::mat4 {1.0f}, instance.getAngle(), glm::vec3 {0.0f, 1.0f, 0.0f});
 
     auto& camera = battlefield.getCamera();
     auto mvp =

@@ -28,8 +28,8 @@ std::vector<uint8_t> getPointsInPolygon(
     auto& pt1 = polygonVertices[i == 0 ? polygonVertices.size() - 1 : i - 1];
     auto& pt2 = polygonVertices[i];
 
-    auto ptC1 = conversionMatrix * glm::vec4(pt1.x, pt1.y, 1.0f, 1.0f);
-    auto ptC2 = conversionMatrix * glm::vec4(pt2.x, pt2.y, 1.0f, 1.0f);
+    auto ptC1 = conversionMatrix * glm::vec4 {pt1.x, pt1.y, 1.0f, 1.0f};
+    auto ptC2 = conversionMatrix * glm::vec4 {pt2.x, pt2.y, 1.0f, 1.0f};
 
     auto drawBorder = [&field, size](int32_t a1, int32_t a2, int32_t b1, int32_t b2, bool switchAxis) {
       float m = (b2 - b1) / (1.0f * (a2 - a1));

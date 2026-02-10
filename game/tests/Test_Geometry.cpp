@@ -16,7 +16,7 @@ TEST(Geometry, getPointsInPolygon) {
   }};
 
   Size size {4, 4};
-  auto result = getPointsInPolygon(size, polygons, glm::mat4(1));
+  auto result = getPointsInPolygon(size, polygons, glm::mat4 {1.0f});
 
   EXPECT_LE(1, result[0]);
   EXPECT_LE(1, result[1]);

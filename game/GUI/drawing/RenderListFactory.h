@@ -129,7 +129,6 @@ class RenderListFactory {
     RenderListFactory(const RenderListFactory&) = delete;
 
     std::shared_ptr<Vugl::CommandBuffer> createRenderList(size_t, Vugl::RenderPass&);
-    void onQueueSubmitted();
   private:
     Vugl::Context& vuglContext;
     GFX::TextureCache& textureCache;
