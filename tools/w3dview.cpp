@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0
 
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/rotate_vector.hpp>
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
 
@@ -29,6 +30,7 @@ class Viewer {
     std::string modelName;
     std::array<glm::vec3, 2> modelExtremes;
     ZH::GFX::Camera camera;
+    ZH::GFX::Camera sphereCamera;
 
   public:
     Viewer (ZH::Window& window) : window(window) {}
@@ -69,6 +71,7 @@ class Viewer {
       modelRenderer =
         std::make_shared<ZH::ModelRenderer>(
             window.getVuglContext()
+          , config
           , *textureCache
           , *modelCache
         );
@@ -114,12 +117,20 @@ class Viewer {
         orientation = {0.0f, 0.0f, -1.0f};
       }
 
+      glm::vec3 camPosition = glm::vec3 {
+          std::abs(modelExtremes[1].x - modelExtremes[0].x) * 1.2f
+        , std::abs(modelExtremes[1].y - modelExtremes[0].y) * 1.2f
+        , std::abs(modelExtremes[1].z - modelExtremes[0].z) * 1.2f
+      } * orientation;
+
       camera.reposition(
-          glm::vec3 {
-              std::abs(modelExtremes[1].x - modelExtremes[0].x) * 1.2f
-            , std::abs(modelExtremes[1].y - modelExtremes[0].y) * 1.2f
-            , std::abs(modelExtremes[1].z - modelExtremes[0].z) * 1.2f
-          } * orientation
+          camPosition
+        , glm::vec3 {0.0f,  0.0f, 0.0f}
+        , glm::vec3 {0.0f, -1.0f, 0.0f}
+      );
+
+      sphereCamera.reposition(
+          glm::vec3 {0.0f,  0.0f, glm::length(camPosition)}
         , glm::vec3 {0.0f,  0.0f, 0.0f}
         , glm::vec3 {0.0f, -1.0f, 0.0f}
       );
@@ -146,6 +157,7 @@ class Viewer {
       settings.height = vp.height * 1.0f;
 
       camera.setPerspectiveProjection(settings);
+      sphereCamera.setPerspectiveProjection(settings);
 
       auto align = [](float max, float min) -> float {
         return -min - (max - min) * 0.5f;
@@ -157,12 +169,20 @@ class Viewer {
         , align(modelExtremes[1].y, modelExtremes[0].y)
       };
 
+      glm::vec3 camPosition = {
+          std::abs(modelExtremes[1].x - modelExtremes[0].x) * 2.0f
+        , std::abs(modelExtremes[1].z - modelExtremes[0].z) * 2.0f
+        , std::abs(modelExtremes[1].y - modelExtremes[0].y) * 2.0f
+      };
+
       camera.reposition(
-          glm::vec3 {
-              std::abs(modelExtremes[1].x - modelExtremes[0].x) * 2.0f
-            , std::abs(modelExtremes[1].z - modelExtremes[0].z) * 2.0f
-            , std::abs(modelExtremes[1].y - modelExtremes[0].y) * 2.0f
-          }
+          camPosition
+        , glm::vec3 {0.0f,  0.0f, 0.0f}
+        , glm::vec3 {0.0f, -1.0f, 0.0f}
+      );
+
+      sphereCamera.reposition(
+          glm::vec3 {0.0f,  0.0f, glm::length(camPosition)}
         , glm::vec3 {0.0f,  0.0f, 0.0f}
         , glm::vec3 {0.0f, -1.0f, 0.0f}
       );
@@ -186,6 +206,8 @@ class Viewer {
       modelRenderer->prepareModel(1, modelName);
 
       lineRenderer->preparePipeline(renderPass);
+
+      // RGB/XYZ axes
       auto axes =
         lineRenderer->createLines(
             {
@@ -211,8 +233,9 @@ class Viewer {
 
       auto models = modelCache->getModels(modelName);
 
+      // Normals
       size_t i = 0;
-      for (auto model: *models) {
+      for (auto model : *models) {
         normalsData.resize(normalsData.size() + model->vertexData.size() * 2);
         normalsColor.resize(normalsColor.size() + model->vertexData.size() * 2);
 
@@ -224,7 +247,43 @@ class Viewer {
       }
 
       auto normals = lineRenderer->createLines(normalsData, normalsColor);
+
+      // Bounding Sphere
+      auto sphere = modelRenderer->getBoundingSphere(1);
+      std::vector<glm::vec3> sphereData;
+      sphereData.resize(64);
+      std::vector<ZH::Color> sphereColors;
+      sphereColors.resize(64);
+
+      glm::vec3 up {0.0f, 1.0f, 0.0f};
+      auto rot = glm::radians(360.0f / 32.0f);
+
+      for (i = 0; i < 32; ++i) {
+        if (i == 0) {
+          sphereData[i * 2] = up;
+        } else {
+          sphereData[i * 2] = sphereData[i * 2 - 1];
+        }
+
+        up = glm::rotateZ(up, rot);
+        sphereData[i * 2 + 1]  = up;
+        sphereColors[i * 2]     = ZH::Color {255, 255, 255};
+        sphereColors[i * 2 + 1] = ZH::Color {255, 255, 255};
+      }
+
+      auto sphereLines = lineRenderer->createLines(sphereData, sphereColors);
+      auto sphereMatrix =
+        glm::translate(
+            glm::mat4 {1.0f}
+          , glm::vec3 {sphere.position.x, sphere.position.z, sphere.position.y}
+        ) *
+        glm::scale(
+            glm::mat4 {1.0f}
+          , glm::vec3 {sphere.radius}
+        );
+
       bool showNormals = false;
+      bool showSphere = false;
 
       while (true) {
         while (auto eventOpt = window.getEvent()) {
@@ -257,6 +316,7 @@ class Viewer {
               break;
             case SDL_EVENT_MOUSE_WHEEL:
               camera.zoom(event.wheel.y * 5.0f);
+              sphereCamera.zoom(event.wheel.y * 5.0f);
               updateMatrices = true;
               break;
             case SDL_EVENT_WINDOW_CLOSE_REQUESTED:
@@ -282,6 +342,9 @@ class Viewer {
                   break;
                 case SDLK_N:
                   showNormals = !showNormals;
+                  break;
+                case SDLK_S:
+                  showSphere = !showSphere;
                   break;
                 default: break;
               }
@@ -318,6 +381,12 @@ class Viewer {
                 * modelMatrix
                 * axisFlip
               );
+          sphereLines.setMatrix(
+              sphereCamera.getProjectionMatrix()
+                * sphereCamera.getCameraMatrix()
+                * modelMatrix
+                * sphereMatrix
+              );
 
           updateMatrices = false;
         }
@@ -337,6 +406,10 @@ class Viewer {
         if (showNormals) {
           normals.writeMatrix(frameIndex);
           lineRenderer->renderLines(normals, secondary);
+        }
+        if (showSphere) {
+          sphereLines.writeMatrix(frameIndex);
+          lineRenderer->renderLines(sphereLines, secondary);
         }
 
         secondary.closeRendering();
