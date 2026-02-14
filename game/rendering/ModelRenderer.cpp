@@ -191,7 +191,6 @@ bool ModelRenderer::needsUpdate(uint64_t id, size_t frameIdx) const {
 void ModelRenderer::updateModel(
     uint64_t id
   , size_t frameIdx
-  , bool newMatrices
   , const glm::mat4& mvp
   , const glm::mat4& camera
   , const glm::mat4& normal
@@ -220,14 +219,10 @@ void ModelRenderer::updateModel(
         * axisFlip
         * transformRotation;
     shaderData.sunlight = sunlightNormal;
-
-    if (newMatrices) {
-      renderData->frameIdxSet = 0;
-    }
-    renderData->frameIdxSet |= (1 << frameIdx);
-
     renderData->uniformBuffers[i].writeData(shaderData, frameIdx);
   }
+
+  renderData->frameIdxSet |= (1 << frameIdx);
 
   if (renderData->numModels == 1) {
     renderData->drawOrder[0] = 0;
@@ -297,6 +292,15 @@ bool ModelRenderer::renderModel(uint64_t id, Vugl::CommandBuffer& commandBuffer)
   }
 
   return true;
+}
+
+void ModelRenderer::resetFrames(uint64_t id) {
+  auto lookup = renderDataMap.find(id);
+  if (lookup == renderDataMap.cend()) {
+    return;
+  }
+
+  lookup->second->frameIdxSet = 0;
 }
 
 }

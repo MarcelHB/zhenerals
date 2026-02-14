@@ -39,13 +39,13 @@ class ModelRenderer {
     void updateModel(
         uint64_t id
       , size_t frameIdx
-      , bool newMatrices
       , const glm::mat4& mvp
       , const glm::mat4& camera
       , const glm::mat4& normal
       , const glm::vec3& sunlightNormal
     );
     bool renderModel(uint64_t id, Vugl::CommandBuffer&);
+    void resetFrames(uint64_t id);
   private:
     struct ShaderData {
       alignas(16) glm::mat4 mvp;

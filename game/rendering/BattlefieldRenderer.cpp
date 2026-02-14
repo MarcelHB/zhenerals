@@ -397,7 +397,7 @@ void BattlefieldRenderer::renderObjectInstances(
 
   for (auto& dc : drawChecks) {
     if (dc.draw) {
-      renderObjectInstance(*dc.instance, commandBuffer, frameIdx, newMatrices);
+      renderObjectInstance(*dc.instance, commandBuffer, frameIdx);
     }
   }
 
@@ -412,17 +412,13 @@ void BattlefieldRenderer::renderObjectInstance(
     Objects::Instance& instance
   , Vugl::CommandBuffer& commandBuffer
   , size_t frameIdx
-  , bool newMatrices
 ) {
 
   if (vuglContext.isDebuggingAllowed()) {
     commandBuffer.beginDebugLabel(std::to_string(instance.getID()));
   }
 
-  if (newMatrices
-      || instance.needsRedraw()
-      || modelRenderer.needsUpdate(instance.getID(), frameIdx)
-  ) {
+  if (instance.needsRedraw() || modelRenderer.needsUpdate(instance.getID(), frameIdx)) {
     auto modelMatrix =
       battlefield.getObjectToGridMatrix(
           instance.getPosition()
@@ -441,7 +437,6 @@ void BattlefieldRenderer::renderObjectInstance(
     modelRenderer.updateModel(
         instance.getID()
       , frameIdx
-      , newMatrices
       , mvp
       , camera.getCameraMatrix()
       , normalMatrix

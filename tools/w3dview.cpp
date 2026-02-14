@@ -295,6 +295,7 @@ class Viewer {
 
         if (updateMatrices || modelRenderer->needsUpdate(1, frameIndex)) {
           if (updateMatrices) {
+            modelRenderer->resetFrames(1);
             mvp =
               camera.getProjectionMatrix()
                 * camera.getCameraMatrix()
@@ -304,7 +305,6 @@ class Viewer {
           modelRenderer->updateModel(
               1
             , frameIndex
-            , updateMatrices
             , mvp
             , camera.getCameraMatrix()
             , modelMatrix
