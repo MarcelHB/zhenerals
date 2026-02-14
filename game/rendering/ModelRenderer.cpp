@@ -167,14 +167,14 @@ ModelRenderer::BoundingSphere ModelRenderer::getBoundingSphere(uint64_t id) cons
     }
   }
 
-  float maxDistance = 0.0f;
   glm::vec3 center {0.0f};
+  float lengths = 0.0;
   for (uint8_t i = 0; i < 3; ++i) {
-    maxDistance = std::max(maxDistance, max[i] - min[i]);
+    lengths += std::pow(((max[i] - min[i]) / 2.0f), 2.0f);
     center[i] = max[i] - (max[i] - min[i]) / 2.0f;
   }
 
-  return {std::move(center), maxDistance / 2.0f};
+  return {std::move(center), std::sqrt(lengths)};
 }
 
 bool ModelRenderer::needsUpdate(uint64_t id, size_t frameIdx) const {
