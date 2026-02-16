@@ -415,7 +415,10 @@ void BattlefieldRenderer::renderObjectInstance(
 ) {
 
   if (vuglContext.isDebuggingAllowed()) {
-    commandBuffer.beginDebugLabel(std::to_string(instance.getID()));
+    std::string label = std::to_string(instance.getID());
+    label.append(": ");
+    label.append(instance.getBase()->name);
+    commandBuffer.beginDebugLabel(label);
   }
 
   if (instance.needsRedraw() || modelRenderer.needsUpdate(instance.getID(), frameIdx)) {
