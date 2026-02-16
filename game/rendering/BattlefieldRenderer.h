@@ -4,6 +4,7 @@
 #define H_GAME_BATTLEFIELD_RENDERER
 
 #include "../common.h"
+#include "../Config.h"
 #include "../Battlefield.h"
 #include "../gfx/TextureCache.h"
 #include "ModelRenderer.h"
@@ -17,6 +18,7 @@ class BattlefieldRenderer {
   public:
     BattlefieldRenderer(
         Vugl::Context&
+      , const Config&
       , Battlefield&
       , GFX::TextureCache&
       , GFX::ModelCache&

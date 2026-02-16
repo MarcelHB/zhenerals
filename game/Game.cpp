@@ -163,6 +163,7 @@ bool Game::init() {
   mapRenderer =
     std::make_shared<BattlefieldRenderer>(
         window.getVuglContext()
+      , config
       , *mainMenuMap
       , *textureCache
       , *modelCache

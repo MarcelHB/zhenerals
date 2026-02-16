@@ -8,9 +8,11 @@ namespace ZH {
 
 ModelRenderer::ModelRenderer(
     Vugl::Context& vuglContext
+  , const Config& config
   , GFX::TextureCache& textureCache
   , GFX::ModelCache& modelCache
 ) : vuglContext(vuglContext)
+  , config(config)
   , textureCache(textureCache)
   , modelCache(modelCache)
 {}
@@ -23,7 +25,8 @@ void ModelRenderer::beginResourceCounting() {
 
 void ModelRenderer::finishResourceCounting() {
   for (auto it = renderDataMap.begin(); it != renderDataMap.end();) {
-    if (it->second->getMisses() >= 2) {
+    // for now try garbage collection once in 60s (if FPS isn't too low)
+    if (it->second->getMisses() >= config.refreshRate.value_or(60) * 60) {
       it = renderDataMap.erase(it);
     } else {
       it++;
@@ -59,6 +62,8 @@ bool ModelRenderer::preparePipeline(Vugl::RenderPass& renderPass) {
 }
 
 bool ModelRenderer::prepareModel(uint64_t id, const std::string& modelName) {
+  TRACY(ZoneScoped);
+
   auto lookup = renderDataMap.find(id);
   if (lookup != renderDataMap.cend()) {
     return true;
@@ -261,6 +266,8 @@ void ModelRenderer::updateModel(
 }
 
 bool ModelRenderer::renderModel(uint64_t id, Vugl::CommandBuffer& commandBuffer) {
+  TRACY(ZoneScoped);
+
   auto renderDataLookup = renderDataMap.find(id);
   if (renderDataLookup == renderDataMap.cend()) {
     return false;

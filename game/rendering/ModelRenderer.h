@@ -4,6 +4,7 @@
 #define H_RENDERING_MODEL
 
 #include "../common.h"
+#include "../Config.h"
 #include "../gfx/FrameDisposable.h"
 #include "../gfx/ModelCache.h"
 #include "../gfx/TextureCache.h"
@@ -23,6 +24,7 @@ class ModelRenderer {
 
     ModelRenderer(
         Vugl::Context&
+      , const Config& config
       , GFX::TextureCache&
       , GFX::ModelCache&
     );
@@ -66,6 +68,7 @@ class ModelRenderer {
     };
 
     Vugl::Context& vuglContext;
+    const Config& config;
     std::shared_ptr<Vugl::Pipeline> pipeline;
     GFX::ModelCache& modelCache;
     GFX::TextureCache& textureCache;

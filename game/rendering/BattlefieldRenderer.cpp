@@ -19,6 +19,7 @@ struct WaterScene {
 
 BattlefieldRenderer::BattlefieldRenderer(
     Vugl::Context& vuglContext
+  , const Config& config
   , Battlefield& battlefield
   , GFX::TextureCache& textureCache
   , GFX::ModelCache& modelCache
@@ -27,7 +28,7 @@ BattlefieldRenderer::BattlefieldRenderer(
 ) : vuglContext(vuglContext)
   , textureCache(textureCache)
   , battlefield(battlefield)
-  , modelRenderer {vuglContext, textureCache, modelCache}
+  , modelRenderer {vuglContext, config, textureCache, modelCache}
   , terrains(terrains)
   , waterSettings(waterSettings)
 {}
