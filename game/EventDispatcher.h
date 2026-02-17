@@ -9,7 +9,7 @@
 
 namespace ZH {
 
-enum class GameEvent : int32_t {
+enum class GameEvent : uint32_t {
     NONE
   , EXIT
   , PLAY_SFX
@@ -21,7 +21,7 @@ class EventDispatcher {
     bool init();
     void fire(GameEvent);
     void fire(GameEvent, void*);
-    int mapEventToSDL(GameEvent) const;
+    uint32_t mapEventToSDL(GameEvent) const;
   private:
     uint32_t eventOffset = 0;
 };

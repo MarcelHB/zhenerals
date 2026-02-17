@@ -8,7 +8,7 @@ namespace ZH {
 
 bool EventDispatcher::init() {
   auto offset = SDL_RegisterEvents(static_cast<int>(GameEvent::COUNT));
-  if (offset == -1) {
+  if (offset == 0) {
     return false;
   }
 
@@ -32,8 +32,8 @@ void EventDispatcher::fire(GameEvent event, void* data) {
   SDL_PushEvent(&sdlEvent);
 }
 
-int EventDispatcher::mapEventToSDL(GameEvent event) const {
-  return eventOffset + static_cast<int32_t>(event);
+uint32_t EventDispatcher::mapEventToSDL(GameEvent event) const {
+  return eventOffset + static_cast<uint32_t>(event);
 }
 
 }
