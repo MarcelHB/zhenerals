@@ -30,7 +30,7 @@ CommandBuffer::CommandBuffer (
   allocator.allocateCommandBuffer(vkCommandBuffer, secondary);
 }
 
-VkResult CommandBuffer::beginCommands (uint32_t numberBuffers) {
+VkResult CommandBuffer::beginCommands (uint32_t /*numberBuffers*/) {
   if (State::NEW != state) {
     return VK_NOT_READY;
   }

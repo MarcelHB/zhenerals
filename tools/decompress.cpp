@@ -47,7 +47,7 @@ int main(int argc, char** argv) {
   std::vector<char> buffer;
   buffer.resize(1024);
 
-  auto bytesRead = 0;
+  uint32_t bytesRead = 0;
   while (bytesRead < totalSize) {
     auto bytesToRead = std::min(1024U, totalSize - bytesRead);
     buffer.resize(bytesToRead);

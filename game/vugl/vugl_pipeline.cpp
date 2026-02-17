@@ -195,7 +195,7 @@ VkPipelineLayout Pipeline::getVkPipelineLayout () const {
   return vkPipelineLayout;
 }
 
-VkResult Pipeline::recordBindCommands (VkCommandBuffer vkCommandBuffer, uint32_t i) {
+VkResult Pipeline::recordBindCommands (VkCommandBuffer vkCommandBuffer, uint32_t /*i*/) {
   vkCmdBindPipeline(vkCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vkPipeline);
 
   if (hasDynamicViewport) {

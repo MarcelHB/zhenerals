@@ -46,15 +46,17 @@ extern std::condition_variable logSignal;
 void enqueueLogMessage(LogMessage&& logMessage);
 
 template<typename... ARGS>
-void log(LogLevel level, std::string section, fmt::format_string<ARGS...> message, ARGS&& ...args) {
 #ifdef IN_TEST
+void log(LogLevel /*level*/, std::string /*section*/, fmt::format_string<ARGS...> message, ARGS&& ...args) {
   fmt::print(std::cout, message, std::forward<ARGS>(args)...);
   fmt::print(std::cout, "\n");
+}
 #else
+void log(LogLevel level, std::string section, fmt::format_string<ARGS...> message, ARGS&& ...args) {
   auto formattedMessage = fmt::format(message, std::forward<ARGS>(args)...);
   enqueueLogMessage(LogMessage {level, std::move(section), std::move(formattedMessage)});
-#endif
 }
+#endif
 
 }
 

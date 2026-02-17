@@ -49,7 +49,10 @@ std::shared_ptr<Component> ComponentFactory::createText(const WND::Window& wnd) 
   return label;
 }
 
-std::shared_ptr<Component> ComponentFactory::createWindow(const WND::Window& wnd, OptionalCRef<WND::Layout> layout) {
+std::shared_ptr<Component> ComponentFactory::createWindow(
+    const WND::Window& wnd
+  , OptionalCRef<WND::Layout> /*layout*/
+) {
   std::shared_ptr<Window> window = std::shared_ptr<Window> {new Window {}};
 
   setCommonAttributes(*window, wnd);

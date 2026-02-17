@@ -177,7 +177,7 @@ class INIFile {
     }
 
     template <typename T>
-    bool applyValueByKeyOfMaps(T& obj, const std::string& key) {
+    bool applyValueByKeyOfMaps(T& /*obj*/, const std::string& /*key*/) {
       return false;
     }
 

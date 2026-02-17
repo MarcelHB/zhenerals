@@ -32,7 +32,7 @@ std::shared_ptr<GFX::HostTexture> TGAFile::getTexture() {
   data.resize(4 * size.x * size.y);
 
   if (bitsPerPixel == 32) {
-    for (auto y = 0; y < size.y; ++y) {
+    for (decltype(size.y) y = 0; y < size.y; ++y) {
       stream.read(data.data() + (size.y - 1 - y) * size.x * 4, size.x * 4);
       if (stream.gcount() != size.x * 4) {
         return {};
@@ -40,8 +40,8 @@ std::shared_ptr<GFX::HostTexture> TGAFile::getTexture() {
     }
   } else {
     std::array<char, 3> buffer;
-    for (auto y = 0; y < size.y; ++y) {
-      for (auto x = 0; x < size.x; ++x) {
+    for (decltype(size.y) y = 0; y < size.y; ++y) {
+      for (decltype(size.x) x = 0; x < size.x; ++x) {
         stream.read(buffer.data(), 3);
         if (stream.gcount() != 3) {
           return {};

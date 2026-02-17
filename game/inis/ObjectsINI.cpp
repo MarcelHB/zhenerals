@@ -1479,7 +1479,7 @@ static INIApplierMap<Objects::ModelDrawData> ModelDrawDataKVMap = {
       return value.has_value();
     }
   },
-  { "MinLODRequired", [](Objects::ModelDrawData& t, INIFile& f) { f.parseString(); /* ignore */ return true; } },
+  { "MinLODRequired", [](Objects::ModelDrawData& /*t*/, INIFile& f) { f.parseString(); /* ignore */ return true; } },
   { "OkToChangeModelColor", [](Objects::ModelDrawData& dd, INIFile& f) { dd.canChangeColor = f.parseBool(); return true; } },
   { "ParticlesAttachedToAnimatedBones", [](Objects::ModelDrawData& dd, INIFile& f) { dd.animatedParticles = f.parseBool(); return true; } },
   { "ProjectileBoneFeedbackEnabledSlots", [](Objects::ModelDrawData& dd, INIFile& f) {
@@ -2270,7 +2270,7 @@ static INIApplierMap<Objects::ObjectBuilder> ObjectDataKVMap = {
     }
   },
   { "Draw", [](Objects::ObjectBuilder& b, INIFile& f) { return reinterpret_cast<ObjectsINI&>(f).parseDraw(b); } },
-  { "EditorSorting", [](Objects::ObjectBuilder& b, INIFile& f) { f.parseStringList(); return true; } },
+  { "EditorSorting", [](Objects::ObjectBuilder& /*b*/, INIFile& f) { f.parseStringList(); return true; } },
   { "EnergyBonus", [](Objects::ObjectBuilder& b, INIFile& f) {
       auto opt = f.parseSignedInteger();
       b.energyBonus = opt.value_or(b.energyBonus);
@@ -2311,8 +2311,8 @@ static INIApplierMap<Objects::ObjectBuilder> ObjectDataKVMap = {
       return value.has_value();
     }
   },
-  { "FenceWidth", [](Objects::ObjectBuilder& b, INIFile& f) { f.parseFloat(); return true; } },
-  { "FenceXOffset", [](Objects::ObjectBuilder& b, INIFile& f) { f.parseFloat(); return true; } },
+  { "FenceWidth", [](Objects::ObjectBuilder& /*b*/, INIFile& f) { f.parseFloat(); return true; } },
+  { "FenceXOffset", [](Objects::ObjectBuilder& /*b*/, INIFile& f) { f.parseFloat(); return true; } },
   { "Geometry", [](Objects::ObjectBuilder& b, INIFile& f) {
       auto opt = f.parseEnum<Objects::Geometry>(CALL(Objects::getGeometry));
       b.geometry.type = opt.value_or(Objects::Geometry::NONE);

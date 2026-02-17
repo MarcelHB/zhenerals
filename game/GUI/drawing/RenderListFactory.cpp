@@ -241,8 +241,12 @@ void RenderListFactory::createChildrenRenderList(
   }
 }
 
-void RenderListFactory::createLabelRenderList(Label&, Vugl::CommandBuffer&, size_t frameIndex, OptionalCRef<RenderComponent>) {
-}
+void RenderListFactory::createLabelRenderList(
+    Label&
+  , Vugl::CommandBuffer&
+  , size_t /*frameIndex*/
+  , OptionalCRef<RenderComponent>)
+{ }
 
 void RenderListFactory::createRectangularRenderList(
     const Component& component

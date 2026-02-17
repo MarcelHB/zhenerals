@@ -265,7 +265,7 @@ void Map::tesselateHeightMap(
 
         uint16_t mainTextureIndex = 0;
         uint16_t blendTextureIndex = 0;
-        auto textureClassIndex = tileTextureIndex / 4;
+        uint16_t textureClassIndex = tileTextureIndex / 4;
 
         for (; mainTextureIndex < textureClasses.size(); ++mainTextureIndex) {
           if (textureClasses[mainTextureIndex].firstTile > textureClassIndex) {

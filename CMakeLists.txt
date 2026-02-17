@@ -127,6 +127,9 @@ IF (${HAS_OPENMP})
   SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")
 ENDIF()
 
+# preset for pedantic review
+# SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror -Wfatal-errors -Wextra -Wpedantic -Wno-gnu-zero-variadic-macro-arguments -Wno-nullability-extension -Wno-missing-field-initializers")
+
 # Workaround against truncation-to-fit-relocation errors
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mcmodel=large -Wno-nullability-completeness")
 

@@ -98,8 +98,8 @@ bool Component::isHidden() const {
 
 bool Component::isPointInside(const Point& p) const {
   return
-    p.x >= position.x && p.x <= position.x + size.x
-      && p.y >= position.y && p.y <= position.y + size.y;
+    p.x >= position.x && p.x <= static_cast<decltype(Point::x)>(position.x + size.x)
+      && p.y >= position.y && p.y <= static_cast<decltype(Point::y)>(position.y + size.y);
 }
 
 void Component::onCursorClickDown() {

@@ -42,8 +42,8 @@ TEST(FontTest, glyphs) {
 
   EXPECT_FALSE(font->getGlyph(17));
 
-  size_t lastX = 0;
-  size_t lastY = 0;
+  int32_t lastX = 0;
+  int32_t lastY = 0;
 
   for (uint8_t i = 32; i < 127; ++i) {
     auto glyph = font->getGlyph(i);

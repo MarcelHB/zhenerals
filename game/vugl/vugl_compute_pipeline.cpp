@@ -112,13 +112,13 @@ DescriptorSet ComputePipeline::createDescriptorSet () {
   return {vkDevice, vkPipelineLayout, vkDescriptorSetLayout, 1};
 }
 
-VkResult ComputePipeline::draw (VkCommandBuffer buffer, uint32_t i) {
+VkResult ComputePipeline::draw (VkCommandBuffer buffer, uint32_t /*i*/) {
   vkCmdDispatch(buffer, workgroupX, workgroupY, workgroupZ);
 
   return VK_SUCCESS;
 }
 
-VkResult ComputePipeline::recordBindCommands (VkCommandBuffer vkCommandBuffer, uint32_t i) {
+VkResult ComputePipeline::recordBindCommands (VkCommandBuffer vkCommandBuffer, uint32_t /*i*/) {
   vkCmdBindPipeline(vkCommandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, vkPipeline);
 
   return VK_SUCCESS;

@@ -613,7 +613,7 @@ size_t MAPFile::parseObject(MapBuilder& mapBuilder, const ChunkMetaData& metaDat
 }
 
 size_t MAPFile::parseObjectsList(MapBuilder& mapBuilder, const ChunkMetaData& metaData) {
-  auto totalBytes = 0;
+  size_t totalBytes = 0;
 
   while (totalBytes < metaData.payloadSize) {
     // "Object" each
@@ -906,7 +906,7 @@ size_t MAPFile::parseScriptList(MapBuilder& mapBuilder, const ChunkMetaData& met
   return totalBytes;
 }
 
-size_t MAPFile::parseScriptOrCondition(MapBuilder& mapBuilder, const ChunkMetaData& metaData) {
+size_t MAPFile::parseScriptOrCondition(MapBuilder& mapBuilder, const ChunkMetaData& /*metaData*/) {
   if (mapBuilder.scripts.empty()) {
     WARN_ZH("MAPFile", "No script for OrCondition");
     return 0;

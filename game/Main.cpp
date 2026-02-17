@@ -7,7 +7,7 @@
 #include "Logger.h"
 #include "Window.h"
 
-int main(int argc, char **argv) {
+int main(int /*argc*/, char ** /*argv*/) {
   ZH::Logger logger;
   logger.start();
 

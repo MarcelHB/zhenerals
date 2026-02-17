@@ -61,7 +61,8 @@ std::vector<uint8_t> getPointsInPolygon(
           pt.y = t;
         }
 
-        if (pt.y >= 0 && pt.y < size.y && pt.x >= 0 && pt.x < size.x) {
+        if (pt.y >= 0 && pt.y < static_cast<decltype(pt.x)>(size.y)
+            && pt.x >= 0 && pt.x < static_cast<decltype(pt.x)>(size.x)) {
           field[pt.y * size.x + pt.x] = 2;
         }
       }
