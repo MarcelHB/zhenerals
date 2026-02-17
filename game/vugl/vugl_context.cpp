@@ -501,7 +501,6 @@ Pipeline Context::createPipeline (
   return {
       setup
     , vkDevice
-    , resourceAllocator
     , static_cast<uint32_t>(vkSwapchainImageViews.size())
     , renderPass
   };

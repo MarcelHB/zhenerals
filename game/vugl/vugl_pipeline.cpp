@@ -31,7 +31,6 @@ Pipeline::Pipeline (Pipeline && other)
 Pipeline::Pipeline (
     const PipelineSetup& setup
   , VkDevice vkDevice
-  , ResourceAllocator& resourceAllocator
   , uint32_t numSwapchainImages
   , VkRenderPass vkRenderPass
 )
