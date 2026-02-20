@@ -72,6 +72,7 @@ struct TextureBundle {
 
   Point position;
   Size size;
+  bool stretchedX = false;
 };
 
 using NineTextures = std::array<std::optional<TextureBundle>, 9>;

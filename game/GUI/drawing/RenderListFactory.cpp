@@ -175,6 +175,7 @@ void RenderListFactory::createButtonRenderList(
 
   imageIndex = IMAGE_INDEX(button.isLocked() ? ImageIndex::MIDDLE_LOCKED : ImageIndex::MIDDLE);
   auto& texture2 = getButtonTexture(button, resources, imageIndex);
+  texture2.stretchedX = true;
   image = images->get()[imageIndex];
 
   createRectangularRenderList(
@@ -372,7 +373,6 @@ TextHolderBundle& RenderListFactory::findOrCreateTextHolderBundle(const Componen
 }
 
 bool RenderListFactory::fillRectVertexData() {
-  // two triangles: |\\|
   std::vector<float> data = {
     0.0f, 0.0f, 0.0f,  0.0f, 0.0f,
     0.0f, 1.0f, 0.0f,  0.0f, 1.0f,
@@ -760,15 +760,17 @@ void RenderListFactory::writePositionMatrices(
 
   if (bundle.texture) {
     auto extent = bundle.texture->getExtent();
+    // there is a 0 alpha at the border of some images, so when stretching, discard borders
+    uint8_t stretchOffset = bundle.stretchedX ? 1 : 0;
 
     matrices.uv =
       glm::translate(glm::mat4 {1.0f}, glm::vec3 {
-          bundle.position.x / (extent.width * 1.0f)
+          (bundle.position.x + stretchOffset) / (extent.width * 1.0f)
         , bundle.position.y / (extent.height * 1.0f)
         , 1.0f
       })
       * glm::scale(glm::mat4 {1.0f}, glm::vec3 {
-          bundle.size.x / (extent.width * 1.0f)
+          (bundle.size.x - 2 * stretchOffset) / (extent.width * 1.0f)
         , bundle.size.y / (extent.height * 1.0f)
         , 1.0f
       });
