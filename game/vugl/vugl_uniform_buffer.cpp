@@ -36,8 +36,7 @@ UniformBuffer::UniformBuffer (
   for (uint32_t i = 0; i < numBuffers; ++i) {
     allocator.createVkBuffer(
         alignedSize
-      , VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT
-      , VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
+      , BufferType::UNIFORM_BUFFER_HOST_COHERENT
       , buffers[i]
       , bufferAllocations[i]
     );

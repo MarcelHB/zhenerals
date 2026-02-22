@@ -76,8 +76,7 @@ void RenderPass::createViewportResources (const std::vector<VkImageView>& swapch
       , vkSamplingFlag
       , VK_FORMAT_D32_SFLOAT_S8_UINT
       , VK_IMAGE_TILING_OPTIMAL
-      , VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT
-      , VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
+      , ImageType::STENCIL_ATTACHMENT
       , vkDepthImage
       , vmaDepthImageAllocation
     );
@@ -117,8 +116,7 @@ void RenderPass::createViewportResources (const std::vector<VkImageView>& swapch
         , vkSamplingFlag
         , vkColorFormat
         , VK_IMAGE_TILING_OPTIMAL
-        , VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT
-        , VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
+        , ImageType::MULTISAMPLER_ATTACHMENT
         , vkColorImage
         , vmaColorImageAllocation
       );

@@ -39,28 +39,34 @@ VkResult ResourceAllocator::allocateCommandBuffer (VkCommandBuffer& buffer, bool
 
 VkResult ResourceAllocator::createVkBuffer (
     VkDeviceSize size
-  , VkBufferUsageFlags vkBufferUsageFlags
-  , VkMemoryPropertyFlags vkMemProperties
+  , BufferType bufferType
   , VkBuffer& vkBuffer
   , VmaAllocation& vmaAllocation
 ) {
   VkBufferCreateInfo vkBufferCreateInfo = {};
   vkBufferCreateInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
   vkBufferCreateInfo.size = size;
-  vkBufferCreateInfo.usage = vkBufferUsageFlags;
   vkBufferCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
   VmaAllocationCreateInfo allocationCreateInfo = {};
-  if (vkMemProperties & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT) {
-    allocationCreateInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;
-  } else {
-    if ((VK_BUFFER_USAGE_TRANSFER_SRC_BIT & vkBufferUsageFlags)
-        && (vkMemProperties & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT)
-    ) {
-      allocationCreateInfo.usage = VMA_MEMORY_USAGE_CPU_ONLY;
-    } else {
-      allocationCreateInfo.usage = VMA_MEMORY_USAGE_CPU_TO_GPU;
-    }
+  allocationCreateInfo.usage = VMA_MEMORY_USAGE_AUTO;
+
+  switch (bufferType) {
+    case BufferType::TEXTURE_BUFFER_FOR_UPLOAD:
+    case BufferType::VERTEX_BUFFER_FOR_UPLOAD:
+      vkBufferCreateInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+      allocationCreateInfo.flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT;
+      break;
+    case BufferType::UNIFORM_BUFFER_HOST_COHERENT:
+      vkBufferCreateInfo.usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
+      allocationCreateInfo.flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT;
+      break;
+    case BufferType::VERTEX_BUFFER:
+      vkBufferCreateInfo.usage =
+        VK_BUFFER_USAGE_TRANSFER_DST_BIT
+          | VK_BUFFER_USAGE_INDEX_BUFFER_BIT
+          | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+      break;
   }
 
   return
@@ -79,8 +85,7 @@ VkResult ResourceAllocator::createVkImage (
   , VkSampleCountFlagBits vkSampleCountFlags
   , VkFormat vkFormat
   , VkImageTiling vkImgTiling
-  , VkImageUsageFlags vkImgUsageFlags
-  , VkMemoryPropertyFlags vkMemProperties
+  , ImageType imageType
   , VkImage& vkImage
   , VmaAllocation& vmaAllocation
 ) {
@@ -95,22 +100,26 @@ VkResult ResourceAllocator::createVkImage (
   vkImageCreateInfo.format = vkFormat;
   vkImageCreateInfo.tiling = vkImgTiling;
   vkImageCreateInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-  vkImageCreateInfo.usage = vkImgUsageFlags;
   vkImageCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
   vkImageCreateInfo.samples = vkSampleCountFlags;
   vkImageCreateInfo.flags = 0;
 
   VmaAllocationCreateInfo allocationCreateInfo = {};
-  if (vkMemProperties & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT) {
-    allocationCreateInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;
-  } else {
-    if ((VK_BUFFER_USAGE_TRANSFER_SRC_BIT & vkImgUsageFlags)
-        && (vkMemProperties & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT)
-    ) {
-      allocationCreateInfo.usage = VMA_MEMORY_USAGE_CPU_ONLY;
-    } else {
-      allocationCreateInfo.usage = VMA_MEMORY_USAGE_CPU_TO_GPU;
-    }
+  allocationCreateInfo.usage = VMA_MEMORY_USAGE_AUTO;
+
+  switch (imageType) {
+    case ImageType::MULTISAMPLER_ATTACHMENT:
+      vkImageCreateInfo.usage = VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+      allocationCreateInfo.flags = VMA_ALLOCATION_CREATE_DEDICATED_MEMORY_BIT;
+      break;
+    case ImageType::STENCIL_ATTACHMENT:
+      vkImageCreateInfo.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
+      allocationCreateInfo.flags = VMA_ALLOCATION_CREATE_DEDICATED_MEMORY_BIT;
+      break;
+    case ImageType::TEXTURE:
+      vkImageCreateInfo.usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
+      allocationCreateInfo.flags = VMA_ALLOCATION_CREATE_DEDICATED_MEMORY_BIT;
+      break;
   }
 
   return

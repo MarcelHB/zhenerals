@@ -11,6 +11,19 @@
 
 namespace Vugl {
 
+enum class BufferType {
+    UNIFORM_BUFFER_HOST_COHERENT
+  , VERTEX_BUFFER
+  , VERTEX_BUFFER_FOR_UPLOAD
+  , TEXTURE_BUFFER_FOR_UPLOAD
+};
+
+enum class ImageType {
+    STENCIL_ATTACHMENT
+  , MULTISAMPLER_ATTACHMENT
+  , TEXTURE
+};
+
 class ResourceAllocator {
   private:
     VkDevice vkDevice;
@@ -35,8 +48,7 @@ class ResourceAllocator {
 
     VkResult createVkBuffer (
         VkDeviceSize size
-      , VkBufferUsageFlags vkBufferUsageFlags
-      , VkMemoryPropertyFlags vkMemPropFlags
+      , BufferType BufferType
       , VkBuffer& vkBuffer
       , VmaAllocation& vmaAllocation
     );
@@ -46,8 +58,7 @@ class ResourceAllocator {
       , VkSampleCountFlagBits vkSampleCountFlags
       , VkFormat vkFormat
       , VkImageTiling vkImgTiling
-      , VkImageUsageFlags vkImgUsageFlags
-      , VkMemoryPropertyFlags vkMemProperties
+      , ImageType imageType
       , VkImage& vkImage
       , VmaAllocation& vmaAllocation
     );

@@ -97,10 +97,7 @@ VkResult ElementBuffer::recordUploadCommands (VkCommandBuffer vkCommandBuffer) {
     this->vkLastResult =
       resourceAllocator.createVkBuffer(
           vkStagingVBSize + vkStagingIBSize
-        , VK_BUFFER_USAGE_TRANSFER_DST_BIT
-          | VK_BUFFER_USAGE_INDEX_BUFFER_BIT
-          | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT
-        , VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
+        , BufferType::VERTEX_BUFFER
         , vkBuffer
         , vmaAllocation
       );

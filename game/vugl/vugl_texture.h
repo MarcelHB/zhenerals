@@ -63,8 +63,7 @@ class Texture : public UploadableResource {
       this->vkLastResult =
         allocator.createVkBuffer(
             vkTBSize
-          , VK_BUFFER_USAGE_TRANSFER_SRC_BIT
-          , VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
+          , BufferType::TEXTURE_BUFFER_FOR_UPLOAD
           , vkStagingBuffer
           , vmaStagingBufferAllocation
         );
@@ -81,8 +80,7 @@ class Texture : public UploadableResource {
           , VK_SAMPLE_COUNT_1_BIT
           , vkFormat
           , VK_IMAGE_TILING_OPTIMAL
-          , VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT
-          , VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
+          , ImageType::TEXTURE
           , vkTexture
           , vmaTextureAllocation
         );

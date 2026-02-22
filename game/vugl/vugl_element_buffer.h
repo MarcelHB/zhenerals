@@ -65,8 +65,7 @@ class ElementBuffer
         this->vkLastResult =
           resourceAllocator.createVkBuffer(
               vkStagingVBSize + vkStagingIBSize
-            , VK_BUFFER_USAGE_TRANSFER_SRC_BIT
-            , VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
+            , BufferType::VERTEX_BUFFER_FOR_UPLOAD
             , vkStagingBuffer
             , vmaStagingAllocation
           );
