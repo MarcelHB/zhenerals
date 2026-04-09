@@ -501,6 +501,7 @@ ADD_GAME_TEST(Textures
 ADD_GAME_TEST(W3DFile
   game/MemoryViewStream.cpp
   game/formats/W3DFile.cpp
+  game/gfx/Model.cpp
   game/tests/GameTest_W3D.cpp
 )
 

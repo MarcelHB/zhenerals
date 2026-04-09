@@ -5,6 +5,7 @@
 #include "../Config.h"
 #include "../ResourceLoader.h"
 #include "../formats/W3DFile.h"
+#include "../gfx/Model.h"
 
 namespace ZH {
 
@@ -66,6 +67,36 @@ TEST(W3DTest, parsingSwing) {
   W3DFile w3d {stream};
   auto models = w3d.parse();
   ASSERT_EQ(3, models.size());
+}
+
+TEST(W3DTest, multiModelExtremesAndBoundings) {
+  Config config;
+  ResourceLoader w3dLoader {{"ZH_Generals/W3D.big"}, config.baseDir};
+
+  auto fileStream = w3dLoader.getFileStream("art\\w3d\\cbnhotel01.w3d");
+  auto stream = fileStream->getStream();
+  W3DFile w3d {stream};
+  auto models = w3d.parse();
+  ASSERT_EQ(2, models.size());
+
+  auto model1 = Model::fromW3D(*models[0]);
+  auto model2 = Model::fromW3D(*models[1]);
+
+  auto extremes1 = model1.getExtremes();
+  EXPECT_FLOAT_EQ(11.162782f, extremes1[0].x);
+  EXPECT_FLOAT_EQ(-15.6218f,  extremes1[0].y);
+  EXPECT_FLOAT_EQ(72.893188f, extremes1[0].z);
+  EXPECT_FLOAT_EQ(11.162782f, extremes1[1].x);
+  EXPECT_FLOAT_EQ(16.062727f, extremes1[1].y);
+  EXPECT_FLOAT_EQ(82.354538f, extremes1[1].z);
+
+  auto extremes2 = model2.getExtremes();
+  EXPECT_FLOAT_EQ(-24.42733f,    extremes2[0].x);
+  EXPECT_FLOAT_EQ(-18.679104f,   extremes2[0].y);
+  EXPECT_FLOAT_EQ(-0.070003346f, extremes2[0].z);
+  EXPECT_FLOAT_EQ(27.313433f, extremes2[1].x);
+  EXPECT_FLOAT_EQ(18.679104f, extremes2[1].y);
+  EXPECT_FLOAT_EQ(75.862373f, extremes2[1].z);
 }
 
 }
