@@ -46,10 +46,10 @@ bool Overlay::processEvent(const SDL_Event& event) {
       if (event.button.button == SDL_BUTTON_LEFT
           && cameraControlMode == CameraControlMode::AXES) {
         cameraControlMode = CameraControlMode::DIRECTIONAL;
-      } else if (event.button.button == SDL_BUTTON_RIGHT
-          && cameraControlMode == CameraControlMode::DIRECTIONAL) {
+      } else if (event.button.button == SDL_BUTTON_RIGHT) {
         cameraControlMode = CameraControlMode::NONE;
-      } else if (event.button.button == SDL_BUTTON_LEFT) {
+      } else if (event.button.button == SDL_BUTTON_LEFT
+          && cameraControlMode == CameraControlMode::NONE) {
         onCursorClickUp();
       }
       break;
