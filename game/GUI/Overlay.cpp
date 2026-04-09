@@ -25,6 +25,11 @@ bool Overlay::processEvent(const SDL_Event& event) {
     return true;
   }
 
+  auto accelerate = [](float v, bool y) -> float {
+    auto sign = v >= 0 ? (y ? 1 : -1) : (y ? -1 : 1);
+    return sign * std::min((y ? 60.0f : 100.0f), v * v) / 16.0f;
+  };
+
   switch (event.type) {
     case SDL_EVENT_MOUSE_BUTTON_DOWN:
       if (event.button.button == SDL_BUTTON_RIGHT
@@ -52,7 +57,10 @@ bool Overlay::processEvent(const SDL_Event& event) {
       if (cameraControlMode == CameraControlMode::AXES) {
         getBattlefield()->moveCameraAxially(event.motion.xrel / 4.0f, -event.motion.yrel / 4.0f);
       } else if (cameraControlMode == CameraControlMode::DIRECTIONAL) {
-        getBattlefield()->moveCameraDirectionally(-event.motion.xrel / 4.0f, event.motion.yrel / 4.0f);
+        getBattlefield()->moveCameraDirectionally(
+            accelerate(event.motion.xrel, false)
+          , accelerate(event.motion.yrel, true)
+        );
       } else {
         auto childPos = (*children.begin())->getPositionOffset();
         Point pos {event.motion.x - childPos.x, event.motion.y - childPos.y};
