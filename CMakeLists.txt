@@ -174,6 +174,7 @@ ADD_EXECUTABLE(zhen
   game/formats/W3DFile.cpp
   game/gfx/Camera.cpp
   game/gfx/FrameDisposable.cpp
+  game/gfx/Frustum.cpp
   game/gfx/HostTexture.cpp
   game/gfx/Model.cpp
   game/gfx/ModelCache.cpp
@@ -390,6 +391,12 @@ IF (BUILD_TESTING)
     ${FREETYPE_LIBRARIES}
   )
 ENDIF()
+
+ADD_UNIT_TEST(Frustum
+  game/gfx/Camera.cpp
+  game/gfx/Frustum.cpp
+  game/tests/Test_Frustum.cpp
+)
 
 ADD_UNIT_TEST(Geometry
   game/tests/Test_Geometry.cpp

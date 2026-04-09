@@ -93,7 +93,7 @@ void Camera::reposition(
 ) {
   this->position = position;
   direction = glm::normalize(target - position);
-  this->up = up;
+  this->up = glm::normalize(up);
 
   updateCameraMatrix();
 }

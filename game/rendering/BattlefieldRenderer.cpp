@@ -4,6 +4,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 #include "../Logging.h"
+#include "../gfx/Frustum.h"
 #include "BattlefieldRenderer.h"
 
 namespace ZH {
@@ -375,18 +376,27 @@ void BattlefieldRenderer::renderObjectInstances(
   // TODO instance movement, check for new/deleted instances
   if (newMatrices) {
     auto map = battlefield.getMap();
-    auto& camMatrix = battlefield.getCamera().getCameraMatrix();
+    auto& camera = battlefield.getCamera();
+    auto& camMatrix = camera.getCameraMatrix();
     drawChecks.clear();
     drawChecks.reserve(battlefield.getObjectInstances().size());
 
+    GFX::Frustum frustrum {camera};
+
     for (auto& instance : battlefield.getObjectInstances()) {
+      modelRenderer.resetFrames(instance->getID());
+
+      auto modelMatrix = battlefield.getObjectToGridMatrix(instance->getPosition(), 0.0f);
+
       auto& drawCheck = drawChecks.emplace_back();
       drawCheck.instance = instance;
       drawCheck.sphere = boundingSpheres.find(instance->getID())->second;
 
-      auto modelMatrix = battlefield.getObjectToGridMatrix(instance->getPosition(), 0.0f);
-      drawCheck.sphere.position = glm::vec3 {camMatrix * modelMatrix * glm::vec4 {drawCheck.sphere.position, 1.0f}};
-      drawCheck.dist = glm::length(drawCheck.sphere.position);
+      // bounding sphere to world
+      auto& sphere = drawCheck.sphere;
+      drawCheck.sphere.position = glm::vec3 {modelMatrix * glm::vec4 {sphere.position, 1.0f}};
+      drawCheck.draw = frustrum.isSphereInside(sphere.position, sphere.radius);
+      drawCheck.dist = glm::length(sphere.position);
     }
 
     std::sort(
