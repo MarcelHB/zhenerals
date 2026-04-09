@@ -235,11 +235,12 @@ void DescriptorSet::updateDevice () {
   std::vector<VkDescriptorImageInfo> samplerDescriptors{assignedSamplers.size()};
   std::vector<VkDescriptorImageInfo> sampledImageDescriptors{assignedTextures.size()};
   std::vector<VkDescriptorImageInfo> storageImageDescriptors{assignedStorageImages.size()};
-  std::vector<VkDescriptorBufferInfo> bufferDescriptors{(numUBOs + numDynamicUBOs)};
+  std::vector<VkDescriptorBufferInfo> bufferDescriptors{(numUBOs + numDynamicUBOs) * numSwapchainImages};
 
+  size_t iBuffers = 0;
   for (size_t i = 0; i < numSwapchainImages; ++i) {
     size_t j = 0;
-    size_t iCombSamplers = 0, iSamplers = 0, iBuffers = 0, iSampledImages = 0, iStorageImages = 0;
+    size_t iCombSamplers = 0, iSamplers = 0, iSampledImages = 0, iStorageImages = 0;
 
     for (auto& binding : bindings) {
       auto& vkDescriptor = writeSets[i * bindings.size() + j];
