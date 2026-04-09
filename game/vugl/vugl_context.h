@@ -101,6 +101,8 @@ class Context {
         const std::vector<VkPhysicalDevice>& physicalDevices
       , const std::vector<const char*>& vkDeviceExtensionsList
     ) const;
+
+    bool submitToGPUQueue (VkCommandBuffer& buffer);
   public:
     Context ();
     Context (
@@ -152,7 +154,6 @@ class Context {
     );
 
     bool uploadResource (UploadableResource& resource);
-    bool submitToGPUQueue (VkCommandBuffer& buffer);
     void waitForIdle ();
 };
 
