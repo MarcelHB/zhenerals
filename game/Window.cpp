@@ -5,6 +5,10 @@
 #include "Logging.h"
 #include "Window.h"
 
+#include "gfx/VkExt.h"
+
+PFN_vkCmdSetCullModeEXT pVkCmdSetCullModeEXT = nullptr;
+
 #define CHECK_SDL(expr) \
   if (!(expr)) { \
     LOG_ZH("Window/SDL", "error: {}", SDL_GetError());\
@@ -18,6 +22,7 @@ namespace ZH {
 const std::vector<const char*> vkDeviceExtensionsList {
     VK_KHR_SWAPCHAIN_EXTENSION_NAME
   , "VK_EXT_descriptor_indexing"
+  , "VK_EXT_extended_dynamic_state"
 };
 
 const std::vector<const char*> vkInstanceLayersList {
@@ -73,8 +78,13 @@ bool Window::init(Config& config) {
   vkDeviceFeatures.fillModeNonSolid = true;
   vkDeviceFeatures.samplerAnisotropy = true;
 
+  VkPhysicalDeviceExtendedDynamicStateFeaturesEXT dynamicStateFeatures = {};
+  dynamicStateFeatures.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTENDED_DYNAMIC_STATE_FEATURES_EXT;
+  dynamicStateFeatures.extendedDynamicState = VK_TRUE;
+
   VkPhysicalDeviceDescriptorIndexingFeaturesEXT nextDeviceFeatures = {};
   nextDeviceFeatures.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_INDEXING_FEATURES_EXT;
+  nextDeviceFeatures.pNext = &dynamicStateFeatures;
   nextDeviceFeatures.runtimeDescriptorArray = VK_TRUE;
   nextDeviceFeatures.shaderSampledImageArrayNonUniformIndexing = VK_TRUE;
 
@@ -86,6 +96,16 @@ bool Window::init(Config& config) {
     , vkDeviceFeatures
     , &nextDeviceFeatures
   );
+
+  pVkCmdSetCullModeEXT = (PFN_vkCmdSetCullModeEXT)vkGetDeviceProcAddr(
+      vuglContext->getDevice()
+    , "vkCmdSetCullModeEXT"
+  );
+
+  if (pVkCmdSetCullModeEXT == nullptr) {
+    ERROR_ZH("Window", "Could not setup Vulkan extension VK_EXT_extended_dynamic_state");
+    return false;
+  }
 
   auto displayId = SDL_GetDisplayForWindow(sdlWindow);
   auto displayMode = SDL_GetCurrentDisplayMode(displayId);
