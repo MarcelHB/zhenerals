@@ -75,8 +75,10 @@ class PipelineSetup {
     void setFSCode (std::vector<char>&& code);
     void setVSCode (std::vector<char>&& code);
 
+    void addDynamicState (VkDynamicState);
   private:
     void reserveDescriptor (VkDescriptorType type, VkShaderStageFlags shaderStageFlags, size_t num = 1);
+    std::vector<VkDynamicState> dynamicStates;
 };
 
 };

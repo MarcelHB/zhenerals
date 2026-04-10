@@ -45,6 +45,7 @@ PipelineSetup::PipelineSetup (
   , vkGraphicsPipelineCreateInfo{}
   , vkPushConstantRange{}
   , vkDescriptorSetLayoutCreateInfo{}
+  , dynamicStates{vkDefaultDynamicStates}
 {
   vkCSModuleCreateInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
   vkFSModuleCreateInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
@@ -114,8 +115,8 @@ PipelineSetup::PipelineSetup (
   vkPipelineColorBlendStateCreateInfo.blendConstants[3] = 0.0f;
 
   vkPipelineDynamicStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
-  vkPipelineDynamicStateCreateInfo.dynamicStateCount = vkDefaultDynamicStates.size();
-  vkPipelineDynamicStateCreateInfo.pDynamicStates = vkDefaultDynamicStates.data();
+  vkPipelineDynamicStateCreateInfo.dynamicStateCount = dynamicStates.size();
+  vkPipelineDynamicStateCreateInfo.pDynamicStates = dynamicStates.data();
 
   vkPipelineLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
   vkPipelineLayoutCreateInfo.setLayoutCount = 0;
@@ -263,6 +264,13 @@ void PipelineSetup::reserveDescriptor (VkDescriptorType type, VkShaderStageFlags
 
   vkDescriptorSetLayoutCreateInfo.bindingCount = vkDescriptorSetLayoutBindings.size();
   vkDescriptorSetLayoutCreateInfo.pBindings = vkDescriptorSetLayoutBindings.data();
+}
+
+void PipelineSetup::addDynamicState(VkDynamicState state) {
+  dynamicStates.push_back(state);
+
+  vkPipelineDynamicStateCreateInfo.dynamicStateCount = dynamicStates.size();
+  vkPipelineDynamicStateCreateInfo.pDynamicStates = dynamicStates.data();
 }
 
 };
