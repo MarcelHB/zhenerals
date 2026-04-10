@@ -2,6 +2,7 @@
 
 #include <algorithm>
 
+#include "../gfx/VkExt.h"
 #include "ModelRenderer.h"
 
 namespace ZH {
@@ -43,6 +44,7 @@ bool ModelRenderer::preparePipeline(Vugl::RenderPass& renderPass) {
   pipelineSetup.vkPipelineColorBlendAttachmentState.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
   pipelineSetup.setVSCode(readFile("shaders/model.vert.spv"));
   pipelineSetup.setFSCode(readFile("shaders/model.frag.spv"));
+  pipelineSetup.addDynamicState(VK_DYNAMIC_STATE_CULL_MODE);
 
   pipelineSetup.reserveUniformBuffer(VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT);
   pipelineSetup.reserveCombinedSampler(VK_SHADER_STAGE_FRAGMENT_BIT);
@@ -86,6 +88,7 @@ bool ModelRenderer::prepareModel(uint64_t id, const std::string& modelName) {
 
   renderData->orderData.resize(models->size() * 8);
   renderData->drawOrder.resize(models->size());
+  renderData->backfaceCulling.resize(models->size());
 
   uint32_t i = 0;
   for (auto& model : *models) {
@@ -99,6 +102,7 @@ bool ModelRenderer::prepareModel(uint64_t id, const std::string& modelName) {
     auto& uniformBuffer =
       renderData->uniformBuffers.emplace_back(vuglContext.createUniformBuffer(sizeof(ShaderData)));
     renderData->transformations[i] = model->transformation;
+    renderData->backfaceCulling[i] = model->backfaceCulling;
 
     auto vertexLookup = vertexData.find(key);
     if (vertexLookup == vertexData.cend()) {
@@ -292,8 +296,10 @@ bool ModelRenderer::renderModel(uint64_t id, Vugl::CommandBuffer& commandBuffer)
     commandBuffer.bindResource(*elementBuffer);
 
     auto numIndices = elementBuffer->getNumIndices();
-    commandBuffer.draw([numIndices](VkCommandBuffer vkCommandBuffer, uint32_t) {
+    commandBuffer.draw([numIndices, &renderData, i](VkCommandBuffer vkCommandBuffer, uint32_t) {
+      pVkCmdSetCullModeEXT(vkCommandBuffer, renderData->backfaceCulling[i] ? VK_CULL_MODE_BACK_BIT : VK_CULL_MODE_NONE);
       vkCmdDrawIndexed(vkCommandBuffer, numIndices, 1, 0, 0, 0);
+
       return VK_SUCCESS;
     });
   }

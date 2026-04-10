@@ -65,6 +65,7 @@ class ModelRenderer {
       uint64_t frameIdxSet = 0;
       std::vector<glm::vec3> orderData;
       std::vector<size_t> drawOrder;
+      std::vector<bool> backfaceCulling;
     };
 
     Vugl::Context& vuglContext;
