@@ -29,8 +29,8 @@ TEST(W3DTest, parsing) {
   EXPECT_EQ(32, model->triangles.size());
   EXPECT_EQ(1, model->shaderValues.size());
   EXPECT_EQ(1, model->materialPasses.size());
-  EXPECT_EQ(1, model->materials.size());
-  EXPECT_EQ("8 - Default", model->materials[0]);
+  EXPECT_EQ(1, model->vertexMaterials.size());
+  EXPECT_EQ("8 - Default", model->vertexMaterials[0]);
   EXPECT_EQ(1, model->textures.size());
   EXPECT_EQ("PTDogwod01_S.tga", model->textures[0]);
   EXPECT_GE(model->boundingSphereRadius, 0);

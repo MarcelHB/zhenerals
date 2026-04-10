@@ -68,10 +68,10 @@ size_t W3DFile::parseNextChunk(std::vector<std::shared_ptr<W3DModel>>& models) {
     bytesRead = 0;
     switch (chunkType) {
       case 0x2B: // vertex material
-        if (!currentMaterialIdx) {
-          currentMaterialIdx = {0};
+        if (!currentVertMaterialIdx) {
+          currentVertMaterialIdx = {0};
         } else {
-          currentMaterialIdx = {1 + *currentMaterialIdx};
+          currentVertMaterialIdx = {1 + *currentVertMaterialIdx};
         }
         break;
       case 0x31: // texture (subs)
@@ -90,7 +90,7 @@ size_t W3DFile::parseNextChunk(std::vector<std::shared_ptr<W3DModel>>& models) {
         break;
       case 0x0: // root
         model = models.emplace_back(std::make_shared<W3DModel>());
-        currentMaterialIdx = std::nullopt;
+        currentVertMaterialIdx = std::nullopt;
         currentTextureIdx = std::nullopt;
         currentMaterialPassIdx = std::nullopt;
         break;
@@ -103,7 +103,7 @@ size_t W3DFile::parseNextChunk(std::vector<std::shared_ptr<W3DModel>>& models) {
       case 0x702:
         break;
       default:
-        WARN_ZH("W3DFile", "Unknown chunk type {}", chunkType);
+        WARN_ZH("W3DFile", "Unknown chunk type 0x{:x}", chunkType);
         break;
     }
 
@@ -151,13 +151,14 @@ size_t W3DFile::parseNextChunk(std::vector<std::shared_ptr<W3DModel>>& models) {
         totalBytes += parseContiguous(model->shaderValues, chunkSize);
         break;
       case 0x2C: // vertex material name
-        if (currentMaterialIdx) {
-          if (*currentMaterialIdx >= model->materials.size()) {
+        if (currentVertMaterialIdx) {
+          if (*currentVertMaterialIdx >= model->vertexMaterials.size()) {
+            WARN_ZH("W3D", "Material idx out of scope!");
             broken = true;
             return totalBytes;
           }
 
-          auto& str = model->materials[*currentMaterialIdx];
+          auto& str = model->vertexMaterials[*currentVertMaterialIdx];
           // trailing '\0'
           str.resize(chunkSize - 1);
           stream.read(str.data(), chunkSize - 1);
@@ -302,14 +303,14 @@ size_t W3DFile::parseNextChunk(std::vector<std::shared_ptr<W3DModel>>& models) {
         }
         break;
       default:
-        WARN_ZH("W3DFile", "Unknown chunk type {}", chunkType);
+        WARN_ZH("W3DFile", "Unknown chunk type 0x{:x}", chunkType);
         stream.seekg(chunkSize, std::ios::cur);
         totalBytes += chunkSize;
     }
   }
 
   if (totalBytes != chunkSize + 8) {
-    WARN_ZH("W3DFile", "Error at chunk {}: {} (read) vs. {} (spec.)", chunkType, totalBytes, chunkSize + 8);
+    WARN_ZH("W3DFile", "Error at chunk 0x{:x}: {} (read) vs. {} (spec.)", chunkType, totalBytes, chunkSize + 8);
     broken = true;
   }
 
@@ -325,10 +326,7 @@ size_t W3DFile::parseMaterialInfo(W3DModel& model) {
   model.materialPasses.resize(buffer4);
 
   read4()
-  if (buffer4 != model.materials.size()) {
-    WARN_ZH("W3DFile", "Material info and header counter mismatch")
-  }
-  model.materials.resize(buffer4);
+  model.vertexMaterials.resize(buffer4);
 
   read4()
   model.shaderValues.resize(buffer4);
@@ -400,8 +398,8 @@ size_t W3DFile::parseHeader(W3DModel& model) {
   model.vertices.resize(buffer4);
   model.normals.resize(buffer4);
 
+  // shader material
   read4()
-  model.materials.resize(buffer4);
 
   // ignore for now, whatever it is
   stream.seekg(16, std::ios::cur);

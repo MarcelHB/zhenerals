@@ -36,7 +36,7 @@ struct W3DModel {
   std::vector<Triangle> triangles;
   std::vector<std::array<uint8_t, 16>> shaderValues;
   std::vector<MaterialPass> materialPasses;
-  std::vector<std::string> materials;
+  std::vector<std::string> vertexMaterials;
   std::vector<std::string> textures;
   glm::vec3 boundingBoxFrom;
   glm::vec3 boundingBoxTo;
@@ -58,7 +58,7 @@ class W3DFile {
     std::vector<std::shared_ptr<W3DModel>> parse();
   private:
     bool broken = false;
-    std::optional<size_t> currentMaterialIdx;
+    std::optional<size_t> currentVertMaterialIdx;
     std::optional<size_t> currentTextureIdx;
     std::optional<size_t> currentMaterialPassIdx;
     std::istream& stream;
