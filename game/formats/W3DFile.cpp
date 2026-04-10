@@ -348,6 +348,7 @@ size_t W3DFile::parseHeader(W3DModel& model) {
   stream.seekg(4, std::ios::cur);
   read4()
   uint32_t flags = buffer4;
+  model.flags = flags;
 
   model.name.resize(16);
   model.containerName.resize(16);

@@ -26,6 +26,8 @@ struct Model {
   std::vector<uint32_t> textureIndices;
   glm::mat4 transformation {1.0f};
 
+  bool backfaceCulling = true;
+
   static Model fromW3D(const W3DModel&);
   std::array<glm::vec3, 2> getExtremes() const;
 };

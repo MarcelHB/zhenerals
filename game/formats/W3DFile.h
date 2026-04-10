@@ -43,6 +43,7 @@ struct W3DModel {
   glm::vec3 boundingSphere;
   float boundingSphereRadius = 1.0f;
   glm::mat4 transformation {1.0f};
+  uint32_t flags = 0;
 };
 
 class W3DFile {

@@ -32,6 +32,10 @@ Model Model::fromW3D(const W3DModel& w3d) {
   model.textureIndices = materialPass.textureIndices;
   model.transformation = w3d.transformation;
 
+  if (w3d.flags & 0x2000) {
+    model.backfaceCulling = false;
+  }
+
   return model;
 }
 
