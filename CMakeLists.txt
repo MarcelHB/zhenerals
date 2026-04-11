@@ -265,7 +265,6 @@ ADD_EXECUTABLE(decompress
 ADD_EXECUTABLE(w3ddump
   game/common.cpp
   game/formats/BIGFile.cpp
-  game/formats/W3DFile.cpp
   game/Logger.cpp
   game/Logging.cpp
   game/MemoryViewStream.cpp

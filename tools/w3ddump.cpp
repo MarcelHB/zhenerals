@@ -7,7 +7,6 @@
 #include "fmt/core.h"
 
 #include "../game/Config.h"
-#include "../game/formats/W3DFile.h"
 #include "../game/Logger.h"
 #include "../game/ResourceLoader.h"
 
