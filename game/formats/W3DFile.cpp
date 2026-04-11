@@ -298,8 +298,8 @@ size_t W3DFile::parseNextChunk(std::vector<std::shared_ptr<W3DModel>>& models) {
           }
 
           pivot.transformation =
-            glm::mat4_cast(q) *
-              glm::translate(pivot.transformation, translation);
+            glm::translate(glm::mat4 {1.0f}, translation)
+              * glm::mat4_cast(q);
         }
         break;
       default:
@@ -373,10 +373,7 @@ size_t W3DFile::parseHeader(W3DModel& model) {
     auto *p = &*lookup;
     while (p->parentIdx) {
       p = &pivots[*p->parentIdx];
-      auto translation = model.transformation[3];
-      model.transformation[3] = glm::vec4 {0.0f, 0.0f, 0.0f, 1.0f};
       model.transformation *= p->transformation;
-      model.transformation = glm::translate(model.transformation, glm::vec3 {translation});
     }
   }
 
