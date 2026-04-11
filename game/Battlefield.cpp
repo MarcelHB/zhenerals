@@ -8,6 +8,8 @@
 
 namespace ZH {
 
+static constexpr float HEIGHT_SCALE = 1.6f;
+
 Battlefield::Battlefield(
     std::shared_ptr<Map> map
   , MapBuilder& mapBuilder
@@ -53,6 +55,8 @@ glm::mat4 Battlefield::getObjectToGridMatrix(const glm::vec3& pos, float radAngl
 
   auto height = map->getCenterHeight(gridPos.x, gridPos.z);
 
+  auto modelScale = glm::scale(glm::mat4 {1.0f}, glm::vec3 {1.0f, HEIGHT_SCALE, 1.0f});
+
   auto rotation =
     glm::rotate(
         glm::mat4 {1.0f}
@@ -76,7 +80,8 @@ glm::mat4 Battlefield::getObjectToGridMatrix(const glm::vec3& pos, float radAngl
       gridTranslation
       * map->getWorldToGridMatrix()
       * worldTranslation
-      * rotation;
+      * rotation
+      * modelScale;
 }
 
 Daytime Battlefield::getDaytime() const {
