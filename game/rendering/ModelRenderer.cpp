@@ -122,7 +122,7 @@ bool ModelRenderer::prepareModel(uint64_t id, const std::string& modelName) {
     i += 1;
 
     // EVAL per-triangle texture
-    auto& textureName = model->textures[0];
+    auto& textureName = model->textures.back();
     auto sampler = textureCache.getTextureSampler(textureName);
     if (!sampler) {
       WARN_ZH("BattlefieldRenderer", "Failed to load model texture {}", textureName);

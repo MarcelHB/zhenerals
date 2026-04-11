@@ -12,7 +12,7 @@ Model Model::fromW3D(const W3DModel& w3d) {
   model.vertexData.resize(w3d.vertices.size());
 
   // EVAL multi pass stuff
-  auto& materialPass = w3d.materialPasses[0];
+  auto& materialPass = w3d.materialPasses.back();
 
   for (size_t i = 0; i < w3d.vertices.size(); ++i) {
     auto& vertexData = model.vertexData[i];
