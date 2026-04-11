@@ -98,7 +98,7 @@ size_t Dict::readBool(InflatingStream& stream, const std::string& key) {
 
   if (!key.empty()) {
     DictValue value {rawValue > 0};
-    entries.emplace(key, std::move(value));
+    entries.emplace(key, std::make_pair(DictType::BOOL, std::move(value)));
   }
 
   return 1;
@@ -113,7 +113,7 @@ size_t Dict::readInt(InflatingStream& stream, const std::string& key) {
 
   if (!key.empty()) {
     DictValue value {rawValue};
-    entries.emplace(key, std::move(value));
+    entries.emplace(key, std::make_pair(DictType::INT, std::move(value)));
   }
 
   return bytesRead;
@@ -128,7 +128,7 @@ size_t Dict::readFloat(InflatingStream& stream, const std::string& key) {
 
   if (!key.empty()) {
     DictValue value {rawValue};
-    entries.emplace(key, std::move(value));
+    entries.emplace(key, std::make_pair(DictType::FLOAT, std::move(value)));
   }
 
   return bytesRead;
@@ -150,7 +150,7 @@ size_t Dict::readString(InflatingStream& stream, const std::string& key) {
 
   if (!key.empty()) {
     DictValue value {std::string{buffer.data(), len}};
-    entries.emplace(key, std::move(value));
+    entries.emplace(key, std::make_pair(DictType::STRING, std::move(value)));
   }
 
   return bytesRead + 2;
@@ -172,10 +172,39 @@ size_t Dict::readU16String(InflatingStream& stream, const std::string& key) {
 
   if (!key.empty()) {
     DictValue value {std::u16string{buffer.data(), len}};
-    entries.emplace(key, std::move(value));
+    entries.emplace(key, std::make_pair(DictType::U16STRING, std::move(value)));
   }
 
   return bytesRead + 2;
+}
+
+Dict::Iterator Dict::cbegin() const {
+  return {entries.cbegin()};
+}
+
+Dict::Iterator Dict::cend() const {
+  return {entries.cend()};
+}
+
+Dict::Iterator& Dict::Iterator::operator++() {
+  ++it;
+  return *this;
+}
+
+bool Dict::Iterator::operator==(const Iterator& other) const {
+  return it == other.it;
+}
+
+bool Dict::Iterator::operator!=(const Iterator& other) const {
+  return !operator==(other);
+}
+
+const std::string& Dict::Iterator::key() const {
+  return it->first;
+}
+
+Dict::DictType Dict::Iterator::type() const {
+  return it->second.first;
 }
 
 }
