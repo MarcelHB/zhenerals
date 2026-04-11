@@ -261,6 +261,19 @@ ADD_EXECUTABLE(decompress
   tools/decompress.cpp
 )
 
+# map dump
+ADD_EXECUTABLE(mapdump
+  game/common.cpp
+  game/formats/Dict.cpp
+  game/formats/BIGFile.cpp
+  game/InflatingStream.cpp
+  game/Logger.cpp
+  game/Logging.cpp
+  game/MemoryViewStream.cpp
+  game/ResourceLoader.cpp
+  tools/mapdump.cpp
+)
+
 # w3d dump
 ADD_EXECUTABLE(w3ddump
   game/common.cpp
@@ -304,6 +317,10 @@ ADD_EXECUTABLE(w3dview
   tools/w3dview.cpp
 
   ${vugl_sources}
+)
+
+TARGET_LINK_LIBRARIES(mapdump
+  fmt::fmt
 )
 
 TARGET_LINK_LIBRARIES(w3ddump
@@ -352,6 +369,7 @@ ADD_CUSTOM_COMMAND(
 )
 
 TARGET_COMPILE_DEFINITIONS(big PRIVATE NO_TRACY=1)
+TARGET_COMPILE_DEFINITIONS(mapdump PRIVATE NO_TRACY=1)
 TARGET_COMPILE_DEFINITIONS(w3ddump PRIVATE NO_TRACY=1)
 
 ADD_UNIT_TEST(AudioFile
