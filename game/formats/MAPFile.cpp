@@ -560,6 +560,7 @@ size_t MAPFile::parseObject(MapBuilder& mapBuilder, const ChunkMetaData& metaDat
   size_t totalBytes = 0;
   size_t bytesRead = 0;
   float bufferf = 0.0f;
+  uint32_t buffer4 = 0;
 
   MapObject object;
   for (uint8_t i = 0; i < 3; ++i) {
@@ -571,18 +572,10 @@ size_t MAPFile::parseObject(MapBuilder& mapBuilder, const ChunkMetaData& metaDat
     object.location[2] = 0.0f;
   }
 
-  bytesRead = stream.read(reinterpret_cast<char*>(&object.angle), 4);
-  totalBytes += bytesRead;
-  if (bytesRead != 4) {
-    return totalBytes;
-  }
+  readf()
+  object.angle = bufferf;
 
-  uint32_t flags = 0;
-  bytesRead = stream.read(reinterpret_cast<char*>(&flags), 4);
-  totalBytes += bytesRead;
-  if (bytesRead != 4) {
-    return totalBytes;
-  }
+  read4() // flags
 
   StringOpt stringOpt;
   readString()
