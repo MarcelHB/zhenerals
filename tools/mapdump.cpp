@@ -343,6 +343,51 @@ size_t parseChunk(
         dumpDict(dict, d1);
       }
     }
+  } else if (chunkType == "PolygonTriggers") {
+    read4()
+    auto numTriggers = buffer4;
+    dump(depth, "# triggers: {}", numTriggers);
+
+    for (size_t i = 0; i < numTriggers; ++i) {
+      dump(depth, "{}:", i);
+
+      readString()
+      dump(d1, "Name: {}", *stringOpt.second);
+
+      if (metaData.version >= 4) {
+        readString()
+        dump(d1, "Layer: {}", *stringOpt.second);
+      }
+
+      read4()
+      dump(d1, "ID: {}", buffer4);
+
+      if (metaData.version >= 2) {
+        read1()
+        dump(d1, "Water: {}", buffer1 > 0);
+      }
+
+      if (metaData.version >= 3) {
+        read1()
+        dump(d1, "River: {}", buffer1 > 0);
+        read4()
+        dump(d1, "River start: {}", buffer4);
+      }
+
+      read4()
+      auto numPts = buffer4;
+      dump(d1, "# points: {}", numPts);
+
+      for (size_t j = 0; j < numPts; ++j) {
+        dump(d1, "{}:", j);
+        read4()
+        dump(d2, "X: {}", static_cast<int32_t>(buffer4));
+        read4()
+        dump(d2, "Y: {}", static_cast<int32_t>(buffer4));
+        read4()
+        dump(d2, "Z: {}", static_cast<int32_t>(buffer4));
+      }
+    }
   } else if (chunkType == "WorldInfo") {
     ZH::Dict dict;
     totalBytes += dict.parse(state.chunkLabels, stream);
