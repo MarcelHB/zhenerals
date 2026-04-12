@@ -5,6 +5,7 @@
 
 #include <istream>
 #include <memory>
+#include <utility>
 
 #include "../common.h"
 #include "../gfx/HostTexture.h"
@@ -20,7 +21,8 @@ class DDSFile {
     std::istream& stream;
 
     std::vector<char> decodeDXT1(Size);
-    std::vector<char> decodeDXT5(Size);
+    // if bool is true, the image looks fully transparent
+    std::pair<std::vector<char>, bool> decodeDXT5(Size);
 };
 
 }

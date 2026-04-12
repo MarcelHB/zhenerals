@@ -112,7 +112,17 @@ std::shared_ptr<GFX::HostTexture> DDSFile::getTexture() {
   if (encoding == Encoding::DXT1) {
     data = decodeDXT1(size);
   } else if (encoding == Encoding::DXT5) {
-    data = decodeDXT5(size);
+    auto result = decodeDXT5(size);
+    data = std::move(result.first);
+
+    // EVAL Some DDS files (cbsandbw) are technically fully transparent
+    // until the handling of this case has been found, invert the alpha
+    // in such a case
+    if (result.second) {
+      for (size_t i = 3; i < data.size(); i += 4) {
+        data[i] = 0xFF;
+      }
+    }
   }
 
   return std::make_shared<GFX::HostTexture>(
@@ -198,7 +208,7 @@ std::vector<char> DDSFile::decodeDXT1(Size size) {
   return data;
 }
 
-std::vector<char> DDSFile::decodeDXT5(Size size) {
+std::pair<std::vector<char>, bool> DDSFile::decodeDXT5(Size size) {
   std::vector<char> data;
   data.resize(size.x * size.y * 4, 0);
 
@@ -207,6 +217,7 @@ std::vector<char> DDSFile::decodeDXT5(Size size) {
   std::array<uint8_t, 6> colors;
   std::array<uint8_t, 4> block;
   std::array<uint8_t, 6> alphaBlock;
+  uint8_t maxAlphaBits = 0;
 
   for (decltype(size.y) y = 0; y < std::max(size.y / 4, 1u); ++y) {
     for (decltype(size.x) x = 0; x < std::max(size.x / 4, 1u); ++x) {
@@ -268,7 +279,9 @@ std::vector<char> DDSFile::decodeDXT5(Size size) {
           color |= ((colors[0] + colors[3] * 2) / 3);
         }
 
-        color |= alpha[((alphaBytes & (7u << (3 * i))) >> (3 * i))] << 24;
+        auto alphaValue = alpha[((alphaBytes & (7u << (3 * i))) >> (3 * i))];
+        color |= alphaValue << 24;
+        maxAlphaBits |= alphaValue;
 
         uint8_t row = byte;
         uint8_t column = i % 4;
@@ -278,7 +291,7 @@ std::vector<char> DDSFile::decodeDXT5(Size size) {
     }
   }
 
-  return data;
+  return {data, maxAlphaBits == 0};
 }
 
 }
