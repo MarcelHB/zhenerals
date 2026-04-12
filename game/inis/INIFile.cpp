@@ -58,7 +58,7 @@ std::string INIFile::getToken() {
 
   do {
     auto peek = stream.peek();
-    if (peek == ' ' || peek == '\n' || peek == '\r' || peek == ';' || peek == '/') {
+    if (peek == ' ' || peek == '\n' || peek == '\r' || peek == ';' || peek == '/' || peek == '=') {
       break;
     } else {
       auto c = stream.get();
