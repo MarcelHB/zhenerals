@@ -563,13 +563,15 @@ size_t MAPFile::parseObject(MapBuilder& mapBuilder, const ChunkMetaData& metaDat
   uint32_t buffer4 = 0;
 
   MapObject object;
-  for (uint8_t i = 0; i < 3; ++i) {
-    readf()
-    object.location[i] = bufferf;
-  }
+  readf()
+  object.location[0] = bufferf;
+  readf()
+  object.location[2] = bufferf;
+  readf()
+  object.location[1] = bufferf;
 
   if (metaData.version <= 2) {
-    object.location[2] = 0.0f;
+    object.location[1] = 0.0f;
   }
 
   readf()

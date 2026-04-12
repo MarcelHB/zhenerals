@@ -22,11 +22,12 @@ class Battlefield {
     void frameDoneTick();
 
     const GFX::Camera& getCamera() const;
-    glm::mat4 getObjectToGridMatrix(const glm::vec3& pos, float radAngle) const;
     Daytime getDaytime() const;
     std::shared_ptr<Map> getMap() const;
-
+    const glm::vec2& getMapGameSize() const;
     std::list<std::shared_ptr<Objects::Instance>>& getObjectInstances();
+    float getWorldHeight(const glm::vec3&) const;
+    glm::mat4 getWorldMatrix(const glm::vec3& pos, float radAngle) const;
 
     void moveCameraAxially(float x, float y);
     void moveCameraDirectionally(float x, float y);
@@ -40,6 +41,7 @@ class Battlefield {
     void zoomCamera(float in);
   private:
     std::shared_ptr<Map> map;
+    glm::vec2 mapGameSize;
     Objects::InstanceFactory& instanceFactory;
     GFX::Camera camera;
     bool newMatrices = true;

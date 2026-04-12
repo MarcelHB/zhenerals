@@ -16,20 +16,19 @@
 
 namespace ZH {
 
-static constexpr float HEIGHT_SCALE = 0.0625f;
-
 Map::Map(MapBuilder& builder)
   : size(builder.size)
   , padding(builder.borderSize)
   , heightMap(std::move(builder.heightMap))
 {
-  worldToGridMatrix =
-    glm::scale(
-        glm::translate(
-          glm::mat4 {1.0},
-          glm::vec3 {padding, 0.0f, padding}
-        )
-      , glm::vec3 {0.1f, HEIGHT_SCALE, 0.1f}
+  worldOffsetMatrix =
+    glm::translate(
+      glm::mat4 {1.0},
+      glm::vec3 {
+          padding * GRID_TO_GAME_SCALE
+        , 0.0f
+        , padding * GRID_TO_GAME_SCALE
+      }
     );
 
   prepareTextureIndex(builder.textureClasses);
@@ -52,7 +51,17 @@ void Map::prepareWaters(const std::vector<PolygonTrigger>& polygonTriggers) {
   axisFlip[2][1] = 1.0f;
   axisFlip[2][2] = 0.0f;
 
-  auto waterMatrix = axisFlip * worldToGridMatrix * axisFlip;
+  auto scaleMatrix =
+    glm::scale(
+        glm::mat4 {1.0f}
+      , glm::vec3 {1.0f/GRID_TO_GAME_SCALE, 1.0f, 1.0f/GRID_TO_GAME_SCALE}
+    );
+
+  auto waterMatrix =
+    axisFlip
+    * scaleMatrix
+    * worldOffsetMatrix
+    * axisFlip;
 
   size_t numWaterTiles = 0;
   for (auto& pt : polygonTriggers) {
@@ -71,8 +80,10 @@ void Map::prepareWaters(const std::vector<PolygonTrigger>& polygonTriggers) {
       for (size_t x = 0; x < size.x; ++x) {
         auto idx = y * size.x + x;
         if (waterState[idx].depth == 0 && waterPoints[idx] > 0) {
-          waterState[idx].depth = waterHeight - std::min(static_cast<float>(waterHeight), heightMap[idx] * HEIGHT_SCALE * 10);
-          waterState[idx].surfaceHeight = waterHeight * 0.1f;
+          waterState[idx].depth =
+            waterHeight
+              - std::min(static_cast<float>(waterHeight), heightMap[idx] * TERRAIN_HEIGHT_SCALE);
+          waterState[idx].surfaceHeight = waterHeight;
           if (waterState[idx].depth > 0.0f) {
             numWaterTiles++;
           }
@@ -230,8 +241,8 @@ const std::vector<Map::WaterVertexData>& Map::getWaterVertices() const {
   return waterVertices;
 }
 
-const glm::mat4& Map::getWorldToGridMatrix() const {
-  return worldToGridMatrix;
+const glm::mat4& Map::getWorldOffsetMatrix() const {
+  return worldOffsetMatrix;
 }
 
 Size Map::getSize() const {
@@ -415,122 +426,122 @@ void Map::tesselateHeightMap(
   }
 }
 
-float Map::getCenterHeight(size_t x, size_t y) {
-   auto h1 = getHeight(x, y, 0);
-   auto h2 = getHeight(x, y, 1);
-   auto h3 = getHeight(x, y, 2);
-   auto h4 = getHeight(x, y, 3);
+float Map::getCenterHeight(size_t x, size_t z) {
+   auto h1 = getHeight(x, z, 0);
+   auto h2 = getHeight(x, z, 1);
+   auto h3 = getHeight(x, z, 2);
+   auto h4 = getHeight(x, z, 3);
 
    // EVAL not accurate but apparently better than avg
    return std::max(h1, std::max(h2, std::max(h3, h4)));
 }
 
-float Map::getHeight(size_t x, size_t y, uint8_t corner) {
-  auto getHeight = [this](size_t x, size_t y) {
-    return heightMap[y * size.x + x] * HEIGHT_SCALE;
+float Map::getHeight(size_t x, size_t z, uint8_t corner) {
+  auto getHeight = [this](size_t x, size_t z) {
+    return heightMap[z * size.x + x];
   };
 
   // bottom-right
   if (corner == 3) {
     // map corner
-    if (x == size.x - 1 && y == size.y - 1) {
-      return getHeight(x, y);
+    if (x == size.x - 1 && z == size.y - 1) {
+      return getHeight(x, z);
     } // neighbour to right
-    else if (x != size.x - 1 && y == size.y - 1) {
-      auto h1 = getHeight(x + 1, y);
-      auto h2 = getHeight(x, y);
+    else if (x != size.x - 1 && z == size.y - 1) {
+      auto h1 = getHeight(x + 1, z);
+      auto h2 = getHeight(x, z);
 
       return (h1 + h2) / 2.0f;
     } // neighbour below
-    else if (x == size.x - 1 && y != size.y -1) {
-      auto h1 = getHeight(x, y + 1);
-      auto h2 = getHeight(x, y);
+    else if (x == size.x - 1 && z != size.y -1) {
+      auto h1 = getHeight(x, z + 1);
+      auto h2 = getHeight(x, z);
 
       return (h1 + h2) / 2.0f;
     } // neighours to right and below
     else {
-      auto h1 = getHeight(x + 1, y);
-      auto h2 = getHeight(x, y + 1);
-      auto h3 = getHeight(x, y);
-      auto h4 = getHeight(x + 1, y + 1);
+      auto h1 = getHeight(x + 1, z);
+      auto h2 = getHeight(x, z + 1);
+      auto h3 = getHeight(x, z);
+      auto h4 = getHeight(x + 1, z + 1);
 
       return (h1 + h2 + h3 + h4) / 4.0f;
     }
   } // bottom-left
   else if (corner == 2) {
     // map corner
-    if (x == 0 && y == size.y - 1) {
-      return getHeight(x, y);
+    if (x == 0 && z == size.y - 1) {
+      return getHeight(x, z);
     } // neighbour to left
-    else if (x != 0 && y == size.y - 1) {
-      auto h1 = getHeight(x - 1, y);
-      auto h2 = getHeight(x, y);
+    else if (x != 0 && z == size.y - 1) {
+      auto h1 = getHeight(x - 1, z);
+      auto h2 = getHeight(x, z);
 
       return (h1 + h2) / 2.0f;
     } // neighbour below
-    else if (x == 0 && y != size.y - 1) {
-      auto h1 = getHeight(x, y + 1);
-      auto h2 = getHeight(x, y);
+    else if (x == 0 && z != size.y - 1) {
+      auto h1 = getHeight(x, z + 1);
+      auto h2 = getHeight(x, z);
 
       return (h1 + h2) / 2.0f;
     } // neighours to left and below
     else {
-      auto h1 = getHeight(x - 1, y);
-      auto h2 = getHeight(x, y + 1);
-      auto h3 = getHeight(x, y);
-      auto h4 = getHeight(x - 1, y + 1);
+      auto h1 = getHeight(x - 1, z);
+      auto h2 = getHeight(x, z + 1);
+      auto h3 = getHeight(x, z);
+      auto h4 = getHeight(x - 1, z + 1);
 
       return (h1 + h2 + h3 + h4) / 4.0f;
     }
   } // top-right
   else if (corner == 1) {
     // map corner
-    if (x == size.x - 1 && y == 0) {
-      return getHeight(x, y);
+    if (x == size.x - 1 && z == 0) {
+      return getHeight(x, z);
     } // neighbour to right
-    else if (x != size.x - 1 && y == 0) {
-      auto h1 = getHeight(x + 1, y);
-      auto h2 = getHeight(x, y);
+    else if (x != size.x - 1 && z == 0) {
+      auto h1 = getHeight(x + 1, z);
+      auto h2 = getHeight(x, z);
 
       return (h1 + h2) / 2.0f;
     } // neighbour above
-    else if (x == size.x - 1 && y != 0) {
-      auto h1 = getHeight(x, y - 1);
-      auto h2 = getHeight(x, y);
+    else if (x == size.x - 1 && z != 0) {
+      auto h1 = getHeight(x, z - 1);
+      auto h2 = getHeight(x, z);
 
       return (h1 + h2) / 2.0f;
     } // neighours to right and above
     else {
-      auto h1 = getHeight(x + 1, y);
-      auto h2 = getHeight(x, y - 1);
-      auto h3 = getHeight(x, y);
-      auto h4 = getHeight(x + 1, y - 1);
+      auto h1 = getHeight(x + 1, z);
+      auto h2 = getHeight(x, z - 1);
+      auto h3 = getHeight(x, z);
+      auto h4 = getHeight(x + 1, z - 1);
 
       return (h1 + h2 + h3 + h4) / 4.0f;
     }
   } // top-left
   else {
     // map corner
-    if (x == 0 && y == 0) {
-      return getHeight(x, y);
+    if (x == 0 && z == 0) {
+      return getHeight(x, z);
     } // neighbour to left
-    else if (x != 0 && y == 0) {
-      auto h1 = getHeight(x - 1, y);
-      auto h2 = getHeight(x, y);
+    else if (x != 0 && z == 0) {
+      auto h1 = getHeight(x - 1, z);
+      auto h2 = getHeight(x, z);
 
       return (h1 + h2) / 2.0f;
     } // neighbour above
-    else if (x == 0 && y != 0) {
-      auto h1 = getHeight(x, y - 1);
-      auto h2 = getHeight(x, y);
+    else if (x == 0 && z != 0) {
+      auto h1 = getHeight(x, z - 1);
+      auto h2 = getHeight(x, z);
 
       return (h1 + h2) / 2.0f;
     } // neighbour above and to left
     else {
-      auto h1 = getHeight(x - 1, y);
-      auto h2 = getHeight(x, y - 1);
-      auto h3 = getHeight(x, y);
-      auto h4 = getHeight(x - 1, y - 1);
+      auto h1 = getHeight(x - 1, z);
+      auto h2 = getHeight(x, z - 1);
+      auto h3 = getHeight(x, z);
+      auto h4 = getHeight(x - 1, z - 1);
 
       return (h1 + h2 + h3 + h4) / 4.0f;
     }

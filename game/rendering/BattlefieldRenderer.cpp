@@ -18,6 +18,8 @@ struct WaterScene {
   alignas(16) glm::mat4 mvp;
 };
 
+static constexpr float MODEL_HEIGHT_SCALE = 1.6f;
+
 BattlefieldRenderer::BattlefieldRenderer(
     Vugl::Context& vuglContext
   , const Config& config
@@ -37,13 +39,12 @@ BattlefieldRenderer::BattlefieldRenderer(
 bool BattlefieldRenderer::init(Vugl::RenderPass& renderPass) {
   TRACY(ZoneScoped);
 
-  auto map = battlefield.getMap();
-  auto size = map->getSize();
+  auto& size = battlefield.getMapGameSize();
 
   auto vp = vuglContext.getViewport();
   battlefield.setPerspectiveProjection(
-      0.1f
-    , 1000.0f
+      10.0f
+    , 10000.0f
     , 60.0f
     , vp.width * 1.0f
     , vp.height * 1.0f
@@ -59,17 +60,30 @@ bool BattlefieldRenderer::init(Vugl::RenderPass& renderPass) {
   auto lightPos =
     glm::vec3 {
         size.x * 0.25f
-      , 255 * -0.5f
+      , -1500.0f
       , size.y * 0.75f
     };
 
   sunlightNormal = glm::normalize(lightTarget - lightPos);
+
+  terrainScaleMatrix =
+    glm::scale(
+        glm::mat4 {1.0f}
+      , glm::vec3 {10.0f, Map::TERRAIN_HEIGHT_SCALE, 10.0f}
+      );
+
+  waterScaleMatrix =
+    glm::scale(
+        glm::mat4 {1.0f}
+      , glm::vec3 {10.0f, 1.0f, 10.0f}
+      );
 
   if (!prepareTerrainVertices()) {
     WARN_ZH("BattlefieldRenderer", "Could not set up terrain");
     return false;
   }
 
+  auto map = battlefield.getMap();
   if (!prepareTerrainPipeline(renderPass, map->getTexturesIndex())) {
     WARN_ZH("BattlefieldRenderer", "Could not setup up terrain rendering");
     return false;
@@ -386,7 +400,7 @@ void BattlefieldRenderer::renderObjectInstances(
     for (auto& instance : battlefield.getObjectInstances()) {
       modelRenderer.resetFrames(instance->getID());
 
-      auto modelMatrix = battlefield.getObjectToGridMatrix(instance->getPosition(), 0.0f);
+      auto modelMatrix = battlefield.getWorldMatrix(instance->getPosition(), 0.0f);
 
       auto& drawCheck = drawChecks.emplace_back();
       drawCheck.instance = instance;
@@ -433,20 +447,24 @@ void BattlefieldRenderer::renderObjectInstance(
   }
 
   if (instance.needsRedraw() || modelRenderer.needsUpdate(instance.getID(), frameIdx)) {
-    auto modelMatrix =
-      battlefield.getObjectToGridMatrix(
+    auto worldMatrix =
+      battlefield.getWorldMatrix(
           instance.getPosition()
         , instance.getAngle()
       );
 
     auto normalMatrix =
-      glm::rotate(glm::mat4 {1.0f}, -instance.getAngle(), glm::vec3 {0.0f, 1.0f, 0.0f});
+      glm::rotate(
+          glm::mat4 {1.0f}
+        , -instance.getAngle()
+        , glm::vec3 {0.0f, 1.0f, 0.0f}
+      );
 
     auto& camera = battlefield.getCamera();
     auto mvp =
       camera.getProjectionMatrix()
       * camera.getCameraMatrix()
-      * modelMatrix;
+      * worldMatrix;
 
     modelRenderer.updateModel(
         instance.getID()
@@ -475,7 +493,10 @@ void BattlefieldRenderer::renderTerrain(Vugl::CommandBuffer& commandBuffer, size
   TerrainScene scene;
   auto& camera = battlefield.getCamera();
   scene.mvp =
-    camera.getProjectionMatrix() * camera.getCameraMatrix();
+    camera.getProjectionMatrix()
+    * camera.getCameraMatrix()
+    * terrainScaleMatrix;
+
   scene.sunlight = sunlightNormal;
   terrainUniformBuffer->writeData(scene, frameIdx);
 
@@ -508,7 +529,9 @@ void BattlefieldRenderer::renderWater(Vugl::CommandBuffer& commandBuffer, size_t
   WaterScene scene;
   auto& camera = battlefield.getCamera();
   scene.mvp =
-    camera.getProjectionMatrix() * camera.getCameraMatrix();
+    camera.getProjectionMatrix()
+    * camera.getCameraMatrix()
+    * waterScaleMatrix;
   waterUniformBuffer->writeData(scene, frameIdx);
 
   commandBuffer.bindResource(*waterPipeline);

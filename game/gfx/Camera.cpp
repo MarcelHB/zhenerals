@@ -5,6 +5,7 @@
 #include <glm/gtx/rotate_vector.hpp>
 
 #include "Camera.h"
+#include "../Logging.h"
 
 namespace ZH::GFX {
 

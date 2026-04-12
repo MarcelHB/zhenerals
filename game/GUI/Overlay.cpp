@@ -55,7 +55,10 @@ bool Overlay::processEvent(const SDL_Event& event) {
       break;
     case SDL_EVENT_MOUSE_MOTION:
       if (cameraControlMode == CameraControlMode::AXES) {
-        getBattlefield()->moveCameraAxially(event.motion.xrel / 4.0f, -event.motion.yrel / 4.0f);
+        getBattlefield()->moveCameraAxially(
+            event.motion.xrel * 2.0f
+          , -event.motion.yrel * 2.0f
+        );
       } else if (cameraControlMode == CameraControlMode::DIRECTIONAL) {
         getBattlefield()->moveCameraDirectionally(
             accelerate(event.motion.xrel, false)
@@ -69,7 +72,7 @@ bool Overlay::processEvent(const SDL_Event& event) {
       }
       break;
     case SDL_EVENT_MOUSE_WHEEL:
-      getBattlefield()->zoomCamera(event.wheel.y);
+      getBattlefield()->zoomCamera(event.wheel.y * 10);
       break;
   }
 

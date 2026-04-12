@@ -8,30 +8,31 @@
 
 namespace ZH {
 
-static constexpr float HEIGHT_SCALE = 1.6f;
-
 Battlefield::Battlefield(
     std::shared_ptr<Map> map
   , MapBuilder& mapBuilder
   , Objects::InstanceFactory& instanceFactory
 ) : map(map)
+  , mapGameSize {
+        map->getSize().x * Map::GRID_TO_GAME_SCALE
+      , map->getSize().y * Map::GRID_TO_GAME_SCALE
+    }
   , instanceFactory(instanceFactory)
 {
   TRACY(ZoneScoped);
 
   loadInstances(mapBuilder);
 
-  auto size = map->getSize();
   camera.reposition(
       glm::vec3 {
-          size.x * 0.45f
-        , 255 * 0.15f
-        , size.y * 0.45f
+          mapGameSize.x * 0.45f
+        , 500.0f
+        , mapGameSize.y * 0.45f
       }
     , glm::vec3 {
-          size.x / 2.0f
-        , map->getCenterHeight(size.x / 2, size.y / 2)
-        , size.y / 2.0f
+          mapGameSize.x / 2.0f
+        , getWorldHeight(glm::vec3 {mapGameSize.x / 2.0f, 0.0f, mapGameSize.y / 2.0f})
+        , mapGameSize.y / 2.0f
       }
     , glm::vec3 { 0.0f, -1.0f, 0.0f }
   );
@@ -49,13 +50,8 @@ const GFX::Camera& Battlefield::getCamera() const {
   return camera;
 }
 
-glm::mat4 Battlefield::getObjectToGridMatrix(const glm::vec3& pos, float radAngle) const {
-  auto gridPos =
-    glm::vec3 {map->getWorldToGridMatrix() * glm::vec4 {pos.x, 0, pos.y, 1.0f}};
-
-  auto height = map->getCenterHeight(gridPos.x, gridPos.z);
-
-  auto modelScale = glm::scale(glm::mat4 {1.0f}, glm::vec3 {1.0f, HEIGHT_SCALE, 1.0f});
+glm::mat4 Battlefield::getWorldMatrix(const glm::vec3& pos, float radAngle) const {
+  auto height = getWorldHeight(pos) * Map::TERRAIN_HEIGHT_SCALE;
 
   auto rotation =
     glm::rotate(
@@ -64,24 +60,16 @@ glm::mat4 Battlefield::getObjectToGridMatrix(const glm::vec3& pos, float radAngl
       , glm::vec3 {0.0f, 1.0f, 0.0f}
     );
 
-  auto worldTranslation =
+  auto translation =
     glm::translate(
         glm::mat4 {1.0f}
-      , glm::vec3 {pos.x, pos.z, pos.y}
-    );
-
-  auto gridTranslation =
-    glm::translate(
-        glm::mat4 {1.0f}
-      , glm::vec3 {0, height, 0}
+      , glm::vec3 {pos.x, height, pos.z}
     );
 
   return
-      gridTranslation
-      * map->getWorldToGridMatrix()
-      * worldTranslation
-      * rotation
-      * modelScale;
+      map->getWorldOffsetMatrix()
+      * translation
+      * rotation;
 }
 
 Daytime Battlefield::getDaytime() const {
@@ -90,6 +78,10 @@ Daytime Battlefield::getDaytime() const {
 
 std::shared_ptr<Map> Battlefield::getMap() const {
   return map;
+}
+
+const glm::vec2& Battlefield::getMapGameSize() const {
+  return mapGameSize;
 }
 
 std::list<std::shared_ptr<Objects::Instance>>& Battlefield::getObjectInstances() {
@@ -105,6 +97,11 @@ void Battlefield::loadInstances(MapBuilder& mapBuilder) {
 
     instances.emplace_back(std::move(instance));
   }
+}
+
+float Battlefield::getWorldHeight(const glm::vec3& pos) const {
+  auto offPos = map->getWorldOffsetMatrix() * glm::vec4 {pos, 1.0f};
+  return map->getCenterHeight(offPos.x / 10, offPos.z / 10) + pos.y;
 }
 
 void Battlefield::moveCameraAxially(float x, float y) {

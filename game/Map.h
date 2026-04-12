@@ -231,11 +231,14 @@ class Map {
     const std::vector<uint32_t>& getVertexIndices() const;
     const std::vector<WaterState>& getWater() const;
     const std::vector<WaterVertexData>& getWaterVertices() const;
-    const glm::mat4& getWorldToGridMatrix() const;
+    const glm::mat4& getWorldOffsetMatrix() const;
+
+    static constexpr float TERRAIN_HEIGHT_SCALE = 0.625;
+    static constexpr float GRID_TO_GAME_SCALE = 10.0f;
   private:
     Size size;
     uint32_t padding;
-    glm::mat4 worldToGridMatrix;
+    glm::mat4 worldOffsetMatrix;
     std::vector<uint8_t> heightMap;
     std::vector<std::string> texturesIndex;
 

@@ -43,7 +43,8 @@ class BattlefieldRenderer {
     ModelRenderer modelRenderer;
     const TerrainINI::Terrains& terrains;
     const WaterINI::WaterSettings& waterSettings;
-    glm::mat4 projectMatrix;
+    glm::mat4 terrainScaleMatrix;
+    glm::mat4 waterScaleMatrix;
 
     bool hasWater = false;
     std::shared_ptr<Vugl::Texture> cloudTexture;
