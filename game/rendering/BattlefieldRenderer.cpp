@@ -292,11 +292,15 @@ bool BattlefieldRenderer::prepareModelData(Objects::Instance& instance) {
   if (base->drawMetaData.type == Objects::DrawType::DEPENDENCY_MODEL_DRAW
       || base->drawMetaData.type == Objects::DrawType::MODEL_DRAW
       || base->drawMetaData.type == Objects::DrawType::OVERLORD_AIRCRAFT_DRAW
+      || base->drawMetaData.type == Objects::DrawType::POLICE_CAR_DRAW
       || base->drawMetaData.type == Objects::DrawType::SUPPLY_DRAW
       || base->drawMetaData.type == Objects::DrawType::TANK_DRAW
       || base->drawMetaData.type == Objects::DrawType::TRUCK_DRAW
   ) {
     success = prepareModelDrawData(instance);
+  } else if (base->drawMetaData.type == Objects::DrawType::DEFAULT_DRAW) {
+    // EVAL Nothing to draw
+    return true;
   } else if (base->drawMetaData.type == Objects::DrawType::TREE_DRAW) {
     success = prepareTreeDrawData(instance);
   } else {
@@ -398,6 +402,10 @@ void BattlefieldRenderer::renderObjectInstances(
     GFX::Frustum frustrum {camera};
 
     for (auto& instance : battlefield.getObjectInstances()) {
+      if (instance->getBase()->drawMetaData.type == Objects::DrawType::DEFAULT_DRAW) {
+        continue;
+      }
+
       modelRenderer.resetFrames(instance->getID());
 
       auto modelMatrix = battlefield.getWorldMatrix(instance->getPosition(), 0.0f);

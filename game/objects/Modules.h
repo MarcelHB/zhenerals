@@ -135,6 +135,10 @@ enum class ModuleType {
   , PRODUCTION
   , RADAR
   , RADAR_UPGRADE
+  , RAILED_TRANSPORT_AI
+  , RAILED_TRANSPORT_CONTAIN
+  , RAILED_TRANSPORT_DOCK
+  , RAILROAD_BEHAVIOR
   , REPAIR_DOCK
   , SALVAGE_CRATE_COLLISION
   , SLAVED
@@ -164,6 +168,7 @@ enum class ModuleType {
   , STRUCTURE_TOPPLE
   , SWAY_CLIENT
   , TECH_BUILDING
+  , TENSILE_FORMATION
   , TOPPLE
   , TRANSITION_DAMAGE_FX
   , TRANSPORT_AI
@@ -174,7 +179,7 @@ enum class ModuleType {
   , VETERANCY_GAIN
   , VETERANCY_CRATE_COLLISION
   , WAVE_GUIDE
-  , WEAPON_BONUS
+  , WEAPON_BONUS_UPGRADE
   , WEAPON_SET_UPGRADE
 };
 
@@ -419,9 +424,9 @@ struct CrushDie : public Die {
   std::string crushSound;
   std::string backEndCrushSound;
   std::string frontEndCrushSound;
-  Percent totalCrushSound;
-  Percent totalBackEndSound;
-  Percent totalFrontEndSound;
+  Percent totalCrushSound = 100;
+  Percent totalBackEndSound = 100;
+  Percent totalFrontEndSound = 100;
 };
 
 struct DestroyDie : public Die {
@@ -665,7 +670,7 @@ struct FlightDeck : public AI {
 };
 
 struct Float : public Module {
-  bool enabled;
+  bool enabled = true;
 };
 
 struct GenerateMinefield : public Module {
@@ -918,6 +923,19 @@ struct PointDefenseLaser : public Module {
 struct Poisoned : public Module {
   Duration intervalMs = 1000;
   Duration durationMs = 3000;
+};
+
+struct RailedTransportAI : public AI {
+  std::string pathPrefix;
+};
+
+struct RailedTransportDock : public Dock {
+  Duration pullInsideDurationMs = 1000;
+  Duration pushOutsideDurationMs = 1000;
+  float toleranceDist = 1000.0f;
+};
+
+struct RailroadBehavior : public Physics {
 };
 
 struct SalvageCrateCollision : public CrateCollision {
@@ -1223,8 +1241,8 @@ struct SupplyCenterDock : public Dock {
 
 struct SupplyTruckAI : public AI {
   int32_t maxBoxes = 3;
-  uint32_t supplyCenterDelay = 3;
-  uint32_t warehouseDelay = 3;
+  Duration supplyCenterDelayMs = 1000;
+  Duration warehouseDelayMs = 1000;
   float warehouseScanDistance = 10.0f;
   std::string depletedSound;
 };
@@ -1296,6 +1314,11 @@ struct StructureCollapse : public Module {
 struct TechBuilding : public Module {
   std::list<std::string> effects; // TODO FXList
   Duration rateMs = 1000;
+};
+
+struct TensileFormation : public Module {
+  bool enabled = true;
+  std::string crackSound;
 };
 
 struct Topple : public Module {
@@ -1407,7 +1430,7 @@ struct VeterancyGain : public Module {
   std::string requiredScience; // TODO Science
 };
 
-struct WeaponBonus : public Module {
+struct WeaponBonus : public Upgrade {
   std::set<Attribute> affectedInclusion;
   std::set<Attribute> affectedExclusion;
   uint32_t duration = 1;

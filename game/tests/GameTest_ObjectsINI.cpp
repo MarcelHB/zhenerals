@@ -143,4 +143,17 @@ TEST(ObjectsINITest, parsingTechBuildings) {
   objectsINI.parse();
 }
 
+TEST(ObjectsINITest, parsingCivilianUnit) {
+  Config config;
+  ResourceLoader w3dLoader {{"INIZH.big"}, config.baseDir};
+
+  auto fileStream =
+    w3dLoader.getFileStream("data\\ini\\object\\civilianunit.ini");
+
+  auto stream = fileStream->getStream();
+  ObjectsINI objectsINI {stream};
+
+  objectsINI.parse();
+}
+
 }

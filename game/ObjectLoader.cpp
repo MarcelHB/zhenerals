@@ -13,9 +13,11 @@ ObjectLoader::ObjectLoader(ResourceLoader& iniLoader) : iniLoader(iniLoader) {}
 bool ObjectLoader::init() {
   TRACY(ZoneScoped);
 
+  // whitelist as long as every INI file needs to be review
   std::vector<std::string> keys = {
       "data\\ini\\object\\civilianbuilding.ini"
     , "data\\ini\\object\\civilianprop.ini"
+    , "data\\ini\\object\\civilianunit.ini"
     , "data\\ini\\object\\natureprop.ini"
   };
 

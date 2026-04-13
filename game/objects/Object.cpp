@@ -817,6 +817,8 @@ std::optional<ModuleType> getModuleType(const std::string_view& value) {
     return {ModuleType::CREATE_CRATE_DIE};
   } else if (value == "CreateObjectDie") {
     return {ModuleType::CREATE_OBJECT_DIE};
+  } else if (value == "CrushDie") {
+    return {ModuleType::CRUSH_DIE};
   } else if (value == "DamDie") {
     return {ModuleType::DAM_DIE};
   } else if (value == "DefaultProductionExitUpdate") {
@@ -849,6 +851,8 @@ std::optional<ModuleType> getModuleType(const std::string_view& value) {
     return {ModuleType::FIRE_WEAPON_WHEN_DEAD};
   } else if (value == "FlammableUpdate") {
     return {ModuleType::FLAMMABLE};
+  } else if (value == "FloatUpdate") {
+    return {ModuleType::FLOAT};
   } else if (value == "FXListDie") {
     return {ModuleType::FX_LIST_DIE};
   } else if (value == "GarrisonContain") {
@@ -925,6 +929,14 @@ std::optional<ModuleType> getModuleType(const std::string_view& value) {
     return {ModuleType::RADAR};
   } else if (value == "RadarUpgrade") {
     return {ModuleType::RADAR_UPGRADE};
+  } else if (value == "RailedTransportAIUpdate") {
+    return {ModuleType::RAILED_TRANSPORT_AI};
+  } else if (value == "RailedTransportContain") {
+    return {ModuleType::RAILED_TRANSPORT_CONTAIN};
+  } else if (value == "RailedTransportDockUpdate") {
+    return {ModuleType::RAILED_TRANSPORT_DOCK};
+  } else if (value == "RailroadBehavior") {
+    return {ModuleType::RAILROAD_BEHAVIOR};
   } else if (value == "RepairDockUpdate") {
     return {ModuleType::REPAIR_DOCK};
   } else if (value == "SlavedUpdate") {
@@ -967,6 +979,8 @@ std::optional<ModuleType> getModuleType(const std::string_view& value) {
     return {ModuleType::SUPPLY_CENTER_DOCK};
   } else if (value == "SupplyCenterProductionExitUpdate") {
     return {ModuleType::SUPPLY_CENTER_PRODUCTION_EXIT};
+  } else if (value == "SupplyTruckAIUpdate") {
+    return {ModuleType::SUPPLY_TRUCK_AI};
   } else if (value == "SupplyWarehouseCreate") {
     return {ModuleType::SUPPLY_WAREHOUSE};
   } else if (value == "SupplyWarehouseCripplingBehavior") {
@@ -977,6 +991,8 @@ std::optional<ModuleType> getModuleType(const std::string_view& value) {
     return {ModuleType::SWAY_CLIENT};
   } else if (value == "TechBuildingBehavior") {
     return {ModuleType::TECH_BUILDING};
+  } else if (value == "TensileFormationUpdate") {
+    return {ModuleType::TENSILE_FORMATION};
   } else if (value == "ToppleUpdate") {
     return {ModuleType::TOPPLE};
   } else if (value == "TransitionDamageFX") {
@@ -993,6 +1009,8 @@ std::optional<ModuleType> getModuleType(const std::string_view& value) {
     return {ModuleType::VETERANCY_CRATE_COLLISION};
   } else if (value == "VeterancyGainCreate") {
     return {ModuleType::VETERANCY_GAIN};
+  } else if (value == "WeaponBonusUpgrade") {
+    return {ModuleType::WEAPON_BONUS_UPGRADE};
   } else if (value == "WeaponSetUpgrade") {
     return {ModuleType::WEAPON_SET_UPGRADE};
   } else {
