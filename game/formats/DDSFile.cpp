@@ -260,7 +260,7 @@ std::pair<std::vector<char>, bool> DDSFile::decodeDXT5(Size size) {
 
       uint64_t alphaBytes = *reinterpret_cast<uint64_t*>(alphaBlock.data());
       for (uint8_t i = 0; i < 16; ++i) {
-        uint32_t color = 0x00000000;
+        uint32_t color = 0;
         uint8_t byte = i / 4;
         uint8_t offset = (i % 4) * 2;
         uint8_t value = (block[byte] & (0x3 << offset)) >> offset;
@@ -279,7 +279,7 @@ std::pair<std::vector<char>, bool> DDSFile::decodeDXT5(Size size) {
           color |= ((colors[0] + colors[3] * 2) / 3);
         }
 
-        auto alphaValue = alpha[((alphaBytes & (7u << (3 * i))) >> (3 * i))];
+        auto alphaValue = alpha[((alphaBytes & (uint64_t(7) << (3 * i))) >> (3 * i))];
         color |= alphaValue << 24;
         maxAlphaBits |= alphaValue;
 
