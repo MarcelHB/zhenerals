@@ -418,7 +418,7 @@ void BattlefieldRenderer::renderObjectInstances(
       auto& sphere = drawCheck.sphere;
       drawCheck.sphere.position = glm::vec3 {modelMatrix * glm::vec4 {sphere.position, 1.0f}};
       drawCheck.draw = frustrum.isSphereInside(sphere.position, sphere.radius);
-      drawCheck.dist = glm::length(sphere.position);
+      drawCheck.dist = glm::length(camera.getPosition() - sphere.position);
     }
 
     std::sort(
