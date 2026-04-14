@@ -27,7 +27,6 @@ struct MapObject {
 
   bool light = false;
   bool waypoint = false;
-  bool scorch = false;
 };
 
 struct TextureClass {
@@ -162,6 +161,7 @@ struct MapBuilder {
   std::vector<Point> boundaries;
 
   std::list<MapObject> objects;
+  std::list<MapObject> scorches;
 
   std::vector<uint16_t> tileIndices;
   std::vector<uint16_t> cliffInfoIndices;

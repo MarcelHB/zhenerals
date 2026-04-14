@@ -76,7 +76,7 @@ bool BattlefieldRenderer::init(Vugl::RenderPass& renderPass) {
     glm::scale(
         glm::mat4 {1.0f}
       , glm::vec3 {10.0f, 1.0f, 10.0f}
-      );
+    );
 
   if (!prepareTerrainVertices()) {
     WARN_ZH("BattlefieldRenderer", "Could not set up terrain");
@@ -85,7 +85,7 @@ bool BattlefieldRenderer::init(Vugl::RenderPass& renderPass) {
 
   auto map = battlefield.getMap();
   if (!prepareTerrainPipeline(renderPass, map->getTexturesIndex())) {
-    WARN_ZH("BattlefieldRenderer", "Could not setup up terrain rendering");
+    WARN_ZH("BattlefieldRenderer", "Could not set up terrain rendering");
     return false;
   }
 
@@ -96,7 +96,7 @@ bool BattlefieldRenderer::init(Vugl::RenderPass& renderPass) {
     }
 
     if (!prepareWaterPipeline(renderPass)) {
-      WARN_ZH("BattlefieldRenderer", "Could not setup up water rendering");
+      WARN_ZH("BattlefieldRenderer", "Could not set up water rendering");
       return false;
     }
 
@@ -104,9 +104,15 @@ bool BattlefieldRenderer::init(Vugl::RenderPass& renderPass) {
   }
 
   if (!modelRenderer.preparePipeline(renderPass)) {
-    WARN_ZH("BattlefieldRenderer", "Could not setup model rendering");
+    WARN_ZH("BattlefieldRenderer", "Could not set up model rendering");
     return false;
   }
+
+  if (!preparePatches(renderPass)) {
+    WARN_ZH("BattlefieldRenderer", "Could not set up patch rendering");
+    return false;
+  }
+  prepareScorches();
 
   return true;
 }
@@ -123,6 +129,7 @@ std::shared_ptr<Vugl::CommandBuffer> BattlefieldRenderer::createRenderList(size_
   commandBuffer.beginRendering(renderPass, clearColors);
 
   renderTerrain(commandBuffer, frameIdx);
+  renderPatches(commandBuffer, frameIdx, newMatrices);
   renderObjectInstances(commandBuffer, frameIdx, newMatrices);
   // TODO this still needs better Z ordering
   renderWater(commandBuffer, frameIdx);
@@ -130,6 +137,99 @@ std::shared_ptr<Vugl::CommandBuffer> BattlefieldRenderer::createRenderList(size_
   commandBuffer.closeRendering();
 
   return std::make_shared<Vugl::CommandBuffer>(std::move(commandBuffer));
+}
+
+bool BattlefieldRenderer::preparePatches(Vugl::RenderPass& renderPass) {
+  Vugl::PipelineSetup pipelineSetup {vuglContext.getViewport(), vuglContext.getVkSamplingFlag()};
+  pipelineSetup.vkPipelineInputAssemblyStateCreateInfo.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+  pipelineSetup.vkPipelineDepthStencilCreateInfo.depthTestEnable = VK_TRUE;
+  pipelineSetup.vkPipelineColorBlendAttachmentState.blendEnable = VK_TRUE;
+  pipelineSetup.vkPipelineColorBlendAttachmentState.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
+  pipelineSetup.vkPipelineColorBlendAttachmentState.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+  pipelineSetup.vkPipelineRasterizationStateCreateInfo.cullMode = VK_CULL_MODE_BACK_BIT;
+
+  pipelineSetup.setVSCode(readFile("shaders/patch.vert.spv"));
+  pipelineSetup.setFSCode(readFile("shaders/patch.frag.spv"));
+
+  pipelineSetup.reserveUniformBuffer(VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT);
+  pipelineSetup.reserveCombinedSampler(VK_SHADER_STAGE_FRAGMENT_BIT);
+
+  pipelineSetup.addVertexInput(VK_FORMAT_R32G32B32_SFLOAT, 0, 12, 0);
+  pipelineSetup.addVertexInput(VK_FORMAT_R32G32B32_SFLOAT, 12, 12, 0);
+  pipelineSetup.addVertexInput(VK_FORMAT_R32G32_SFLOAT, 24, 8, 0);
+
+  patchPipeline =
+    std::make_shared<Vugl::Pipeline>(vuglContext.createPipeline(pipelineSetup, renderPass.getVkRenderPass()));
+
+  if (patchPipeline->getLastResult() != VK_SUCCESS) {
+    return false;
+  }
+
+  std::vector<float> data = {
+    // vertex          normal             uv
+    0.0f, 0.0f, 0.0f,  0.0f, 1.0f, 0.0f,  0.0f, 0.0f,
+    1.0f, 0.0f, 1.0f,  0.0f, 1.0f, 0.0f,  1.0f, 1.0f,
+    0.0f, 0.0f, 1.0f,  0.0f, 1.0f, 0.0f,  0.0f, 1.0f,
+
+    0.0f, 0.0f, 0.0f,  0.0f, 1.0f, 0.0f,  0.0f, 0.0f,
+    1.0f, 0.0f, 0.0f,  0.0f, 1.0f, 0.0f,  1.0f, 0.0f,
+    1.0f, 0.0f, 1.0f,  0.0f, 1.0f, 0.0f,  1.0f, 1.0f
+  };
+
+  patchVertices =
+    std::make_shared<Vugl::ElementBuffer>(vuglContext.createElementBuffer(0));
+  patchVertices->writeData(data, std::vector<uint16_t> {});
+  if (!vuglContext.uploadResource(*patchVertices)) {
+    return false;
+  }
+
+  return true;
+}
+
+bool BattlefieldRenderer::prepareScorches() {
+  scorchTextureSampler = textureCache.getTextureSampler("exscorch01.dds");
+  if (!scorchTextureSampler) {
+    return false;
+  }
+  vuglContext.uploadResource(*scorchTextureSampler);
+
+  return true;
+}
+
+bool BattlefieldRenderer::prepareScorchData(const Battlefield::ScorchData& scorch) {
+  auto lookup = scorchData.find(scorch.id);
+  if (lookup != scorchData.cend()) {
+    return true;
+  }
+
+  auto entry = scorchData.emplace(std::make_pair(scorch.id, ScorchData {}));
+  auto& renderData = entry.first->second;
+  renderData.position = scorch.location;
+  renderData.radius = scorch.radius;
+
+  glm::vec3 translation {0.0f, 0.0f, 0.0f};
+  // upper two rows of 3x3 texture, but 64x64 at size with 32 gap
+  auto rest = scorch.type % 3;
+  translation.x = rest * (1.0f/4.0f + 1.0/8.0f);
+
+  if (scorch.type >= 3) {
+    translation.y = 1.0f/4.0f + 1.0/8.0f;
+  }
+
+  renderData.uv =
+    glm::translate(glm::mat4 {1.0f}, translation)
+      * glm::scale(glm::mat4 {1.0f}, glm::vec3 {1.0f/4.0f, 1.0f/4.0f, 1.0f});
+  renderData.descriptorSet =
+    std::make_shared<Vugl::DescriptorSet>(patchPipeline->createDescriptorSet());
+  renderData.uniformBuffer =
+    std::make_shared<Vugl::UniformBuffer>(vuglContext.createUniformBuffer(sizeof(ScorchUBData)));
+
+  renderData.descriptorSet->assignUniformBuffer(*renderData.uniformBuffer);
+  renderData.descriptorSet->assignCombinedSampler(*scorchTextureSampler);
+
+  renderData.descriptorSet->updateDevice();
+
+  return true;
 }
 
 bool BattlefieldRenderer::prepareTerrainPipeline(
@@ -158,7 +258,7 @@ bool BattlefieldRenderer::prepareTerrainPipeline(
   pipelineSetup.vkPipelineRasterizationStateCreateInfo.cullMode = VK_CULL_MODE_BACK_BIT;
 
   terrainPipeline =
-    std::make_unique<Vugl::Pipeline>(vuglContext.createPipeline(pipelineSetup, renderPass.getVkRenderPass()));
+    std::make_shared<Vugl::Pipeline>(vuglContext.createPipeline(pipelineSetup, renderPass.getVkRenderPass()));
 
   if (terrainPipeline->getLastResult() != VK_SUCCESS) {
     return false;
@@ -242,7 +342,7 @@ bool BattlefieldRenderer::prepareWaterPipeline(Vugl::RenderPass& renderPass) {
   pipelineSetup.vkPipelineRasterizationStateCreateInfo.cullMode = VK_CULL_MODE_BACK_BIT;
 
   waterPipeline =
-    std::make_unique<Vugl::Pipeline>(vuglContext.createPipeline(pipelineSetup, renderPass.getVkRenderPass()));
+    std::make_shared<Vugl::Pipeline>(vuglContext.createPipeline(pipelineSetup, renderPass.getVkRenderPass()));
 
   if (waterPipeline->getLastResult() != VK_SUCCESS) {
     return false;
@@ -493,7 +593,126 @@ void BattlefieldRenderer::renderObjectInstance(
   }
 }
 
+void BattlefieldRenderer::renderPatches(Vugl::CommandBuffer& commandBuffer, size_t frameIdx, bool newMatrices) {
+  TRACY(ZoneScoped);
+
+  if (vuglContext.isDebuggingAllowed()) {
+    commandBuffer.beginDebugLabel("Scorches");
+  }
+
+  for (auto& scorch : battlefield.getScorches()) {
+    if (!prepareScorchData(scorch)) {
+      continue;
+    }
+  }
+
+  // TODO consider changes to scorchs set (ptrs)
+  scorchOrderData.resize(scorchData.size());
+
+  auto& camera = battlefield.getCamera();
+  auto map = battlefield.getMap();
+
+  GFX::Frustum frustrum {camera};
+
+  commandBuffer.bindResource(*patchPipeline);
+  commandBuffer.bindResource(*patchVertices);
+
+  if (newMatrices) {
+    scorchFrameIdxSet = 0;
+
+    size_t i = 0;
+    for (auto& pair : scorchData) {
+      auto& scorch = pair.second;
+      auto& drawData = scorchOrderData[i];
+
+      auto scale = scorch.radius * 6.0f; // EVAL why so much bigger than drawn
+      auto position = glm::vec3 {map->getWorldOffsetMatrix() * glm::vec4 {scorch.position, 1.0f}};
+
+      drawData.scorch = &scorch;
+      drawData.draw = frustrum.isSphereInside(position, scale);
+      drawData.dist = glm::length(camera.getPosition() - position);
+
+      i += 1;
+    }
+
+    std::sort(
+        scorchOrderData.begin()
+      , scorchOrderData.end()
+      , [](const ScorchOrderData& a, const ScorchOrderData& b) { return a.dist > b.dist; }
+    );
+  }
+
+  float distStep = 0.1f / (scorchOrderData.size());
+  size_t i = 0;
+  bool needsFrameUpdate = (scorchFrameIdxSet & (1 << frameIdx)) == 0;
+  auto numVertices = patchVertices->getNumVertices();
+  auto camMatrix = camera.getProjectionMatrix() * camera.getCameraMatrix();
+
+  ScorchUBData ubData;
+  ubData.sunlight = sunlightNormal;
+
+  for (auto& orderData : scorchOrderData) {
+    auto scorch = orderData.scorch;
+
+    if (!orderData.draw) {
+      i += 1;
+      continue;
+    }
+
+    if (needsFrameUpdate) {
+      auto scale = scorch->radius * 2.0f;
+
+      auto worldMatrix = battlefield.getWorldMatrix(scorch->position, 0);
+      auto drawTranslation =
+        glm::translate(
+            glm::mat4 {1.0f}
+          , glm::vec3 {-scorch->radius / 2.0f, 0.1f + i * distStep, -scorch->radius / 2.0f}
+        );
+
+      auto scaleMatrix =
+        glm::scale(
+            glm::mat4 {1.0f}
+          , glm::vec3 {scale, 1.0f, scale}
+        );
+      ubData.uv = scorch->uv;
+      ubData.mvp =
+        camMatrix
+        * drawTranslation
+        * worldMatrix
+        * scaleMatrix;
+
+      scorch->uniformBuffer->writeData(ubData, frameIdx);
+    }
+
+    if (vuglContext.isDebuggingAllowed()) {
+      std::string label = std::to_string(i);
+      commandBuffer.beginDebugLabel(label);
+    }
+
+    commandBuffer.bindResource(*scorch->descriptorSet);
+    commandBuffer.draw([numVertices](VkCommandBuffer vkCommandBuffer, uint32_t) {
+      vkCmdDraw(vkCommandBuffer, 6, 1, 0, 0);
+
+      return VK_SUCCESS;
+    });
+
+    if (vuglContext.isDebuggingAllowed()) {
+      commandBuffer.endDebugLabel();
+    }
+
+    i += 1;
+  }
+
+  scorchFrameIdxSet |= (1 << frameIdx);
+
+  if (vuglContext.isDebuggingAllowed()) {
+    commandBuffer.endDebugLabel();
+  }
+}
+
 void BattlefieldRenderer::renderTerrain(Vugl::CommandBuffer& commandBuffer, size_t frameIdx) {
+  TRACY(ZoneScoped);
+
   if (vuglContext.isDebuggingAllowed()) {
     commandBuffer.beginDebugLabel("Terrain");
   }
@@ -525,6 +744,8 @@ void BattlefieldRenderer::renderTerrain(Vugl::CommandBuffer& commandBuffer, size
 }
 
 void BattlefieldRenderer::renderWater(Vugl::CommandBuffer& commandBuffer, size_t frameIdx) {
+  TRACY(ZoneScoped);
+
   if (!hasWater) {
     return;
   }

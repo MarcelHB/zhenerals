@@ -599,10 +599,10 @@ size_t MAPFile::parseObject(MapBuilder& mapBuilder, const ChunkMetaData& metaDat
 
   auto scorchOpt = object.properties.getInt("scorchType");
   if (scorchOpt) {
-    object.scorch = true;
+    mapBuilder.scorches.emplace_back(std::move(object));
+  } else {
+    mapBuilder.objects.emplace_back(std::move(object));
   }
-
-  mapBuilder.objects.emplace_back(std::move(object));
 
   return totalBytes;
 }

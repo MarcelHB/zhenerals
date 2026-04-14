@@ -54,7 +54,7 @@ bool ModelRenderer::preparePipeline(Vugl::RenderPass& renderPass) {
   pipelineSetup.addVertexInput(VK_FORMAT_R32G32_SFLOAT, 24, 8, 0);
 
   pipeline =
-    std::make_unique<Vugl::Pipeline>(vuglContext.createPipeline(pipelineSetup, renderPass.getVkRenderPass()));
+    std::make_shared<Vugl::Pipeline>(vuglContext.createPipeline(pipelineSetup, renderPass.getVkRenderPass()));
 
   if (pipeline->getLastResult() != VK_SUCCESS) {
     return false;

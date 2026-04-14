@@ -37,6 +37,27 @@ class BattlefieldRenderer {
       bool draw = true;
     };
 
+    struct ScorchUBData {
+      alignas(16) glm::mat4 mvp;
+      alignas(16) glm::mat4 uv;
+      alignas(16) glm::vec3 sunlight;
+    };
+
+    // TODO frame disposability
+    struct ScorchData {
+      glm::vec3 position;
+      float radius = 1.0f;
+      glm::mat4 uv;
+      std::shared_ptr<Vugl::DescriptorSet> descriptorSet;
+      std::shared_ptr<Vugl::UniformBuffer> uniformBuffer;
+    };
+
+    struct ScorchOrderData {
+      ScorchData *scorch = nullptr;
+      bool draw = true;
+      float dist = 0.0f;
+    };
+
     Vugl::Context& vuglContext;
     GFX::TextureCache& textureCache;
     Battlefield& battlefield;
@@ -46,9 +67,20 @@ class BattlefieldRenderer {
     glm::mat4 terrainScaleMatrix;
     glm::mat4 waterScaleMatrix;
 
+    std::unordered_map<uint64_t, ModelRenderer::BoundingSphere> boundingSpheres;
+    std::vector<DrawCheck> drawChecks;
+
     bool hasWater = false;
     std::shared_ptr<Vugl::Texture> cloudTexture;
     glm::vec3 sunlightNormal;
+
+    std::shared_ptr<Vugl::Pipeline> patchPipeline;
+    std::shared_ptr<Vugl::ElementBuffer> patchVertices;
+
+    std::shared_ptr<Vugl::CombinedSampler> scorchTextureSampler;
+    std::unordered_map<uint64_t, ScorchData> scorchData;
+    uint64_t scorchFrameIdxSet = 0;
+    std::vector<ScorchOrderData> scorchOrderData;
 
     std::shared_ptr<Vugl::DescriptorSet> terrainDescriptorSet;
     std::shared_ptr<Vugl::Pipeline> terrainPipeline;
@@ -56,8 +88,6 @@ class BattlefieldRenderer {
     std::shared_ptr<Vugl::ElementBuffer> terrainVertices;
     std::shared_ptr<Vugl::Sampler> terrainTextureSampler;
     std::vector<std::shared_ptr<Vugl::Texture>> terrainTextures;
-    std::unordered_map<uint64_t, ModelRenderer::BoundingSphere> boundingSpheres;
-    std::vector<DrawCheck> drawChecks;
 
     std::shared_ptr<Vugl::DescriptorSet> waterDescriptorSet;
     std::shared_ptr<Vugl::Pipeline> waterPipeline;
@@ -67,6 +97,9 @@ class BattlefieldRenderer {
 
     bool prepareModelData(Objects::Instance&);
     bool prepareModelDrawData(Objects::Instance&);
+    bool preparePatches(Vugl::RenderPass&);
+    bool prepareScorches();
+    bool prepareScorchData(const Battlefield::ScorchData&);
     bool prepareTerrainPipeline(Vugl::RenderPass&, const std::vector<std::string>&);
     bool prepareTerrainVertices();
     bool prepareTreeDrawData(Objects::Instance&);
@@ -75,6 +108,7 @@ class BattlefieldRenderer {
 
     void renderObjectInstances(Vugl::CommandBuffer&, size_t frameIdx, bool);
     void renderObjectInstance(Objects::Instance&, Vugl::CommandBuffer&, size_t frameIdx);
+    void renderPatches(Vugl::CommandBuffer&, size_t frameIdx, bool);
     void renderTerrain(Vugl::CommandBuffer&, size_t frameIdx);
     void renderWater(Vugl::CommandBuffer&, size_t frameIdx);
 };

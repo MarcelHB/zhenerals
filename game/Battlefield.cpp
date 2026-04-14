@@ -8,6 +8,10 @@
 
 namespace ZH {
 
+uint64_t Battlefield::ScorchData::nextID = 0;
+
+Battlefield::ScorchData::ScorchData() : id(nextID++) {}
+
 Battlefield::Battlefield(
     std::shared_ptr<Map> map
   , MapBuilder& mapBuilder
@@ -22,6 +26,7 @@ Battlefield::Battlefield(
   TRACY(ZoneScoped);
 
   loadInstances(mapBuilder);
+  loadScorches(mapBuilder);
 
   camera.reposition(
       glm::vec3 {
@@ -97,6 +102,29 @@ void Battlefield::loadInstances(MapBuilder& mapBuilder) {
 
     instances.emplace_back(std::move(instance));
   }
+}
+
+void Battlefield::loadScorches(MapBuilder& mapBuilder) {
+  for (auto& scorch : mapBuilder.scorches) {
+    auto& dict = scorch.properties;
+    auto radiusOpt = dict.getFloat("objectRadius");
+    if (!radiusOpt) {
+      continue;
+    }
+
+    ScorchData data;
+    data.location = scorch.location;
+    data.radius = *radiusOpt;
+
+    auto typeOpt = dict.getInt("scorchType");
+    data.type = typeOpt.value_or(0);
+
+    scorches.emplace_back(std::move(data));
+  }
+}
+
+const std::list<Battlefield::ScorchData>& Battlefield::getScorches() const {
+  return scorches;
 }
 
 float Battlefield::getWorldHeight(const glm::vec3& pos) const {

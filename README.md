@@ -55,4 +55,6 @@ After building the project, start `zhen(.exe)`.
 
 * `BIG`: inspecting and extracting items from `.big` files.
 * `decompress`: decompressing asset files
+* `mapdump`: printing of MAP file information
+* `w3ddump`: printing of W3D model information
 * `w3dview`: stand-alone rendering of model files
