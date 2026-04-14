@@ -51,6 +51,9 @@ class DescriptorSet : public BindableResource {
     std::unordered_map<uint32_t, std::vector<std::reference_wrapper<const Texture>>> textureGrouping;
 
   public:
+    DescriptorSet (const DescriptorSet&) = delete;
+    UniformBuffer& operator= (const UniformBuffer&) = delete;
+
     DescriptorSet (DescriptorSet &&);
     DescriptorSet (
         VkDevice vkDevice
