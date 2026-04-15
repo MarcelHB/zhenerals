@@ -296,7 +296,7 @@ static INIApplierMap<Objects::AutoHeal> AutoHealKVMap = {
   },
   { "SkipSelfForHealing", [](Objects::AutoHeal& ah, INIFile& f) { ah.skipSelf = f.parseBool(); return true; } },
   { "StartsActive", [](Objects::AutoHeal& ah, INIFile& f) { ah.enabled = f.parseBool(); return true; } },
-  { "*", [](Objects::AutoHeal& ah, INIFile& f) { f.parseString(); return true; } }
+  { "*", [](Objects::AutoHeal&, INIFile& f) { f.parseString(); return true; } }
 };
 
 static INIApplierMap<Objects::BaikonurLaunchPower> BaikonurLaunchPowerKVMap = {
