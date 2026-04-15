@@ -20,6 +20,7 @@ Map::Map(MapBuilder& builder)
   : size(builder.size)
   , padding(builder.borderSize)
   , heightMap(std::move(builder.heightMap))
+  , flipStates(std::move(builder.flipStates))
 {
   worldOffsetMatrix =
     glm::translate(
@@ -35,7 +36,7 @@ Map::Map(MapBuilder& builder)
   tesselateHeightMap(
       builder.textureClasses
     , builder.tileIndices
-    , builder.flipStates
+    , flipStates
     , builder.blendTileIndices
     , builder.blendTileInfo
   );
@@ -426,14 +427,58 @@ void Map::tesselateHeightMap(
   }
 }
 
-float Map::getCenterHeight(size_t x, size_t z) {
-   auto h1 = getHeight(x, z, 0);
-   auto h2 = getHeight(x, z, 1);
-   auto h3 = getHeight(x, z, 2);
-   auto h4 = getHeight(x, z, 3);
+float Map::getCenterHeight(const glm::vec2& pos) {
+  size_t x = static_cast<size_t>(pos.x / 10);
+  size_t y = static_cast<size_t>(pos.y / 10);
 
-   // EVAL not accurate but apparently better than avg
-   return std::max(h1, std::max(h2, std::max(h3, h4)));
+  auto statesWidthBytes = (size.x + 7) / 8;
+  auto flipped = flipStates[y * statesWidthBytes + (x >> 3)] & (1 << (x & 0x7));
+
+  auto h0 = getHeight(x, y, 0);
+  auto h1 = getHeight(x, y, 1);
+  auto h2 = getHeight(x, y, 2);
+  auto h3 = getHeight(x, y, 3);
+
+  float subX = pos.x - (x * 10.0f);
+  float subY = pos.y - (y * 10.0f);
+
+  if (flipped) {
+    // lower left
+    if (subY > 1.0f - subX) {
+      return interpolateVertexTriangle(
+          glm::vec3 { 0.0f, h2,  0.0f}
+        , glm::vec3 {10.0f, h3,  0.0f}
+        , glm::vec3 { 0.0f, h0, 10.0f}
+        , glm::vec2 {subX, subY}
+      );
+    // upper right
+    } else {
+      return interpolateVertexTriangle(
+          glm::vec3 {10.0f, h3,  0.0f}
+        , glm::vec3 {10.0f, h1, 10.0f}
+        , glm::vec3 { 0.0f, h0, 10.0f}
+        , glm::vec2 {subX, subY}
+      );
+    }
+  } else {
+    // lower right
+    if (subX < subY) {
+      return interpolateVertexTriangle(
+          glm::vec3 { 0.0f, h2,  0.0f}
+        , glm::vec3 {10.0f, h3,  0.0f}
+        , glm::vec3 {10.0f, h1, 10.0f}
+        , glm::vec2 {subX, subY}
+      );
+    // upper left
+    } else {
+      return interpolateVertexTriangle(
+          glm::vec3 { 0.0f, h2,  0.0f}
+        , glm::vec3 { 0.0f, h0, 10.0f}
+        , glm::vec3 {10.0f, h1, 10.0f}
+        , glm::vec2 {subX, subY}
+      );
+    }
+  }
 }
 
 float Map::getHeight(size_t x, size_t z, uint8_t corner) {

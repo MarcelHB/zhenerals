@@ -222,7 +222,7 @@ class Map {
 
     Map(MapBuilder&);
 
-    float getCenterHeight(size_t, size_t);
+    float getCenterHeight(const glm::vec2&);
     float getHeight(size_t, size_t, uint8_t);
     const std::vector<uint8_t>& getHeightMap() const;
     Size getSize() const;
@@ -246,6 +246,7 @@ class Map {
     std::vector<WaterVertexData> waterVertices;
     std::vector<uint32_t> vertexIndices;
     std::vector<WaterState> waterState;
+    std::vector<uint8_t> flipStates;
 
     void prepareTextureIndex(std::vector<TextureClass>&);
     void prepareWaters(const std::vector<PolygonTrigger>&);
