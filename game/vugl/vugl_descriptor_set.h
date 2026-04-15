@@ -52,7 +52,7 @@ class DescriptorSet : public BindableResource {
 
   public:
     DescriptorSet (const DescriptorSet&) = delete;
-    UniformBuffer& operator= (const UniformBuffer&) = delete;
+    DescriptorSet& operator= (const DescriptorSet&) = delete;
 
     DescriptorSet (DescriptorSet &&);
     DescriptorSet (
