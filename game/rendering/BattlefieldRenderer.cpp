@@ -666,7 +666,7 @@ void BattlefieldRenderer::renderPatches(Vugl::CommandBuffer& commandBuffer, size
       auto drawTranslation =
         glm::translate(
             glm::mat4 {1.0f}
-          , glm::vec3 {-scorch->radius / 2.0f, 0.1f + i * distStep, -scorch->radius / 2.0f}
+          , glm::vec3 {-scorch->radius, 0.1f + i * distStep, -scorch->radius}
         );
 
       auto scaleMatrix =
