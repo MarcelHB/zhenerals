@@ -63,10 +63,10 @@ VkResult CommandBuffer::beginRendering (
   vkCommandBufferBeginInfo.flags = 0;
   vkCommandBufferBeginInfo.pInheritanceInfo = nullptr;
 
+  VkCommandBufferInheritanceInfo inheritanceInfo = {};
   if (secondary) {
     vkCommandBufferBeginInfo.flags = VK_COMMAND_BUFFER_USAGE_RENDER_PASS_CONTINUE_BIT;
 
-    VkCommandBufferInheritanceInfo inheritanceInfo = {};
     inheritanceInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_INFO;
     inheritanceInfo.renderPass = renderPass.getVkRenderPass();
     inheritanceInfo.framebuffer = renderPass.getVkFramebuffers()[frameIndex];

@@ -191,8 +191,8 @@ void Context::setSurface (
   vkDeviceCreateInfo.enabledExtensionCount = static_cast<uint32_t>(vkDeviceExtensionsList.size());
   vkDeviceCreateInfo.ppEnabledExtensionNames = vkDeviceExtensionsList.data();
 
+  VkPhysicalDeviceFeatures2 physicalDeviceFeatures2 = {};
   if (deviceFeaturesNext != nullptr) {
-    VkPhysicalDeviceFeatures2 physicalDeviceFeatures2 = {};
     physicalDeviceFeatures2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
     physicalDeviceFeatures2.features = enabledFeatures;
     physicalDeviceFeatures2.pNext = deviceFeaturesNext;
