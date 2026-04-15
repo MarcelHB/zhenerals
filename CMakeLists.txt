@@ -78,7 +78,7 @@ IF (USE_TESTS OR USE_GAME_TESTS)
 ENDIF()
 
 FUNCTION(ADD_UNIT_TEST unit_name)
-  IF (BUILD_TESTING)
+  IF (BUILD_TESTING AND USE_TESTS)
     ADD_EXECUTABLE(Test_${unit_name}
       ${ARGN}
       game/Logging.cpp
@@ -381,7 +381,7 @@ ADD_UNIT_TEST(AudioFile
   game/tests/Test_AudioFile.cpp
 )
 
-IF (BUILD_TESTING)
+IF (BUILD_TESTING AND USE_TESTS)
   TARGET_LINK_LIBRARIES(Test_AudioFile
     ${OPENAL_LIBRARY}
 
@@ -420,7 +420,7 @@ ADD_UNIT_TEST(Font
   game/tests/Test_Font.cpp
 )
 
-IF (BUILD_TESTING)
+IF (BUILD_TESTING AND USE_TESTS)
   TARGET_LINK_LIBRARIES(Test_Font
     ${FREETYPE_LIBRARIES}
   )
