@@ -138,6 +138,8 @@ void RenderListFactory::createButtonRenderList(
   , size_t frameIndex
   , OptionalCRef<RenderComponent> parent
 ) {
+  TRACY(ZoneScoped);
+
   OptionalCRef<Component::ImagesContainer> images;
   if (button.isHighlighted()) {
     images = std::make_optional(std::cref(button.getHighlightImages()));
@@ -314,6 +316,8 @@ void RenderListFactory::createWindowRenderList(
   , size_t frameIndex
   , OptionalCRef<RenderComponent> parent
 ) {
+  TRACY(ZoneScoped);
+
   RenderComponent renderComponent;
   renderComponent.position = window.getPosition() + window.getPositionOffset();
   renderComponent.size = window.getSize();

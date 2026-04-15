@@ -620,6 +620,7 @@ void BattlefieldRenderer::renderPatches(Vugl::CommandBuffer& commandBuffer, size
   commandBuffer.bindResource(*patchVertices);
 
   if (newMatrices) {
+    TRACY(ZoneScoped);
     scorchFrameIdxSet = 0;
 
     size_t i = 0;
@@ -654,6 +655,7 @@ void BattlefieldRenderer::renderPatches(Vugl::CommandBuffer& commandBuffer, size
   ubData.sunlight = sunlightNormal;
 
   for (auto& orderData : scorchOrderData) {
+    TRACY(ZoneScoped);
     auto scorch = orderData.scorch;
 
     if (!orderData.draw) {
