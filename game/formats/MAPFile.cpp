@@ -195,7 +195,6 @@ size_t MAPFile::parseBlendTiles(MapBuilder& mapBuilder, const ChunkMetaData& met
 
   auto statesWidthBytes = (mapBuilder.size.x + 7) / 8;
   auto statesLength = statesWidthBytes * mapBuilder.size.y;
-  mapBuilder.flipStates.resize(statesLength);
   mapBuilder.cliffStates.resize(statesLength);
 
   bytesRead = stream.read(reinterpret_cast<char*>(mapBuilder.tileIndices.data()), dataLength * 2);

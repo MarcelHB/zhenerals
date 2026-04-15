@@ -167,7 +167,6 @@ struct MapBuilder {
   std::vector<uint16_t> cliffInfoIndices;
   std::vector<uint16_t> blendTileIndices;
   std::vector<uint16_t> extraBlendTileIndices;
-  std::vector<uint8_t> flipStates;
   std::vector<uint8_t> cliffStates;
 
   std::vector<TextureClass> textureClasses;
@@ -262,7 +261,6 @@ class Map {
     void tesselateHeightMap(
         const std::vector<TextureClass>&
       , const std::vector<uint16_t>& tileIndices
-      , const std::vector<uint8_t>& flipStates
       , const std::vector<uint16_t>& blendTileIndices
       , const std::vector<BlendTileInfo>& blendTileInfo
     );

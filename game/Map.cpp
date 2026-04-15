@@ -20,7 +20,6 @@ Map::Map(MapBuilder& builder)
   : size(builder.size)
   , padding(builder.borderSize)
   , heightMap(std::move(builder.heightMap))
-  , flipStates(std::move(builder.flipStates))
 {
   worldOffsetMatrix =
     glm::translate(
@@ -36,7 +35,6 @@ Map::Map(MapBuilder& builder)
   tesselateHeightMap(
       builder.textureClasses
     , builder.tileIndices
-    , flipStates
     , builder.blendTileIndices
     , builder.blendTileInfo
   );
@@ -253,7 +251,6 @@ Size Map::getSize() const {
 void Map::tesselateHeightMap(
     const std::vector<TextureClass>& textureClasses
   , const std::vector<uint16_t>& tileIndex
-  , const std::vector<uint8_t>& flipStates
   , const std::vector<uint16_t>& blendTileIndices
   , const std::vector<BlendTileInfo>& blendTileInfo
 ) {
@@ -266,6 +263,8 @@ void Map::tesselateHeightMap(
   vertexIndices.resize(numVertices);
 
   auto statesWidthBytes = (size.x + 7) / 8;
+  auto statesLength = statesWidthBytes * size.y;
+  flipStates.resize(statesLength);
 
 #pragma omp parallel num_threads(4)
   {
@@ -339,12 +338,14 @@ void Map::tesselateHeightMap(
           );
         }
 
-        bool flipped = flip || flipStates[y * statesWidthBytes + (x >> 3)] & (1 << (x & 0x7));
+        if (flip) {
+          flipStates[y * statesWidthBytes + (x >> 3)] |= (1 << (x & 0x7));
+        }
 
         size_t vertexIdx = (y * size.x + x) * 6;
         vertexIndices[vertexIdx] = baseIdx;
         vertexIndices[vertexIdx + 1] = baseIdx + 1;
-        if (!flipped) {
+        if (flip) {
           vertexIndices[vertexIdx + 2] = baseIdx + 2;
           vertexIndices[vertexIdx + 3] = baseIdx + 1;
         } else {
@@ -638,57 +639,32 @@ bool Map::setVertexUV(
 
   if (blendInfoOpt) {
     auto& bi = blendInfoOpt->get();
-    if (bi.horizontal
-          && (
-            ((bi.inverted & 0x1) && (corner == 0 || corner == 2))
-              || (!(bi.inverted & 0x1) && (corner == 1 || corner == 3))
-            )
-    ) {
-      vertexData.uvAlpha = 1.0f;
-      return bi.inverted & 0x2;
-    } else if (bi.vertical
-        && (
-          ((bi.inverted & 0x1) && (corner == 0 || corner == 1))
-            || (!(bi.inverted & 0x1) && (corner == 2 || corner == 3))
-          )
-    ) {
-      vertexData.uvAlpha = 1.0f;
-      return bi.inverted & 0x2;
-    } else if (bi.rightDiagonal
-        && (bi.inverted & 0x1)
-        && (
-          bi.longDiagonal && (corner == 0 || corner == 1 || corner == 3)
-          || (!bi.longDiagonal && (corner == 1))
-        )
-    ) {
-      vertexData.uvAlpha = 1.0f;
-      return true;
-    } else if (bi.rightDiagonal
-        && !(bi.inverted & 0x1)
-        && (
-          bi.longDiagonal && (corner == 1 || corner == 2 || corner == 3)
-          || (!bi.longDiagonal && (corner == 3))
-        )
-    ) {
-      vertexData.uvAlpha = 1.0f;
-    } else if (bi.leftDiagonal
-        && (bi.inverted & 0x1)
-        && (
-          bi.longDiagonal && (corner == 0 || corner == 1 || corner == 2)
-          || (!bi.longDiagonal && (corner == 0))
-        )
-    ) {
-      vertexData.uvAlpha = 1.0f;
-    } else if (bi.leftDiagonal
-        && !(bi.inverted & 0x1)
-        && (
-          bi.longDiagonal && (corner == 0 || corner == 2 || corner == 3)
-          || (!bi.longDiagonal && (corner == 2))
-        )
-    ) {
-      vertexData.uvAlpha = 1.0f;
-      return true;
+
+    if (bi.customBlendEdgeClass) {
+      return false;
     }
+
+    // 0-1
+    // |/|
+    // 2-3
+    // right: /, left: \, long diagonal: diag vertices line transparent
+
+    bool inverted = bi.inverted & 0x1;
+    vertexData.uvAlpha =
+         (bi.horizontal && ((inverted && (corner == 0 || corner == 2)) || (!inverted && (corner == 1 || corner == 3))))
+      || (bi.vertical && ((inverted && (corner == 0 || corner == 1)) || (!inverted && (corner == 2 || corner == 3))))
+      || (bi.rightDiagonal && ((inverted && (corner == 1 || (bi.longDiagonal && (corner == 0 || corner == 3))))
+            || (!inverted && (corner == 3 || (bi.longDiagonal && (corner == 1 || corner == 2))))))
+      || (bi.leftDiagonal && ((inverted && (corner == 0 || (bi.longDiagonal && (corner == 1 || corner == 2))))
+            || (!inverted && (corner == 2 || (bi.longDiagonal && (corner == 0 || corner == 3))))))
+      ? 1.0f : 0.0f;
+
+    return (
+      (bi.horizontal && (bi.inverted & 0x2))
+        || (bi.vertical && (bi.inverted & 0x2))
+        || (bi.rightDiagonal && !inverted)
+        || (bi.leftDiagonal && inverted)
+    );
   }
 
   return false;
