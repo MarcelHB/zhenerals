@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0
 
+#include <fstream>
 #include <istream>
 #include <iostream>
 #include <optional>
@@ -44,6 +45,7 @@
   }
 
 struct State {
+  bool dumpHeightMap = false;
   std::unordered_map<uint32_t, std::string> chunkLabels;
   uint32_t width = 0;
   uint32_t height = 0;
@@ -250,8 +252,28 @@ size_t parseChunk(
     }
 
     read4()
-    stream.seekg(buffer4, std::ios::cur);
-    totalBytes += buffer4;
+    auto numBytes = buffer4;
+
+    if (!state.dumpHeightMap) {
+      stream.seekg(numBytes, std::ios::cur);
+      totalBytes += numBytes;
+      return totalBytes;
+    }
+
+    std::string filename {"heightmap.ppm"};
+    std::fstream f {filename, std::ios::out | std::ios::trunc};
+    fmt::print(f, "P2\n");
+    fmt::print(f, "{} {}\n", state.width, state.height);
+    fmt::print(f, "255\n");
+
+    for (size_t i = 0; i < numBytes; ++i) {
+      read1()
+      fmt::print(f, "{} ", buffer1);
+
+      if (i % state.width == state.width - 1) {
+        fmt::print(f, "\n");
+      }
+    }
   } else if (chunkType == "Object") {
     readf()
     dump(depth, "X: {}", bufferf);
@@ -500,6 +522,16 @@ int main(int argc, char **argv) {
     return 1;
   }
 
+  State state;
+  if (argc > 2) {
+    for (int i = 2; i < argc; ++i) {
+      std::string arg {argv[i]};
+      if (arg == "-hm") {
+        state.dumpHeightMap = true;
+      }
+    }
+  }
+
   ZH::Config config;
   auto mapsLoader =
     std::shared_ptr<ZH::ResourceLoader>(
@@ -516,7 +548,6 @@ int main(int argc, char **argv) {
   auto stream = lookup->getStream();
   ZH::InflatingStream inflatingStream {stream};
 
-  State state;
   auto broken = !parseMap(inflatingStream, state);
 
   return broken ? 1 : 0;
