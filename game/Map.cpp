@@ -266,6 +266,22 @@ void Map::tesselateHeightMap(
   auto statesLength = statesWidthBytes * size.y;
   flipStates.resize(statesLength);
 
+  auto terrainScaleMatrix =
+    glm::scale(
+        glm::mat4 {1.0f}
+      , glm::vec3 {10.0f, Map::TERRAIN_HEIGHT_SCALE, 10.0f}
+      );
+
+  auto transformNormal = [this, &terrainScaleMatrix](size_t a, size_t b, size_t c) {
+    return
+      glm::normalize(
+        glm::cross(
+            glm::vec3 { terrainScaleMatrix * glm::vec4 {verticesAndNormals[a].position - verticesAndNormals[c].position, 1.0f}}
+          , glm::vec3 { terrainScaleMatrix * glm::vec4 {verticesAndNormals[b].position - verticesAndNormals[c].position, 1.0f}}
+        )
+      );
+  };
+
 #pragma omp parallel num_threads(4)
   {
     TRACY(ZoneScoped);
@@ -313,7 +329,6 @@ void Map::tesselateHeightMap(
           auto height = getHeight(x, y, i);
           auto& vertex = verticesAndNormals[baseIdx + i];
           auto& position = vertex.position;
-          auto& normal = vertex.normal;
 
           float xOffset = 0.0f, yOffset = 0.0f;
           if (i == 1 || i == 3) {
@@ -345,84 +360,124 @@ void Map::tesselateHeightMap(
         size_t vertexIdx = (y * size.x + x) * 6;
         vertexIndices[vertexIdx] = baseIdx;
         vertexIndices[vertexIdx + 1] = baseIdx + 1;
+
+        glm::vec3 n1, n2;
         if (flip) {
           vertexIndices[vertexIdx + 2] = baseIdx + 2;
           vertexIndices[vertexIdx + 3] = baseIdx + 1;
+
+          n1 = transformNormal(baseIdx + 2, baseIdx + 1, baseIdx);
+          n2 = transformNormal(baseIdx + 1, baseIdx + 2, baseIdx + 3);
         } else {
           vertexIndices[vertexIdx + 2] = baseIdx + 3;
           vertexIndices[vertexIdx + 3] = baseIdx;
+
+          n1 = transformNormal(baseIdx, baseIdx + 3, baseIdx + 1);
+          n2 = transformNormal(baseIdx + 3, baseIdx, baseIdx + 2);
         }
         vertexIndices[vertexIdx + 4] = baseIdx + 3;
         vertexIndices[vertexIdx + 5] = baseIdx + 2;
 
-        auto normal =
-          glm::normalize(
-            glm::cross(
-                verticesAndNormals[baseIdx + 2].position - verticesAndNormals[baseIdx].position
-              , verticesAndNormals[baseIdx + 1].position - verticesAndNormals[baseIdx].position
-            )
-          );
-
-        for (uint8_t i = 0; i < 4; ++i) {
-          verticesAndNormals[baseIdx + i].normal = normal;
+        glm::vec3 n3 = glm::normalize(n1 + n2);
+        if (flip) {
+          verticesAndNormals[baseIdx].normal = n1;
+          verticesAndNormals[baseIdx + 1].normal = n3;
+          verticesAndNormals[baseIdx + 2].normal = n3;
+          verticesAndNormals[baseIdx + 3].normal = n2;
+        } else {
+          verticesAndNormals[baseIdx].normal = n3;
+          verticesAndNormals[baseIdx + 1].normal = n1;
+          verticesAndNormals[baseIdx + 2].normal = n2;
+          verticesAndNormals[baseIdx + 3].normal = n3;
         }
       }
     }
   }
 
-  // bend the normals -- it doesn't work well for everything that is more an edge/corner
-  // than a curve, but to be EVAL if relevant at all
+  auto tooSheered = [](const glm::vec3& a, const glm::vec3& b) -> bool {
+    return std::acos(glm::dot(a, b)) > glm::radians(45.0f);
+  };
+
+  // bend the normals
+  std::array<size_t, 4> indices;
   for (size_t y = 0; y < size.y; ++y) {
     for (size_t x = 0; x < size.x; ++x) {
+      uint8_t normalTests = 0;
+
       // top
       if (y == 0 && x < size.x - 1) {
-        auto&& normal1 = verticesAndNormals[y * size.x * 4 + x * 4 + 1].normal;
-        auto&& normal2 = verticesAndNormals[y * size.x * 4 + (x + 1) * 4].normal;
-
-        auto normal = glm::normalize(normal1 + normal2);
-        normal1 = normal;
-        normal2 = normal;
-      }
+        normalTests = 2;
+        indices[0] = y * size.x * 4 + x * 4 + 1;
+        indices[1] = y * size.x * 4 + (x + 1) * 4;
       // bottom
-      if (y == size.y - 1 && x < size.x - 1) {
-        auto&& normal1 = verticesAndNormals[y * size.x * 4 + x * 4 + 3].normal;
-        auto&& normal2 = verticesAndNormals[y * size.x * 4 + (x + 1) * 4 + 2].normal;
-
-        auto normal = glm::normalize(normal1 + normal2);
-        normal1 = normal;
-        normal2 = normal;
-      }
-
+      } else if (y == size.y - 1 && x < size.x - 1) {
+        normalTests = 2;
+        indices[0] = y * size.x * 4 + x * 4 + 3;
+        indices[1] = y * size.x * 4 + (x + 1) * 4 + 2;
       // left
-      if (x == 0 && y < size.y - 1) {
-        auto&& normal1 = verticesAndNormals[y * size.x * 4 + x * 4 + 2].normal;
-        auto&& normal2 = verticesAndNormals[(y + 1) * size.x * 4 + x * 4].normal;
-
-        auto normal = glm::normalize(normal1 + normal2);
-        normal1 = normal;
-        normal2 = normal;
-      }
+      } else if (x == 0 && y < size.y - 1) {
+        normalTests = 2;
+        indices[0] = y * size.x * 4 + x * 4 + 2;
+        indices[1] = (y + 1) * size.x * 4 + x * 4;
       // right
-      if (x == size.x - 1 && y < size.y - 1) {
-        auto&& normal1 = verticesAndNormals[y * size.x * 4 + x * 4 + 3].normal;
-        auto&& normal2 = verticesAndNormals[(y + 1) * size.x * 4 + x * 4 + 1].normal;
-
-        auto normal = glm::normalize(normal1 + normal2);
-        normal1 = normal;
-        normal2 = normal;
+      } else if (x == size.x - 1 && y < size.y - 1) {
+        normalTests = 2;
+        indices[0] = y * size.x * 4 + x * 4 + 3;
+        indices[1] = (y + 1) * size.x * 4 + x * 4 + 1;
+      // check: right, below, below-right
+      } else if (x < size.x - 1 && y < size.y - 1) {
+        normalTests = 4;
+        indices[0] = y * size.x * 4 + x * 4 + 3;
+        indices[1] = y * size.x * 4 + (x + 1) * 4 + 2;
+        indices[2] = (y + 1) * size.x * 4 + x * 4 + 1;
+        indices[3] = (y + 1) * size.x * 4 + (x + 1) * 4;
       }
 
-      if (x < size.x - 1 && y < size.y - 1) {
-        auto&& normal1 = verticesAndNormals[y * size.x * 4 + x * 4 + 3].normal;
-        auto&& normal2 = verticesAndNormals[y * size.x * 4 + (x + 1) * 4 + 2].normal;
-        auto&& normal3 = verticesAndNormals[(y + 1) * size.x * 4 + x * 4 + 1].normal;
-        auto&& normal4 = verticesAndNormals[(y + 1) * size.x * 4 + (x + 1) * 4].normal;
+      if (normalTests == 0) {
+        continue;
+      }
 
-        auto normal = glm::normalize(normal1 + normal2 + normal3 + normal4);
-        normal1 = normal;
-        normal2 = normal;
-        normal3 = normal;
-        normal4 = normal;
+      if (normalTests == 2) {
+        auto n1 = verticesAndNormals[indices[0]].normal;
+        auto n2 = verticesAndNormals[indices[1]].normal;
+
+        if (tooSheered(n1, n2)) {
+          continue;
+        }
+
+        auto n = glm::normalize(n1 + n2);
+        verticesAndNormals[indices[0]].normal = n;
+        verticesAndNormals[indices[1]].normal = n;
+      } else if (normalTests == 4) {
+        uint8_t isSet = 0;
+        // for each normal, check which other ones are compatible
+        for (uint8_t i = 0; i < 3; ++i) {
+          if (isSet & (1 << i)) {
+            continue;
+          }
+
+          uint8_t accepted = (1 << i);
+          glm::vec3 nI = verticesAndNormals[indices[i]].normal;
+          glm::vec3 nN = nI;
+
+          for (uint8_t j = i + 1; j < 4; ++j) {
+            glm::vec3 nJ = verticesAndNormals[indices[j]].normal;
+
+            if (!tooSheered(nI, nJ)) {
+              accepted |= (1 << j);
+              nN += nJ;
+            }
+          }
+
+          // propagate new normal to every tile that is compatible
+          nN = glm::normalize(nN);
+          for (uint8_t j = i; j < 4; ++j) {
+            if (accepted & (1 << j)) {
+              verticesAndNormals[indices[j]].normal = nN;
+            }
+          }
+          isSet |= accepted;
+        }
       }
     }
   }

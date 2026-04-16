@@ -20,7 +20,7 @@ layout(location = 0) out vec4 outColor;
 
 void main() {
   vec4 color = texture(sampler2D(textures[nonuniformEXT(textureIdx.x)], textureSampler), uv);
-  vec4 brightness = vec4(0.2 + max(0.0, 0.5f * (1.0f + dot(normal, scene.sunlight))) * 0.8);
+  vec4 brightness = vec4(0.2 + max(0.0, dot(normal, scene.sunlight)) * 0.8);
 
   vec4 color2 = texture(sampler2D(textures[nonuniformEXT(textureIdx.y)], textureSampler), uv);
 
