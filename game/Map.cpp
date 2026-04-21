@@ -326,7 +326,9 @@ void Map::tesselateHeightMap(
         bool flip = false;
         size_t baseIdx = (y * size.x + x) * 4;
         for (uint8_t i = 0; i < 4; ++i) {
-          auto height = getHeight(x, y, i);
+          auto pair = getHeight(x, y, i);
+          auto height = pair.first;
+          flip |= pair.second;
           auto& vertex = verticesAndNormals[baseIdx + i];
           auto& position = vertex.position;
 
@@ -490,10 +492,10 @@ float Map::getCenterHeight(const glm::vec2& pos) {
   auto statesWidthBytes = (size.x + 7) / 8;
   auto flipped = flipStates[y * statesWidthBytes + (x >> 3)] & (1 << (x & 0x7));
 
-  auto h0 = getHeight(x, y, 0);
-  auto h1 = getHeight(x, y, 1);
-  auto h2 = getHeight(x, y, 2);
-  auto h3 = getHeight(x, y, 3);
+  auto h0 = getHeight(x, y, 0).first;
+  auto h1 = getHeight(x, y, 1).first;
+  auto h2 = getHeight(x, y, 2).first;
+  auto h3 = getHeight(x, y, 3).first;
 
   float subX = pos.x - (x * 10.0f);
   float subY = pos.y - (y * 10.0f);
@@ -537,114 +539,250 @@ float Map::getCenterHeight(const glm::vec2& pos) {
   }
 }
 
-float Map::getHeight(size_t x, size_t z, uint8_t corner) {
+// fields
+//   01
+//   23
+std::pair<float, bool> getHeigthFromCorners(float f0, float f1, float f2, float f3, uint8_t corner) {
+  // 01
+  // 11
+  if (f1 - f0 > Map::CLIFF_SLOPE
+      && f2 - f0 > Map::CLIFF_SLOPE
+      && f3 - f0 > Map::CLIFF_SLOPE) {
+    return std::make_pair((f1 + f2 + f3) / 3.0f, false);
+  }
+
+  // 00
+  // 11
+  if (f1 - f0 < Map::CLIFF_SLOPE
+      && f2 - f0 > Map::CLIFF_SLOPE
+      && f3 - f0 > Map::CLIFF_SLOPE) {
+    return std::make_pair((f0 + f1) / 2.0f, false);
+  }
+
+  // 00
+  // 10
+  if (f1 - f0 < Map::CLIFF_SLOPE
+      && f2 - f0 < Map::CLIFF_SLOPE
+      && f3 - f0 > Map::CLIFF_SLOPE) {
+    return std::make_pair((f0 + f1 + f2) / 3.0f, corner == 3);
+  }
+
+  // 10
+  // 00
+  if (f0 - f1 > Map::CLIFF_SLOPE
+      && f0 - f2 > Map::CLIFF_SLOPE
+      && f0 - f3 > Map::CLIFF_SLOPE) {
+    return std::make_pair((f1 + f2 + f3) / 3.0f, false);
+  }
+
+  // 01 -- EVAL
+  // 00
+  if (f1 - f0 > Map::CLIFF_SLOPE
+      && f1 - f2 > Map::CLIFF_SLOPE
+      && f1 - f3 > Map::CLIFF_SLOPE) {
+    return std::make_pair(f1, corner == 0);
+  }
+
+  // 00
+  // 01
+  if (f3 - f0 > Map::CLIFF_SLOPE
+      && f3 - f2 > Map::CLIFF_SLOPE
+      && f3 - f3 > Map::CLIFF_SLOPE) {
+    return std::make_pair((f0 + f1 + f2) / 3.0f, false);
+  }
+
+  // 10 -- EVAL
+  // 11
+  if (f0 - f1 > Map::CLIFF_SLOPE
+      && f2 - f1 > Map::CLIFF_SLOPE
+      && f3 - f1 > Map::CLIFF_SLOPE) {
+    return std::make_pair((f0 + f2 + f3) / 3.0f, corner == 0);
+  }
+
+  // 11
+  // 10
+  if (f0 - f3 > Map::CLIFF_SLOPE
+      && f1 - f3 > Map::CLIFF_SLOPE
+      && f2 - f3 > Map::CLIFF_SLOPE) {
+    return std::make_pair((f0 + f1 + f2) / 3.0f, false);
+  }
+
+  // 11
+  // 01
+  if (f0 - f2 > Map::CLIFF_SLOPE
+      && f1 - f2 > Map::CLIFF_SLOPE
+      && f3 - f2 > Map::CLIFF_SLOPE) {
+    return std::make_pair((f0 + f1 + f3) / 3.0f, corner == 3);
+  }
+
+  // 01
+  // 01
+  if (f1 - f0 > Map::CLIFF_SLOPE
+      && f3 - f0 > Map::CLIFF_SLOPE
+      && f2 - f0 < Map::CLIFF_SLOPE) {
+    return std::make_pair((f1 + f3) / 2.0f, false);
+  }
+
+  // 11
+  // 00
+  if (f0 - f2 > Map::CLIFF_SLOPE
+      && f0 - f3 > Map::CLIFF_SLOPE
+      && f1 - f0 < Map::CLIFF_SLOPE) {
+    return std::make_pair((f0 + f1) / 2.0f, false);
+  }
+
+  // 10
+  // 10
+  if (f0 - f1 > Map::CLIFF_SLOPE
+      && f0 - f3 > Map::CLIFF_SLOPE
+      && f2 - f0 < Map::CLIFF_SLOPE) {
+    return std::make_pair((f1 + f3) / 2.0f, false);
+  }
+
+  return std::make_pair((f0 + f1 + f2 + f3) / 4.0f, false);
+};
+
+std::pair<float, bool> Map::getHeight(size_t x, size_t z, uint8_t corner) {
   auto getHeight = [this](size_t x, size_t z) {
     return heightMap[z * size.x + x];
   };
 
-  // bottom-right
+  // described as seen in the world editor, lower left to upper right
+  // top-right
   if (corner == 3) {
     // map corner
     if (x == size.x - 1 && z == size.y - 1) {
-      return getHeight(x, z);
+      return std::make_pair(getHeight(x, z), false);
     } // neighbour to right
     else if (x != size.x - 1 && z == size.y - 1) {
       auto h1 = getHeight(x + 1, z);
       auto h2 = getHeight(x, z);
 
-      return (h1 + h2) / 2.0f;
-    } // neighbour below
+      if (h1 - h2 > Map::CLIFF_SLOPE || h2 - h1 > Map::CLIFF_SLOPE) {
+        return std::make_pair(h1, false);
+      }
+
+      return std::make_pair((h1 + h2) / 2.0f, false);
+    } // neighbour above
     else if (x == size.x - 1 && z != size.y -1) {
       auto h1 = getHeight(x, z + 1);
       auto h2 = getHeight(x, z);
 
-      return (h1 + h2) / 2.0f;
-    } // neighours to right and below
+      if (h1 - h2 > Map::CLIFF_SLOPE || h2 - h1 > Map::CLIFF_SLOPE) {
+        return std::make_pair(h1, false);
+      }
+
+      return std::make_pair((h1 + h2) / 2.0f, false);
+    } // neighours to right and above
     else {
       auto h1 = getHeight(x + 1, z);
       auto h2 = getHeight(x, z + 1);
       auto h3 = getHeight(x, z);
       auto h4 = getHeight(x + 1, z + 1);
 
-      return (h1 + h2 + h3 + h4) / 4.0f;
+      return getHeigthFromCorners(h2, h4, h3, h1, corner);
     }
-  } // bottom-left
+  } // top-left
   else if (corner == 2) {
     // map corner
     if (x == 0 && z == size.y - 1) {
-      return getHeight(x, z);
+      return std::make_pair(getHeight(x, z), false);
     } // neighbour to left
     else if (x != 0 && z == size.y - 1) {
       auto h1 = getHeight(x - 1, z);
       auto h2 = getHeight(x, z);
 
-      return (h1 + h2) / 2.0f;
-    } // neighbour below
+      if (h1 - h2 > Map::CLIFF_SLOPE || h2 - h1 > Map::CLIFF_SLOPE) {
+        return std::make_pair(h2, false);
+      }
+
+      return std::make_pair((h1 + h2) / 2.0f, false);
+    } // neighbour above
     else if (x == 0 && z != size.y - 1) {
       auto h1 = getHeight(x, z + 1);
       auto h2 = getHeight(x, z);
 
-      return (h1 + h2) / 2.0f;
-    } // neighours to left and below
+      if (h1 - h2 > Map::CLIFF_SLOPE || h2 - h1 > Map::CLIFF_SLOPE) {
+        return std::make_pair(h1, false);
+      }
+
+      return std::make_pair((h1 + h2) / 2.0f, false);
+    } // neighours to left and above
     else {
       auto h1 = getHeight(x - 1, z);
       auto h2 = getHeight(x, z + 1);
       auto h3 = getHeight(x, z);
       auto h4 = getHeight(x - 1, z + 1);
 
-      return (h1 + h2 + h3 + h4) / 4.0f;
+      return getHeigthFromCorners(h4, h2, h1, h3, corner);
     }
-  } // top-right
+  } // bottom-right
   else if (corner == 1) {
     // map corner
     if (x == size.x - 1 && z == 0) {
-      return getHeight(x, z);
+      return std::make_pair(getHeight(x, z), false);
     } // neighbour to right
     else if (x != size.x - 1 && z == 0) {
       auto h1 = getHeight(x + 1, z);
       auto h2 = getHeight(x, z);
 
-      return (h1 + h2) / 2.0f;
-    } // neighbour above
+      if (h1 - h2 > Map::CLIFF_SLOPE || h2 - h1 > Map::CLIFF_SLOPE) {
+        return std::make_pair(h1, false);
+      }
+
+      return std::make_pair((h1 + h2) / 2.0f, false);
+    } // neighbour below
     else if (x == size.x - 1 && z != 0) {
       auto h1 = getHeight(x, z - 1);
       auto h2 = getHeight(x, z);
 
-      return (h1 + h2) / 2.0f;
-    } // neighours to right and above
+      if (h1 - h2 > Map::CLIFF_SLOPE || h2 - h1 > Map::CLIFF_SLOPE) {
+        return std::make_pair(h2, false);
+      }
+
+      return std::make_pair((h1 + h2) / 2.0f, false);
+    } // neighours to right and below
     else {
       auto h1 = getHeight(x + 1, z);
       auto h2 = getHeight(x, z - 1);
       auto h3 = getHeight(x, z);
       auto h4 = getHeight(x + 1, z - 1);
 
-      return (h1 + h2 + h3 + h4) / 4.0f;
+      return getHeigthFromCorners(h3, h1, h2, h4, corner);
     }
-  } // top-left
+  } // bottom-left
   else {
     // map corner
     if (x == 0 && z == 0) {
-      return getHeight(x, z);
+      return std::make_pair(getHeight(x, z), false);
     } // neighbour to left
     else if (x != 0 && z == 0) {
       auto h1 = getHeight(x - 1, z);
       auto h2 = getHeight(x, z);
 
-      return (h1 + h2) / 2.0f;
-    } // neighbour above
+      if (h1 - h2 > Map::CLIFF_SLOPE || h2 - h1 > Map::CLIFF_SLOPE) {
+        return std::make_pair(h2, false);
+      }
+
+      return std::make_pair((h1 + h2) / 2.0f, false);
+    } // neighbour below
     else if (x == 0 && z != 0) {
       auto h1 = getHeight(x, z - 1);
       auto h2 = getHeight(x, z);
 
-      return (h1 + h2) / 2.0f;
-    } // neighbour above and to left
+      if (h1 - h2 > Map::CLIFF_SLOPE || h2 - h1 > Map::CLIFF_SLOPE) {
+        return std::make_pair(h2, false);
+      }
+
+      return std::make_pair((h1 + h2) / 2.0f, false);
+    } // neighbour below and to left
     else {
       auto h1 = getHeight(x - 1, z);
       auto h2 = getHeight(x, z - 1);
       auto h3 = getHeight(x, z);
       auto h4 = getHeight(x - 1, z - 1);
 
-      return (h1 + h2 + h3 + h4) / 4.0f;
+      return getHeigthFromCorners(h1, h3, h4, h2, corner);
     }
   }
 }

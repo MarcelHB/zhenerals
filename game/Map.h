@@ -7,6 +7,7 @@
 #include <list>
 #include <string>
 #include <unordered_map>
+#include <utility>
 
 #include "common.h"
 #include "Color.h"
@@ -222,7 +223,7 @@ class Map {
     Map(MapBuilder&);
 
     float getCenterHeight(const glm::vec2&);
-    float getHeight(size_t, size_t, uint8_t);
+    std::pair<float, bool> getHeight(size_t, size_t, uint8_t);
     const std::vector<uint8_t>& getHeightMap() const;
     Size getSize() const;
     const std::vector<std::string>& getTexturesIndex() const;
@@ -234,6 +235,7 @@ class Map {
 
     static constexpr float TERRAIN_HEIGHT_SCALE = 0.625;
     static constexpr float GRID_TO_GAME_SCALE = 10.0f;
+    static constexpr float CLIFF_SLOPE = 9.8f;
   private:
     Size size;
     uint32_t padding;
