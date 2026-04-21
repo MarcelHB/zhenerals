@@ -130,8 +130,8 @@ ENDIF()
 # preset for pedantic review
 # SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror -Wfatal-errors -Wextra -Wpedantic -Wno-gnu-zero-variadic-macro-arguments -Wno-nullability-extension -Wno-missing-field-initializers")
 
-# Workaround against truncation-to-fit-relocation errors
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mcmodel=large -Wno-nullability-completeness")
+# ld (on Windows) appears broken at some extent of template use
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fuse-ld=lld -Wno-nullability-completeness")
 
 SET(vugl_sources
   game/vugl/vma_loader.cpp
