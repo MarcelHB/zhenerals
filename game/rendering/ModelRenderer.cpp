@@ -76,6 +76,7 @@ bool ModelRenderer::prepareModel(uint64_t id, const std::string& modelName) {
     return false;
   }
 
+
   MurmurHash3_32 hasher;
   hasher.feed(modelName);
   uint32_t vertexKey = hasher.getHash();
@@ -92,6 +93,11 @@ bool ModelRenderer::prepareModel(uint64_t id, const std::string& modelName) {
 
   uint32_t i = 0;
   for (auto& model : *models) {
+    // EVAL
+    if (model->textures.empty()) {
+      return false;
+    }
+
     MurmurHash3_32 hasher;
     hasher.feed(vertexKey);
     hasher.feed(i);

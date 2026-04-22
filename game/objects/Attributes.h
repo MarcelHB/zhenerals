@@ -243,6 +243,23 @@ enum class DeathType {
   , ALL
 };
 
+enum class DisabledType {
+    DEFAULT
+  , HACKED
+  , EMP
+  , HELD
+  , PARALYZED
+  , UNDERPOWERED
+  , UNMANNED
+  , FREEFALL
+  , AWESTRUCK
+  , BRAINWASHED
+  , SUBDUED
+  , SCRIPT_DISABLED
+  , SCRIPT_UNDERPOWERED
+  , ALL
+};
+
 using Duration = uint32_t;
 using Energy = int32_t;
 
@@ -395,7 +412,7 @@ enum class ModelCondition {
   , ALL
 };
 
-using Money = uint16_t;
+using Money = int32_t;
 
 enum class Noise {
     SOUND_AFTERBURNER

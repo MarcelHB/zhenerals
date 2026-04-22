@@ -105,6 +105,7 @@ enum class ModuleType {
   , HIVE_STRUCTURE_BODY
   , IMMORTAL_BODY
   , INSTANT_DEATH
+  , INTERNET_HACK_CONTAIN
   , JET_AI
   , JET_SLOW_DEATH
   , KEEP_OBJECT_DIE
@@ -115,12 +116,15 @@ enum class ModuleType {
   , LOCOMOTOR_SET_UPGRADE
   , MAX_HEALTH_UPGRADE
   , MISSILE_AI
+  , MISSILE_LAUNCHER_BUILDING
   , MONEY_CRATE_COLLISION
+  , MODEL_CONDITION_UPGRADE
   , NEUTRON_MISSILE_SLOW_DEATH
   , OBJECT_CREATION_UPGRADE
   , OCL
   , OCL_SPECIAL_POWER
   , OPEN_CONTAIN
+  , OVERCHARGE
   , OVERLORD_CONTAIN
   , PARACHUTE_CONTAIN
   , PARKING_PLACE
@@ -133,17 +137,24 @@ enum class ModuleType {
   , POWER_PLANT
   , POWER_PLANT_UPGRADE
   , PRODUCTION
+  , PROPAGANDA_TOWER
+  , QUEUE_PRODUCTION_EXIT
   , RADAR
   , RADAR_UPGRADE
+  , RADIUS_DECAL
   , RAILED_TRANSPORT_AI
   , RAILED_TRANSPORT_CONTAIN
   , RAILED_TRANSPORT_DOCK
-  , RAILROAD_BEHAVIOR
+  , RAILROAD
+  , REBUILD_HOLE
+  , REBUILD_HOLE_EXPOSE_DIE
   , REPAIR_DOCK
+  , REPLACE_OBJECT_UPGRADE
   , SALVAGE_CRATE_COLLISION
   , SLAVED
   , SLOW_DEATH
   , SPAWN
+  , SPAWN_POINT_PRODUCTION_EXIT
   , SPECIAL_POWER
   , SPECIAL_POWER_COMPLETION_DIE
   , SPECIAL_POWER_CREATE
@@ -173,6 +184,7 @@ enum class ModuleType {
   , TRANSITION_DAMAGE_FX
   , TRANSPORT_AI
   , TRANSPORT_CONTAIN
+  , TUNNEL_CONTAIN
   , UNPAUSE_SPECIAL_POWER_UPGRADE
   , UPGRADE
   , UPGRADE_DIE
@@ -240,7 +252,7 @@ struct AutoDeposit : public Module {
   Duration intervalMs;
   Money amount;
   Money captureBonus;
-  bool actualMoney;
+  bool actualMoney = true;
   std::string upgrade; // TODO Upgrade
   int32_t boostValue = 1;
 };
@@ -444,6 +456,12 @@ struct FXListDie : public Die {
   bool orientToObject = true;
 };
 
+struct RebuildHoleExposeDie : public Die {
+  Health maxHealth = 100.0f;
+  std::string name;
+  bool transferAttackers = true;
+};
+
 struct SpecialPowerCompletionDie : public Die {
   std::string specialPower; // TODO SpecialPower
 };
@@ -478,7 +496,7 @@ struct DemoTrap : public Module {
   WeaponSlot manual;
   float triggerRange = 3.0f;
   std::set<Attribute> triggerExclusions;
-  uint32_t scanRate;
+  uint32_t scanRate = 1;
   bool detonateWithAllies = true;
   std::string detonationWeapon; // TODO Weapon
   bool detonateOnDeath = true;
@@ -798,6 +816,19 @@ struct MissileAI : public AI {
   bool weaponSpeed = false;
 };
 
+struct MissileLauncherBuilding : public Module {
+  std::string specialPower;
+  Duration doorCloseTimeMs = 1000;
+  Duration doorOpenTimeMs = 1000;
+  Duration doorWaitOpenTimeMs = 1000;
+  std::string doorClosingEffect;
+  std::string doorClosedEffect;
+  std::string doorOpeningEffect; // TODO FXList
+  std::string doorOpenEffect;
+  std::string doorOpenIdleAudio;
+  std::string doorWaitingToCloseEffect;
+};
+
 struct FactionOCL {
   std::string faction;
   std::string ocl;
@@ -874,9 +905,18 @@ struct TransportContain : public OpenContain {
   uint32_t slots = 1;
 };
 
+struct TunnelContain : public OpenContain {
+  Duration timeFullHealMs = 10000;
+};
+
 struct HelixContain : public TransportContain {
   bool drawPips = true;
   std::list<std::string> templates;
+};
+
+struct Overcharge : public Module {
+  Percent healthDrainPerSecond = 3.0f;
+  Percent minRequiredHealth = 0.0f;
 };
 
 struct OverlordContain : public TransportContain {
@@ -887,9 +927,10 @@ struct OverlordContain : public TransportContain {
 struct ParkingPlace : public Module {
   float approachHeight = 50.0f;
   bool hasRunways = true;
+  float healingPerSecond = 1.0f;
   int32_t numCols = 1;
   int32_t numRows = 1;
-  float healingPerSecond = 1.0f;
+  bool inHangars = false;
 };
 
 struct Physics : public Module {
@@ -923,6 +964,12 @@ struct PointDefenseLaser : public Module {
 struct Poisoned : public Module {
   Duration intervalMs = 1000;
   Duration durationMs = 3000;
+};
+
+struct QueueProductionExit : public Module {
+  glm::vec3 createPoint;
+  glm::vec3 rallyPoint;
+  Duration exitDelayMs = 1000;
 };
 
 struct RailedTransportAI : public AI {
@@ -1076,6 +1123,19 @@ struct Production : public Module {
   Duration doorWaitOpenTimeMs = 1000;
   int32_t maxQueue = 10;
   int32_t numDoorAnimations = 1;
+  std::set<DisabledType> disabledTypes;
+  std::vector<std::pair<std::string, int32_t>> qtyModifiers;
+};
+
+struct PropagandaTower : public Module {
+  float scanRadius = 10.0f;
+  uint32_t scanDelayFrames = 1;
+  Percent autoHealPercentPerSec = 5.0f;
+  std::string pulseEffect;
+  std::string requiredUpgrade;
+  Percent upgradedAutoHealPercentPerSec = 5.0f;
+  std::string upgradedPulseEffect;
+  bool healAffectsSelf = false;
 };
 
 struct Radar : public Module {
@@ -1084,6 +1144,12 @@ struct Radar : public Module {
 
 struct RepairDock : public Dock {
   Duration timeToHealMs = 5000;
+};
+
+struct RebuildHoleBehavior : public Module {
+  Duration workerRespawnDelayMs = 1000;
+  Percent healthRegenPerSecondPercent = 5.0f;
+  std::string worker;
 };
 
 struct SpecialPower : public Module {
@@ -1124,17 +1190,12 @@ struct BaikonurLaunchPower : public SpecialPower {
 };
 
 struct CashBounty : public SpecialPower {
-  Percent bounty = 1;
-};
-
-struct CashHackUpgrade {
-  std::string upgrade; // TODO Upgrade
-  Money amount;
+  Percent bounty = 5.0f;
 };
 
 struct CashHack : public SpecialPower {
-  std::list<CashHackUpgrade> upgrades;
-  Money amount;
+  std::list<std::pair<std::string, Money>> upgrades; // TODO Upgrade/science
+  Money amount = 0;
 };
 
 struct CleanupArea : public SpecialPower {
@@ -1170,6 +1231,10 @@ struct Spawn : public Module {
   std::set<DamageType> propagatedDamageTypes;
   std::string spawn;
   bool spawnsWithFreeWill = true;
+};
+
+struct SpawnPointProductionExit : public Module {
+  std::string spawnBone;
 };
 
 struct Slaved : public Module {
@@ -1367,7 +1432,7 @@ struct Upgrade : public Module {
 struct CommandSetUpgrade : public Upgrade {
   std::string commandSet1; // TODO CommandSet
   std::string commandSet2; // TODO CommandSet
-  std::string trigger; // TODO Upgrade
+  std::string altTrigger; // TODO Upgrade
 };
 
 struct CostModifierUpgrade : public Upgrade {
@@ -1407,8 +1472,24 @@ struct MaxHealthUpgrade : public Upgrade {
   MaxHealthModifier modifier;
 };
 
+struct ModelConditionUpgrade : public Upgrade {
+  std::set<ModelCondition> flags;
+};
+
 struct ObjectCreationUpgrade : public Upgrade {
   std::string object;
+};
+
+struct ReplaceObjectUpgrade : public Upgrade {
+  std::string object;
+};
+
+struct SpyVision : public Upgrade {
+  bool needsUpgrade = false;
+  bool selfPowered = true;
+  Duration selfPoweredDurationMs = 1000;
+  Duration selfPoweredIntervalMs = 1000;
+  std::set<Attribute> spyOn;
 };
 
 struct UnpauseSpecialPowerUpgrade : public Upgrade {

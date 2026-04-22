@@ -30,4 +30,12 @@ void Instance::setRedrawn() {
   drawUpdate = false;
 }
 
+void Instance::setSkipDrawing(bool state) {
+  skipDrawing = state;
+}
+
+bool Instance::toSkipDrawing() const {
+  return skipDrawing;
+}
+
 }

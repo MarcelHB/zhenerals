@@ -339,7 +339,7 @@ std::optional<CompletionAppearance> getCompletionAppearance(const std::string_vi
 }
 
 std::optional<CommandSource> getCommandSource(const std::string_view& value) {
-  if (value == "NONE") {
+  if (value == "NONE" || value == "None") {
     return {CommandSource::NONE};
   } if (value == "FROM_PLAYER") {
     return {CommandSource::PLAYER};
@@ -477,6 +477,38 @@ std::optional<DeathType> getDeathType(const std::string_view& value) {
     return {DeathType::EXTRA_8};
   } else if (value == "POISONED_GAMMA") {
     return {DeathType::POISONED_GAMMA};
+  } else {
+    return {};
+  }
+}
+
+std::optional<DisabledType> getDisabledType(const std::string_view& value) {
+  if (value == "DISABLED_DEFAULT") {
+    return {DisabledType::DEFAULT};
+  } else if (value == "DISABLED_HACKED") {
+    return {DisabledType::HACKED};
+  } else if (value == "DISABLED_EMP") {
+    return {DisabledType::EMP};
+  } else if (value == "DISABLED_HELD") {
+    return {DisabledType::HELD};
+  } else if (value == "DISABLED_PARALYZED") {
+    return {DisabledType::PARALYZED};
+  } else if (value == "DISABLED_UNDERPOWERED") {
+    return {DisabledType::UNDERPOWERED};
+  } else if (value == "DISABLED_UNMANNED") {
+    return {DisabledType::UNMANNED};
+  } else if (value == "DISABLED_FREEFALL") {
+    return {DisabledType::FREEFALL};
+  } else if (value == "DISABLED_AWESTRUCK") {
+    return {DisabledType::AWESTRUCK};
+  } else if (value == "DISABLED_BRAINWASHED") {
+    return {DisabledType::BRAINWASHED};
+  } else if (value == "DISABLED_SUBDUED") {
+    return {DisabledType::SUBDUED};
+  } else if (value == "DISABLED_SCRIPT_DISABLED") {
+    return {DisabledType::SCRIPT_DISABLED};
+  } else if (value == "DISABLED_SCRIPT_UNDERPOWERED") {
+    return {DisabledType::SCRIPT_UNDERPOWERED};
   } else {
     return {};
   }
@@ -801,6 +833,12 @@ std::optional<ModuleType> getModuleType(const std::string_view& value) {
     return {ModuleType::BRIDGE};
   } else if (value == "BridgeTowerBehavior") {
     return {ModuleType::BRIDGE_TOWER};
+  } else if (value == "CashBountyPower") {
+    return {ModuleType::CASH_BOUNTY};
+  } else if (value == "CashHackSpecialPower") {
+    return {ModuleType::CASH_HACK};
+  } else if (value == "CheckpointUpdate") {
+    return {ModuleType::CHECKPOINT};
   } else if (value == "ChinookAIUpdate") {
     return {ModuleType::CHINOOK_AI};
   } else if (value == "CleanupAreaPower") {
@@ -809,6 +847,8 @@ std::optional<ModuleType> getModuleType(const std::string_view& value) {
     return {ModuleType::CLEANUP_HAZARD};
   } else if (value == "CommandButtonHuntUpdate") {
     return {ModuleType::COMMAND_BUTTON_HUNT};
+  } else if (value == "CommandSetUpgrade") {
+    return {ModuleType::COMMAND_SET_UPGRADE};
   } else if (value == "CountermeasuresBehavior") {
     return {ModuleType::COUNTERMEASURE};
   } else if (value == "CostModifierUpgrade") {
@@ -827,6 +867,8 @@ std::optional<ModuleType> getModuleType(const std::string_view& value) {
     return {ModuleType::DELETION};
   } else if (value == "DeliverPayloadAIUpdate") {
     return {ModuleType::DELIVER_PAYLOAD};
+  } else if (value == "DemoTrapUpdate") {
+    return {ModuleType::DEMO_TRAP};
   } else if (value == "DeployStyleAIUpdate") {
     return {ModuleType::DEPLOY_STYLE_AI};
   } else if (value == "DestroyDie") {
@@ -837,6 +879,10 @@ std::optional<ModuleType> getModuleType(const std::string_view& value) {
     return {ModuleType::DOZER_AI};
   } else if (value == "EjectPilotDie") {
     return {ModuleType::EJECT_PILOT_DIE};
+  } else if (value == "EnemyNearUpdate") {
+    return {ModuleType::ENEMY_NEAR};
+  } else if (value == "ExperienceScalarUpgrade") {
+    return {ModuleType::EXPERINCE_SCALAR_UPGRADE};
   } else if (value == "ExperienceScalarUpgrade") {
     return {ModuleType::EXPERINCE_SCALAR_UPGRADE};
   } else if (value == "FireSpreadUpdate") {
@@ -851,12 +897,16 @@ std::optional<ModuleType> getModuleType(const std::string_view& value) {
     return {ModuleType::FIRE_WEAPON_WHEN_DEAD};
   } else if (value == "FlammableUpdate") {
     return {ModuleType::FLAMMABLE};
+  } else if (value == "FlightDeckBehavior") {
+    return {ModuleType::FLIGHT_DECK};
   } else if (value == "FloatUpdate") {
     return {ModuleType::FLOAT};
   } else if (value == "FXListDie") {
     return {ModuleType::FX_LIST_DIE};
   } else if (value == "GarrisonContain") {
     return {ModuleType::GARRISON_CONTAIN};
+  } else if (value == "GenerateMinefieldBehavior") {
+    return {ModuleType::GENERATE_MINEFIELD};
   } else if (value == "GrantUpgradeCreate") {
     return {ModuleType::GRANT_UPGRADE};
   } else if (value == "GrantScienceUpgrade") {
@@ -877,6 +927,8 @@ std::optional<ModuleType> getModuleType(const std::string_view& value) {
     return {ModuleType::IMMORTAL_BODY};
   } else if (value == "InstantDeathBehavior") {
     return {ModuleType::INSTANT_DEATH};
+  } else if (value == "InternetHackContain") {
+    return {ModuleType::INTERNET_HACK_CONTAIN};
   } else if (value == "JetAIUpdate") {
     return {ModuleType::JET_AI};
   } else if (value == "JetSlowDeathBehavior") {
@@ -895,12 +947,18 @@ std::optional<ModuleType> getModuleType(const std::string_view& value) {
     return {ModuleType::MAX_HEALTH_UPGRADE};
   } else if (value == "MissileAIUpdate") {
     return {ModuleType::MISSILE_AI};
+  } else if (value == "MissileLauncherBuildingUpdate") {
+    return {ModuleType::MISSILE_LAUNCHER_BUILDING};
+  } else if (value == "ModelConditionUpgrade") {
+    return {ModuleType::MODEL_CONDITION_UPGRADE};
   } else if (value == "ObjectCreationUpgrade") {
     return {ModuleType::OBJECT_CREATION_UPGRADE};
   } else if (value == "OCLUpdate") {
     return {ModuleType::OCL};
   } else if (value == "OCLSpecialPower") {
     return {ModuleType::OCL_SPECIAL_POWER};
+  } else if (value == "OverchargeBehavior") {
+    return {ModuleType::OVERCHARGE};
   } else if (value == "OverlordContain") {
     return {ModuleType::OVERLORD_CONTAIN};
   } else if (value == "ParachuteContain") {
@@ -925,26 +983,40 @@ std::optional<ModuleType> getModuleType(const std::string_view& value) {
     return {ModuleType::POWER_PLANT_UPGRADE};
   } else if (value == "ProductionUpdate") {
     return {ModuleType::PRODUCTION};
+  } else if (value == "PropagandaTowerBehavior") {
+    return {ModuleType::PROPAGANDA_TOWER};
+  } else if (value == "QueueProductionExitUpdate") {
+    return {ModuleType::QUEUE_PRODUCTION_EXIT};
   } else if (value == "RadarUpdate") {
     return {ModuleType::RADAR};
   } else if (value == "RadarUpgrade") {
     return {ModuleType::RADAR_UPGRADE};
   } else if (value == "RailedTransportAIUpdate") {
     return {ModuleType::RAILED_TRANSPORT_AI};
+  } else if (value == "RadiusDecalUpdate") {
+    return {ModuleType::RADIUS_DECAL};
   } else if (value == "RailedTransportContain") {
     return {ModuleType::RAILED_TRANSPORT_CONTAIN};
   } else if (value == "RailedTransportDockUpdate") {
     return {ModuleType::RAILED_TRANSPORT_DOCK};
   } else if (value == "RailroadBehavior") {
-    return {ModuleType::RAILROAD_BEHAVIOR};
+    return {ModuleType::RAILROAD};
+  } else if (value == "RebuildHoleBehavior") {
+    return {ModuleType::REBUILD_HOLE};
+  } else if (value == "RebuildHoleExposeDie") {
+    return {ModuleType::REBUILD_HOLE_EXPOSE_DIE};
   } else if (value == "RepairDockUpdate") {
     return {ModuleType::REPAIR_DOCK};
+  } else if (value == "ReplaceObjectUpgrade") {
+    return {ModuleType::REPLACE_OBJECT_UPGRADE};
   } else if (value == "SlavedUpdate") {
     return {ModuleType::SLAVED};
   } else if (value == "SlowDeathBehavior") {
     return {ModuleType::SLOW_DEATH};
   } else if (value == "SpawnBehavior") {
     return {ModuleType::SPAWN};
+  } else if (value == "SpawnPointProductionExitUpdate") {
+    return {ModuleType::SPAWN_POINT_PRODUCTION_EXIT};
   } else if (value == "SpecialAbility") {
     return {ModuleType::SPECIAL_POWER};
   } else if (value == "SpecialAbilityUpdate") {
@@ -1001,6 +1073,8 @@ std::optional<ModuleType> getModuleType(const std::string_view& value) {
     return {ModuleType::TRANSPORT_AI};
   } else if (value == "TransportContain") {
     return {ModuleType::TRANSPORT_CONTAIN};
+  } else if (value == "TunnelContain") {
+    return {ModuleType::TUNNEL_CONTAIN};
   } else if (value == "UnpauseSpecialPowerUpgrade") {
     return {ModuleType::UNPAUSE_SPECIAL_POWER_UPGRADE};
   } else if (value == "UpgradeDie") {

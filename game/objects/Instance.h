@@ -24,11 +24,15 @@ class Instance {
     bool needsRedraw() const;
     void setRedrawn();
 
+    void setSkipDrawing(bool);
+    bool toSkipDrawing() const;
   private:
     static uint64_t nextID;
 
     uint64_t id;
     bool drawUpdate = true;
+    // use in case of model load failures
+    bool skipDrawing = false;
 
     glm::vec3 position;
     float angle;

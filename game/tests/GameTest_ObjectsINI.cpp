@@ -11,8 +11,8 @@ namespace ZH {
 // Steam version v1.05, EN
 
 void expectGenericTree(const Objects::ObjectBuilder& builder) {
-  ASSERT_EQ(Objects::DrawType::MODEL_DRAW, builder.drawMetaData.type);
-  ASSERT_TRUE(builder.drawMetaData.drawData);
+  ASSERT_EQ(Objects::DrawType::MODEL_DRAW, builder.drawMetaData.front().type);
+  ASSERT_TRUE(builder.drawMetaData.front().drawData);
 
   EXPECT_EQ(1, builder.crushableLevel);
 
@@ -108,7 +108,7 @@ TEST(ObjectsINITest, parsingNatureProp) {
   auto& genericTree = *genericTreeLookup->second;
 
   expectGenericTree(genericTree);
-  auto drawData = static_pointer_cast<Objects::ModelDrawData>(genericTree.drawMetaData.drawData);
+  auto drawData = static_pointer_cast<Objects::ModelDrawData>(genericTree.drawMetaData.front().drawData);
   EXPECT_EQ("PTDogwod01", drawData->defaultConditionState.model);
   EXPECT_EQ(4, drawData->conditionStates.size());
 
@@ -123,7 +123,7 @@ TEST(ObjectsINITest, parsingNatureProp) {
   auto& palm = *palmLookup->second;
 
   expectGenericTree(palm);
-  drawData = static_pointer_cast<Objects::ModelDrawData>(palm.drawMetaData.drawData);
+  drawData = static_pointer_cast<Objects::ModelDrawData>(palm.drawMetaData.front().drawData);
   EXPECT_EQ("PTPalm01", drawData->defaultConditionState.model);
   EXPECT_EQ(4, drawData->conditionStates.size());
 
@@ -149,6 +149,19 @@ TEST(ObjectsINITest, parsingCivilianUnit) {
 
   auto fileStream =
     w3dLoader.getFileStream("data\\ini\\object\\civilianunit.ini");
+
+  auto stream = fileStream->getStream();
+  ObjectsINI objectsINI {stream};
+
+  objectsINI.parse();
+}
+
+TEST(ObjectsINITest, parsingFactionBuilding) {
+  Config config;
+  ResourceLoader w3dLoader {{"INIZH.big"}, config.baseDir};
+
+  auto fileStream =
+    w3dLoader.getFileStream("data\\ini\\object\\factionbuilding.ini");
 
   auto stream = fileStream->getStream();
   ObjectsINI objectsINI {stream};

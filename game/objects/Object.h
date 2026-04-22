@@ -107,13 +107,13 @@ struct ObjectBuilder {
   std::list<Behavior> behaviors;
   std::shared_ptr<Behavior> body;
   std::shared_ptr<Behavior> clientUpdate;
-  DrawMetaData drawMetaData;
+  std::vector<DrawMetaData> drawMetaData;
 
   std::list<ArmorSet> armorSets;
   std::list<WeaponSet> weaponSets;
 
   bool buildable = false;
-  Money buildCost = 0;
+  uint16_t buildCost = 0;
   uint16_t buildTimeSec = 1; // EVAL float?
   std::list<std::string> buildVariations; // object names
   std::set<Attribute> attributes;
@@ -134,6 +134,7 @@ struct ObjectBuilder {
   std::array<uint16_t, 4> experienceValues;
   std::array<uint16_t, 4> experienceRequirements;
   float factoryExitWidth = 0.0f;
+  float factoryExtraBibWidth = 0.0f;
   bool forbidden = false;
   GeometryData geometry;
   std::shared_ptr<Behavior> inheritableModule;
@@ -179,6 +180,7 @@ std::optional<CommandSource> getCommandSource(const std::string_view&);
 std::optional<CompletionAppearance> getCompletionAppearance(const std::string_view&);
 std::optional<DamageType> getDamageType(const std::string_view&);
 std::optional<DeathType> getDeathType(const std::string_view&);
+std::optional<DisabledType> getDisabledType(const std::string_view&);
 std::optional<Geometry> getGeometry(const std::string_view& value);
 std::optional<LocomotorType> getLocomotorType(const std::string_view& value);
 std::optional<MaxHealthModifier> getMaxHealthModifier(const std::string_view& value);

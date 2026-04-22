@@ -390,20 +390,24 @@ bool BattlefieldRenderer::prepareModelData(Objects::Instance& instance) {
   bool success = false;
 
   auto base = instance.getBase();
+  auto drawType = base->drawMetaData.front();
+
+  // TODO multi drawing
   // TODO differentiation
-  if (base->drawMetaData.type == Objects::DrawType::DEPENDENCY_MODEL_DRAW
-      || base->drawMetaData.type == Objects::DrawType::MODEL_DRAW
-      || base->drawMetaData.type == Objects::DrawType::OVERLORD_AIRCRAFT_DRAW
-      || base->drawMetaData.type == Objects::DrawType::POLICE_CAR_DRAW
-      || base->drawMetaData.type == Objects::DrawType::SUPPLY_DRAW
-      || base->drawMetaData.type == Objects::DrawType::TANK_DRAW
-      || base->drawMetaData.type == Objects::DrawType::TRUCK_DRAW
+  if (drawType.type == Objects::DrawType::DEPENDENCY_MODEL_DRAW
+      || drawType.type == Objects::DrawType::MODEL_DRAW
+      || drawType.type == Objects::DrawType::OVERLORD_AIRCRAFT_DRAW
+      || drawType.type == Objects::DrawType::POLICE_CAR_DRAW
+      || drawType.type == Objects::DrawType::SUPPLY_DRAW
+      || drawType.type == Objects::DrawType::TANK_DRAW
+      || drawType.type == Objects::DrawType::TRUCK_DRAW
   ) {
     success = prepareModelDrawData(instance);
-  } else if (base->drawMetaData.type == Objects::DrawType::DEFAULT_DRAW) {
+  } else if (drawType.type == Objects::DrawType::DEFAULT_DRAW) {
+    instance.setSkipDrawing(true);
     // EVAL Nothing to draw
     return true;
-  } else if (base->drawMetaData.type == Objects::DrawType::TREE_DRAW) {
+  } else if (drawType.type == Objects::DrawType::TREE_DRAW) {
     success = prepareTreeDrawData(instance);
   } else {
     WARN_ZH(
@@ -432,7 +436,7 @@ bool BattlefieldRenderer::prepareModelData(Objects::Instance& instance) {
 
 bool BattlefieldRenderer::prepareModelDrawData(Objects::Instance& instance) {
   auto base = instance.getBase();
-  auto drawData = static_pointer_cast<Objects::ModelDrawData>(base->drawMetaData.drawData);
+  auto drawData = static_pointer_cast<Objects::ModelDrawData>(base->drawMetaData.front().drawData);
 
   // EVAL condition states
   if (drawData->defaultConditionState.model.empty() && drawData->conditionStates.empty()) {
@@ -448,7 +452,7 @@ bool BattlefieldRenderer::prepareModelDrawData(Objects::Instance& instance) {
   }
 
   if (!modelRenderer.prepareModel(instance.getID(), modelName)) {
-    WARN_ZH("BattlefieldRenderer", "Unable to find models for {}", instance.getBase()->name);
+    WARN_ZH("BattlefieldRenderer", "Unable to find model {} for {}", modelName, instance.getBase()->name);
     return false;
   }
 
@@ -457,7 +461,7 @@ bool BattlefieldRenderer::prepareModelDrawData(Objects::Instance& instance) {
 
 bool BattlefieldRenderer::prepareTreeDrawData(Objects::Instance& instance) {
   auto base = instance.getBase();
-  auto drawData = static_pointer_cast<Objects::TreeDrawData>(base->drawMetaData.drawData);
+  auto drawData = static_pointer_cast<Objects::TreeDrawData>(base->drawMetaData.front().drawData);
 
   if (!modelRenderer.prepareModel(instance.getID(), drawData->model)) {
     WARN_ZH("BattlefieldRenderer", "Unable to find models for {}", instance.getBase()->name);
@@ -477,7 +481,8 @@ void BattlefieldRenderer::renderObjectInstances(
   modelRenderer.beginResourceCounting();
 
   for (auto& instance : battlefield.getObjectInstances()) {
-    if (!prepareModelData(*instance)) {
+    if (!instance->toSkipDrawing() && !prepareModelData(*instance)) {
+      instance->setSkipDrawing(true);
       WARN_ZH(
           "BattlefieldRenderer"
         , "Skipping drawing of {}, model not loaded"
@@ -504,7 +509,7 @@ void BattlefieldRenderer::renderObjectInstances(
     GFX::Frustum frustrum {camera};
 
     for (auto& instance : battlefield.getObjectInstances()) {
-      if (instance->getBase()->drawMetaData.type == Objects::DrawType::DEFAULT_DRAW) {
+      if (instance->toSkipDrawing()) {
         continue;
       }
 

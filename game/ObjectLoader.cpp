@@ -18,6 +18,7 @@ bool ObjectLoader::init() {
       "data\\ini\\object\\civilianbuilding.ini"
     , "data\\ini\\object\\civilianprop.ini"
     , "data\\ini\\object\\civilianunit.ini"
+    , "data\\ini\\object\\factionbuilding.ini"
     , "data\\ini\\object\\natureprop.ini"
   };
 

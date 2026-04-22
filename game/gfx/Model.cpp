@@ -13,12 +13,16 @@ Model Model::fromW3D(const W3DModel& w3d) {
 
   // EVAL multi pass stuff
   auto& materialPass = w3d.materialPasses.back();
+  // EVAL uvs of some models when not here
+  bool hasUVs = !materialPass.uv.empty();
 
   for (size_t i = 0; i < w3d.vertices.size(); ++i) {
     auto& vertexData = model.vertexData[i];
     vertexData.position = w3d.vertices[i];
     vertexData.normal = w3d.normals[i];
-    vertexData.uv = materialPass.uv[i];
+    if (hasUVs) {
+      vertexData.uv = materialPass.uv[i];
+    }
   }
 
   model.vertexIndices.resize(w3d.triangles.size() * 3);
