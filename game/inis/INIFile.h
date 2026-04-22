@@ -37,6 +37,7 @@ class INIFile {
     INIFile(std::istream&);
     void advanceStream();
     void advanceStreamInLine();
+    bool advanceStreamOverAssignment();
     std::string consumeComment();
     std::string getToken();
     std::string getTokenInLine();
@@ -206,7 +207,7 @@ class INIFile {
       advanceStream();
       auto token = consumeComment();
 
-      while (token != "End" && !stream.eof()) {
+      while (token != "End" && token != "END" && !stream.eof()) {
         if (!applyValueByKey(map, b, token)) {
           WARN_ZH("INIFile", "Error while parsing: {}", token);
           return false;
@@ -223,7 +224,7 @@ class INIFile {
       advanceStream();
       auto token = consumeComment();
 
-      while (token != "End" && !stream.eof()) {
+      while (token != "End" && token != "END" && !stream.eof()) {
         if (!applyValueByKeyOfMaps(b, token, maps...)) {
           WARN_ZH("INIFile", "Error while parsing: {}", token);
           return false;

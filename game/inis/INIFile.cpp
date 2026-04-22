@@ -20,6 +20,26 @@ void INIFile::advanceStream() {
   } while (!stream.eof());
 }
 
+// there is stuff like
+//   Key = = Value
+bool INIFile::advanceStreamOverAssignment() {
+  bool hasAssignment = false;
+
+  do {
+    auto peek = stream.peek();
+    if (peek == ' ' || peek == '\n' || peek == '\r') {
+      stream.get();
+    } else if (peek == '=') {
+      hasAssignment = true;
+      stream.get();
+    } else {
+      break;
+    }
+  } while (!stream.eof());
+
+  return hasAssignment;
+}
+
 void INIFile::advanceStreamInLine() {
   do {
     auto peek = stream.peek();
@@ -92,14 +112,11 @@ std::string INIFile::getTokenInLine() {
 std::unordered_map<std::string, std::string> INIFile::parseAttributes() {
   std::unordered_map<std::string, std::string> attributes;
 
-  advanceStreamInLine();
-  auto token = getTokenInLine();
-  if (token != "=") {
+  if (!advanceStreamOverAssignment()) {
     return attributes;
   }
 
-  advanceStreamInLine();
-  token = getTokenInLine();
+  auto token = getTokenInLine();
   while (!token.empty()) {
     auto splitPos = token.find(":");
     if (splitPos == std::string::npos) {
@@ -125,14 +142,10 @@ std::unordered_map<std::string, std::string> INIFile::parseAttributes() {
 }
 
 bool INIFile::parseBool() {
-  advanceStream();
-  auto token = getTokenInLine();
-  if (token != "=") {
+  if (!advanceStreamOverAssignment()) {
     return {};
   }
-
-  advanceStream();
-  token = getTokenInLine();
+  auto token = getTokenInLine();
 
   return parseBool(token);
 }
@@ -149,14 +162,10 @@ bool INIFile::parseBool(const std::string& token) const {
 }
 
 std::optional<float> INIFile::parseFloat() {
-  advanceStream();
-  auto token = getTokenInLine();
-  if (token != "=") {
+  if (!advanceStreamOverAssignment()) {
     return {};
   }
-
-  advanceStream();
-  token = getTokenInLine();
+  auto token = getTokenInLine();
 
   return parseFloat(token);
 }
@@ -172,15 +181,11 @@ std::optional<float> INIFile::parseFloat(const std::string& value) const {
 }
 
 std::optional<uint8_t> INIFile::parseByte() {
-  advanceStream();
-  auto token = getTokenInLine();
-  if (token != "=") {
+  if (!advanceStreamOverAssignment()) {
     return {};
   }
 
-  advanceStream();
-  token = getTokenInLine();
-
+  auto token = getTokenInLine();
   auto value = parseInteger(token);
   if (value > std::numeric_limits<uint8_t>::max()) {
     return {};
@@ -190,15 +195,11 @@ std::optional<uint8_t> INIFile::parseByte() {
 }
 
 std::optional<int8_t> INIFile::parseSignedByte() {
-  advanceStream();
-  auto token = getTokenInLine();
-  if (token != "=") {
+  if (!advanceStreamOverAssignment()) {
     return {};
   }
 
-  advanceStream();
-  token = getTokenInLine();
-
+  auto token = getTokenInLine();
   auto value = parseInteger(token);
   if (value < std::numeric_limits<int8_t>::min() || value > std::numeric_limits<int8_t>::max()) {
     return {};
@@ -225,14 +226,11 @@ std::array<float, 3> INIFile::parseCoord3D() {
 }
 
 std::optional<uint16_t> INIFile::parseShort() {
-  advanceStream();
-  auto token = getTokenInLine();
-  if (token != "=") {
+  if (!advanceStreamOverAssignment()) {
     return {};
   }
 
-  advanceStream();
-  token = getTokenInLine();
+  auto token = getTokenInLine();
 
   return parseShort(token);
 }
@@ -247,14 +245,11 @@ std::optional<uint16_t> INIFile::parseShort(const std::string& token) const {
 }
 
 std::optional<int16_t> INIFile::parseSignedShort() {
-  advanceStream();
-  auto token = getTokenInLine();
-  if (token != "=") {
+  if (!advanceStreamOverAssignment()) {
     return {};
   }
 
-  advanceStream();
-  token = getTokenInLine();
+  auto token = getTokenInLine();
 
   return parseSignedShort(token);
 }
@@ -269,14 +264,11 @@ std::optional<int16_t> INIFile::parseSignedShort(const std::string& token) const
 }
 
 std::optional<uint32_t> INIFile::parseInteger() {
-  advanceStream();
-  auto token = getTokenInLine();
-  if (token != "=") {
+  if (!advanceStreamOverAssignment()) {
     return {};
   }
 
-  advanceStream();
-  token = getTokenInLine();
+  auto token = getTokenInLine();
 
   return parseInteger(token);
 }
@@ -292,14 +284,11 @@ std::optional<uint32_t> INIFile::parseInteger(const std::string& s) const {
 }
 
 std::optional<int32_t> INIFile::parseSignedInteger() {
-  advanceStream();
-  auto token = getTokenInLine();
-  if (token != "=") {
+  if (!advanceStreamOverAssignment()) {
     return {};
   }
 
-  advanceStream();
-  token = getTokenInLine();
+  auto token = getTokenInLine();
 
   return parseSignedInteger(token);
 }
@@ -400,14 +389,10 @@ Color INIFile::parseRGBA() {
 }
 
 std::string INIFile::parseString() {
-  advanceStream();
-
-  auto token = getTokenInLine();
-  if (token != "=") {
+  if (!advanceStreamOverAssignment()) {
     return {};
   }
 
-  advanceStream();
   return getTokenInLine();
 }
 
@@ -425,16 +410,13 @@ std::string INIFile::parseLooseValue() {
 }
 
 std::vector<std::string> INIFile::parseStringList() {
-  advanceStream();
-  auto token = getTokenInLine();
-  if (token != "=") {
+  if (!advanceStreamOverAssignment()) {
     return {};
   }
 
   std::vector<std::string> values;
 
-  advanceStreamInLine();
-  token = getTokenInLine();
+  auto token = getTokenInLine();
   while (!token.empty()) {
     values.emplace_back(std::move(token));
     advanceStreamInLine();
