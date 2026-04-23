@@ -18,6 +18,14 @@
     return {totalBytes, true}; \
   }
 
+#define read2() \
+  stream.read(reinterpret_cast<char*>(&buffer2), 2); \
+  bytesRead = stream.gcount(); \
+  totalBytes += bytesRead; \
+  if (bytesRead != 2) { \
+    return {totalBytes, true}; \
+  }
+
 #define readf() \
   stream.read(reinterpret_cast<char*>(&bufferf), 4); \
   bytesRead = stream.gcount(); \
@@ -80,6 +88,7 @@ struct State {
 
 Result parseChunk(std::istream& stream, uint16_t depth, State& state) {
   uint32_t buffer4 = 0;
+  uint16_t buffer2 = 0;
   std::string strBuffer;
   float bufferf = 0.0f;
   std::array<float, 3> vec3Buf;
@@ -309,6 +318,42 @@ Result parseChunk(std::istream& stream, uint16_t depth, State& state) {
     case 0x103:
       dump(depth, "Chunk 0x{:x}: (Pivots fixup)", chunkType);
       skip = true;
+      break;
+    case 0x200:
+      dump(depth, "Chunk 0x{:x}: (Animations)", chunkType);
+      skip = true;
+      break;
+    case 0x201:
+      dump(depth, "Chunk 0x{:x}: Animation header", chunkType);
+
+      read4()
+      dump(d1, "Version: {}", buffer4);
+      readStr(16);
+      dump(d1, "Name: {}", strBuffer);
+      readStr(16);
+      dump(d1, "Hierarchy name: {}", strBuffer);
+      read4()
+      dump(d1, "# frames: {}", buffer4);
+      read4()
+      dump(d1, "frame rate: {}", buffer4);
+
+      break;
+    case 0x202:
+      dump(depth, "Chunk 0x{:x}: Animation channel", chunkType);
+
+      read2()
+      dump(d1, "1st frame: {}", buffer2);
+      read2()
+      dump(d1, "Last frame: {}", buffer2);
+      read2()
+      dump(d1, "Vector length: {}", buffer2);
+      read2()
+      dump(d1, "Flags: 0x{:x}", buffer2);
+      read2()
+      dump(d1, "Pivot: {}", buffer2);
+
+      stream.seekg(chunkSize - 10, std::ios::cur);
+      totalBytes += chunkSize - 10;
       break;
     case 0x700:
       dump(depth, "Chunk 0x{:x}: (HLOD)", chunkType);
