@@ -1606,8 +1606,9 @@ static INIApplierMap<Objects::ModelDrawData> ModelDrawDataKVMap = {
   { "AttachToBoneInAnotherModule", [](Objects::ModelDrawData& dd, INIFile& f) { dd.externalBoneAttachment = f.parseString(); return !dd.externalBoneAttachment.empty(); } },
   { "ConditionState", [](Objects::ModelDrawData& dd, INIFile& f) {
       auto& state = dd.conditionStates.emplace_back();
-      state.tags = f.parseStringList();
-      if (state.tags.empty()) {
+      f.parseEnumSet<Objects::ModelCondition>(state.conditions, CALL(Objects::getModelCondition));
+
+      if (state.conditions.empty() || state.conditions.find(Objects::ModelCondition::NONE) != state.conditions.cend()) {
         return f.parseAttributeBlock(dd.defaultConditionState, ConditionStateKVMap);
       }
 

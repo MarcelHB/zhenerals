@@ -61,7 +61,6 @@ struct ConditionState {
   std::string model;
   std::list<std::vector<std::string>> particleBones;
   std::vector<std::string> shownSubObjects;
-  std::vector<std::string> tags;
   std::pair<std::string, std::string> transitionFromTo;
   std::string transitionKey;
   Turret turret1;
