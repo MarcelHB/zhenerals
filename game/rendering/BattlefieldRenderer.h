@@ -7,7 +7,7 @@
 #include "../Config.h"
 #include "../Battlefield.h"
 #include "../gfx/TextureCache.h"
-#include "ModelRenderer.h"
+#include "InstanceRenderer.h"
 #include "../inis/TerrainINI.h"
 #include "../inis/WaterINI.h"
 #include "../vugl/vugl_context.h"
@@ -61,13 +61,12 @@ class BattlefieldRenderer {
     Vugl::Context& vuglContext;
     GFX::TextureCache& textureCache;
     Battlefield& battlefield;
-    ModelRenderer modelRenderer;
+    InstanceRenderer instanceRenderer;
     const TerrainINI::Terrains& terrains;
     const WaterINI::WaterSettings& waterSettings;
     glm::mat4 terrainScaleMatrix;
     glm::mat4 waterScaleMatrix;
 
-    std::unordered_map<uint64_t, ModelRenderer::BoundingSphere> boundingSpheres;
     std::vector<DrawCheck> drawChecks;
 
     bool hasWater = false;
@@ -95,14 +94,11 @@ class BattlefieldRenderer {
     std::shared_ptr<Vugl::UniformBuffer> waterUniformBuffer;
     std::shared_ptr<Vugl::ElementBuffer> waterVertices;
 
-    bool prepareModelData(Objects::Instance&);
-    bool prepareModelDrawData(Objects::Instance&);
     bool preparePatches(Vugl::RenderPass&);
     bool prepareScorches();
     bool prepareScorchData(const Battlefield::ScorchData&);
     bool prepareTerrainPipeline(Vugl::RenderPass&, const std::vector<std::string>&);
     bool prepareTerrainVertices();
-    bool prepareTreeDrawData(Objects::Instance&);
     bool prepareWaterPipeline(Vugl::RenderPass&);
     bool prepareWaterVertices();
 

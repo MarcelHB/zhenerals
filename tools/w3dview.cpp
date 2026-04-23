@@ -287,6 +287,7 @@ class Viewer {
 
       bool showNormals = false;
       bool showSphere = false;
+      uint64_t frameIdxSet = 0;
 
       while (true) {
         while (auto eventOpt = window.getEvent()) {
@@ -359,9 +360,9 @@ class Viewer {
         auto& frame = vuglContext.getNextFrame();
         auto frameIndex = frame.getImageIndex();
 
-        if (updateMatrices || modelRenderer->needsUpdate(1, frameIndex)) {
+        if (updateMatrices || (frameIdxSet & (1 << frameIndex)) == 0) {
           if (updateMatrices) {
-            modelRenderer->resetFrames(1);
+            frameIdxSet = 0;
             mvp =
               camera.getProjectionMatrix()
                 * camera.getCameraMatrix()
@@ -376,6 +377,7 @@ class Viewer {
             , modelMatrix
             , camera.getDirectionVector()
           );
+          frameIdxSet |= (1 << frameIndex);
 
           axes.setMatrix(camera.getProjectionMatrix() * camera.getCameraMatrix());
           normals.setMatrix(

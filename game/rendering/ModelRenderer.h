@@ -37,7 +37,6 @@ class ModelRenderer {
 
     void bindPipeline(Vugl::CommandBuffer&);
     BoundingSphere getBoundingSphere(uint64_t id) const;
-    bool needsUpdate(uint64_t id, size_t frameIdx) const;
     void updateModel(
         uint64_t id
       , size_t frameIdx
@@ -47,7 +46,6 @@ class ModelRenderer {
       , const glm::vec3& sunlightNormal
     );
     bool renderModel(uint64_t id, Vugl::CommandBuffer&);
-    void resetFrames(uint64_t id);
   private:
     struct ShaderData {
       alignas(16) glm::mat4 mvp;
@@ -62,7 +60,6 @@ class ModelRenderer {
       std::vector<ShaderData> shaderData;
       uint32_t vertexKey = 0;
       size_t numModels = 1;
-      uint64_t frameIdxSet = 0;
       std::vector<glm::vec3> orderData;
       std::vector<size_t> drawOrder;
       std::vector<bool> backfaceCulling;

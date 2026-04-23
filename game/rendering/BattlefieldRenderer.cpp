@@ -31,7 +31,7 @@ BattlefieldRenderer::BattlefieldRenderer(
 ) : vuglContext(vuglContext)
   , textureCache(textureCache)
   , battlefield(battlefield)
-  , modelRenderer {vuglContext, config, textureCache, modelCache}
+  , instanceRenderer {vuglContext, config, textureCache, modelCache}
   , terrains(terrains)
   , waterSettings(waterSettings)
 {}
@@ -103,8 +103,8 @@ bool BattlefieldRenderer::init(Vugl::RenderPass& renderPass) {
     hasWater = true;
   }
 
-  if (!modelRenderer.preparePipeline(renderPass)) {
-    WARN_ZH("BattlefieldRenderer", "Could not set up model rendering");
+  if (!instanceRenderer.preparePipeline(renderPass)) {
+    WARN_ZH("BattlefieldRenderer", "Could not set up instance rendering");
     return false;
   }
 
@@ -386,91 +386,6 @@ bool BattlefieldRenderer::prepareWaterVertices() {
   return true;
 }
 
-bool BattlefieldRenderer::prepareModelData(Objects::Instance& instance) {
-  bool success = false;
-
-  auto base = instance.getBase();
-  auto drawType = base->drawMetaData.front();
-
-  // TODO multi drawing
-  // TODO differentiation
-  if (drawType.type == Objects::DrawType::DEPENDENCY_MODEL_DRAW
-      || drawType.type == Objects::DrawType::MODEL_DRAW
-      || drawType.type == Objects::DrawType::OVERLORD_AIRCRAFT_DRAW
-      || drawType.type == Objects::DrawType::POLICE_CAR_DRAW
-      || drawType.type == Objects::DrawType::SUPPLY_DRAW
-      || drawType.type == Objects::DrawType::TANK_DRAW
-      || drawType.type == Objects::DrawType::TRUCK_DRAW
-  ) {
-    success = prepareModelDrawData(instance);
-  } else if (drawType.type == Objects::DrawType::DEFAULT_DRAW) {
-    instance.setSkipDrawing(true);
-    // EVAL Nothing to draw
-    return true;
-  } else if (drawType.type == Objects::DrawType::TREE_DRAW) {
-    success = prepareTreeDrawData(instance);
-  } else {
-    WARN_ZH(
-        "BattlefieldRenderer"
-      , "Skipping drawing of {}, draw mode not implemented"
-      , instance.getBase()->name
-    );
-    return true;
-  }
-
-  if (!success) {
-    return false;
-  }
-
-  auto instanceID = instance.getID();
-  auto lookup = boundingSpheres.find(instanceID);
-  if (lookup != boundingSpheres.cend()) {
-    return true;
-  }
-
-  auto sphere = modelRenderer.getBoundingSphere(instanceID);
-  boundingSpheres.emplace(instanceID, std::move(sphere));
-
-  return true;
-}
-
-bool BattlefieldRenderer::prepareModelDrawData(Objects::Instance& instance) {
-  auto base = instance.getBase();
-  auto drawData = static_pointer_cast<Objects::ModelDrawData>(base->drawMetaData.front().drawData);
-
-  // EVAL condition states
-  if (drawData->defaultConditionState.model.empty() && drawData->conditionStates.empty()) {
-    WARN_ZH("BattlefieldRenderer", "No suitable condition state for {}", instance.getBase()->name);
-    return false;
-  }
-
-  std::string modelName;
-  if (!drawData->defaultConditionState.model.empty()) {
-    modelName = drawData->defaultConditionState.model;
-  } else {
-    modelName = drawData->conditionStates.begin()->model;
-  }
-
-  if (!modelRenderer.prepareModel(instance.getID(), modelName)) {
-    WARN_ZH("BattlefieldRenderer", "Unable to find model {} for {}", modelName, instance.getBase()->name);
-    return false;
-  }
-
-  return true;
-}
-
-bool BattlefieldRenderer::prepareTreeDrawData(Objects::Instance& instance) {
-  auto base = instance.getBase();
-  auto drawData = static_pointer_cast<Objects::TreeDrawData>(base->drawMetaData.front().drawData);
-
-  if (!modelRenderer.prepareModel(instance.getID(), drawData->model)) {
-    WARN_ZH("BattlefieldRenderer", "Unable to find models for {}", instance.getBase()->name);
-    return false;
-  }
-
-  return true;
-}
-
 void BattlefieldRenderer::renderObjectInstances(
     Vugl::CommandBuffer& commandBuffer
   , size_t frameIdx
@@ -478,11 +393,10 @@ void BattlefieldRenderer::renderObjectInstances(
 ) {
   TRACY(ZoneScoped);
 
-  modelRenderer.beginResourceCounting();
+  instanceRenderer.beginResourceCounting();
 
   for (auto& instance : battlefield.getObjectInstances()) {
-    if (!instance->toSkipDrawing() && !prepareModelData(*instance)) {
-      instance->setSkipDrawing(true);
+    if (!instanceRenderer.prepareInstance(*instance)) {
       WARN_ZH(
           "BattlefieldRenderer"
         , "Skipping drawing of {}, model not loaded"
@@ -496,11 +410,10 @@ void BattlefieldRenderer::renderObjectInstances(
     commandBuffer.beginDebugLabel("Objects");
   }
 
-  modelRenderer.bindPipeline(commandBuffer);
+  instanceRenderer.bindPipeline(commandBuffer);
 
   // TODO instance movement, check for new/deleted instances
   if (newMatrices) {
-    auto map = battlefield.getMap();
     auto& camera = battlefield.getCamera();
     auto& camMatrix = camera.getCameraMatrix();
     drawChecks.clear();
@@ -509,17 +422,13 @@ void BattlefieldRenderer::renderObjectInstances(
     GFX::Frustum frustrum {camera};
 
     for (auto& instance : battlefield.getObjectInstances()) {
-      if (instance->toSkipDrawing()) {
-        continue;
-      }
-
-      modelRenderer.resetFrames(instance->getID());
+      instanceRenderer.resetFrames(*instance);
 
       auto modelMatrix = battlefield.getWorldMatrix(instance->getPosition(), 0.0f);
 
       auto& drawCheck = drawChecks.emplace_back();
       drawCheck.instance = instance;
-      drawCheck.sphere = boundingSpheres.find(instance->getID())->second;
+      drawCheck.sphere = instanceRenderer.getBoundingSphere(*instance);
 
       // bounding sphere to world
       auto& sphere = drawCheck.sphere;
@@ -545,7 +454,7 @@ void BattlefieldRenderer::renderObjectInstances(
     commandBuffer.endDebugLabel();
   }
 
-  modelRenderer.finishResourceCounting();
+  instanceRenderer.finishResourceCounting();
 }
 
 void BattlefieldRenderer::renderObjectInstance(
@@ -553,15 +462,14 @@ void BattlefieldRenderer::renderObjectInstance(
   , Vugl::CommandBuffer& commandBuffer
   , size_t frameIdx
 ) {
+  TRACY(ZoneScoped);
 
   if (vuglContext.isDebuggingAllowed()) {
-    std::string label = std::to_string(instance.getID());
-    label.append(": ");
-    label.append(instance.getBase()->name);
+    auto label = fmt::format("{}: {}", instance.getID(), instance.getBase()->name);
     commandBuffer.beginDebugLabel(label);
   }
 
-  if (instance.needsRedraw() || modelRenderer.needsUpdate(instance.getID(), frameIdx)) {
+  if (instance.needsRedraw() || instanceRenderer.needsUpdate(instance, frameIdx)) {
     auto worldMatrix =
       battlefield.getWorldMatrix(
           instance.getPosition()
@@ -581,8 +489,8 @@ void BattlefieldRenderer::renderObjectInstance(
       * camera.getCameraMatrix()
       * worldMatrix;
 
-    modelRenderer.updateModel(
-        instance.getID()
+    instanceRenderer.updateInstance(
+        instance
       , frameIdx
       , mvp
       , camera.getCameraMatrix()
@@ -593,7 +501,7 @@ void BattlefieldRenderer::renderObjectInstance(
     instance.setRedrawn();
   }
 
-  modelRenderer.renderModel(instance.getID(), commandBuffer);
+  instanceRenderer.renderInstance(instance, commandBuffer);
 
   if (vuglContext.isDebuggingAllowed()) {
     commandBuffer.endDebugLabel();

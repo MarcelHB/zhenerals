@@ -589,6 +589,11 @@ static INIApplierMap<Objects::ConditionState> ConditionStateKVMap = {
   { "Model", [](Objects::ConditionState& cs, INIFile& f) {
       // Garbage around
       cs.model = f.parseLooseValue();
+      if (cs.model == "NONE" || cs.model == "None") {
+        cs.model = "";
+        return true;
+      }
+
       return !cs.model.empty();
     }
   },
@@ -1608,7 +1613,8 @@ static INIApplierMap<Objects::ModelDrawData> ModelDrawDataKVMap = {
       auto& state = dd.conditionStates.emplace_back();
       f.parseEnumSet<Objects::ModelCondition>(state.conditions, CALL(Objects::getModelCondition));
 
-      if (state.conditions.empty() || state.conditions.find(Objects::ModelCondition::NONE) != state.conditions.cend()) {
+      if (dd.defaultConditionState.model.empty() &&
+          (state.conditions.empty() || state.conditions.find(Objects::ModelCondition::NONE) != state.conditions.cend())) {
         return f.parseAttributeBlock(dd.defaultConditionState, ConditionStateKVMap);
       }
 

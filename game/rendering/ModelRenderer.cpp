@@ -190,17 +190,6 @@ ModelRenderer::BoundingSphere ModelRenderer::getBoundingSphere(uint64_t id) cons
   return {std::move(center), std::sqrt(lengths)};
 }
 
-bool ModelRenderer::needsUpdate(uint64_t id, size_t frameIdx) const {
-  auto lookup = renderDataMap.find(id);
-  if (lookup == renderDataMap.cend()) {
-    return false;
-  }
-
-  auto& renderData = lookup->second;
-
-  return (renderData->frameIdxSet & (1 << frameIdx)) == 0;
-}
-
 void ModelRenderer::updateModel(
     uint64_t id
   , size_t frameIdx
@@ -234,8 +223,6 @@ void ModelRenderer::updateModel(
     shaderData.sunlight = sunlightNormal;
     renderData->uniformBuffers[i].writeData(shaderData, frameIdx);
   }
-
-  renderData->frameIdxSet |= (1 << frameIdx);
 
   if (renderData->numModels == 1) {
     renderData->drawOrder[0] = 0;
@@ -309,15 +296,6 @@ bool ModelRenderer::renderModel(uint64_t id, Vugl::CommandBuffer& commandBuffer)
   }
 
   return true;
-}
-
-void ModelRenderer::resetFrames(uint64_t id) {
-  auto lookup = renderDataMap.find(id);
-  if (lookup == renderDataMap.cend()) {
-    return;
-  }
-
-  lookup->second->frameIdxSet = 0;
 }
 
 }
