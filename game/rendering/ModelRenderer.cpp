@@ -76,7 +76,6 @@ bool ModelRenderer::prepareModel(uint64_t id, const std::string& modelName) {
     return false;
   }
 
-
   MurmurHash3_32 hasher;
   hasher.feed(modelName);
   uint32_t vertexKey = hasher.getHash();
@@ -93,11 +92,6 @@ bool ModelRenderer::prepareModel(uint64_t id, const std::string& modelName) {
 
   uint32_t i = 0;
   for (auto& model : *models) {
-    // EVAL
-    if (model->textures.empty()) {
-      return false;
-    }
-
     MurmurHash3_32 hasher;
     hasher.feed(vertexKey);
     hasher.feed(i);
@@ -128,7 +122,11 @@ bool ModelRenderer::prepareModel(uint64_t id, const std::string& modelName) {
     i += 1;
 
     // EVAL per-triangle texture
-    auto& textureName = model->textures.back();
+    // EVAL somethings without textures
+    std::string textureName {"cbsandbw.dds"};
+    if (!model->textures.empty()) {
+      textureName = model->textures.back();
+    }
     auto sampler = textureCache.getTextureSampler(textureName);
     if (!sampler) {
       WARN_ZH("BattlefieldRenderer", "Failed to load model texture {}", textureName);

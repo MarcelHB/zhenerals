@@ -203,7 +203,10 @@ class Viewer {
       auto renderPass = vuglContext.createRenderPass(renderPassSetup);
 
       modelRenderer->preparePipeline(renderPass);
-      modelRenderer->prepareModel(1, modelName);
+      if (!modelRenderer->prepareModel(1, modelName)) {
+        WARN_ZH("W3DView", "Failed to load model {}", modelName);
+        return;
+      }
 
       lineRenderer->preparePipeline(renderPass);
 
