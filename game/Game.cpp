@@ -188,7 +188,7 @@ void Game::loop() {
         return;
       }
     }
-    SDL_Delay(1);
+    SDL_DelayNS(1000);
   }
 }
 
