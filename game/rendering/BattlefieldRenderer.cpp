@@ -117,11 +117,10 @@ bool BattlefieldRenderer::init(Vugl::RenderPass& renderPass) {
   return true;
 }
 
-std::shared_ptr<Vugl::CommandBuffer> BattlefieldRenderer::createRenderList(size_t frameIdx, Vugl::RenderPass& renderPass) {
+void BattlefieldRenderer::createRenderList(Vugl::CommandBuffer& commandBuffer, size_t frameIdx, Vugl::RenderPass& renderPass) {
   TRACY(ZoneScoped);
 
   auto newMatrices = battlefield.cameraHasMoved();
-  auto commandBuffer = vuglContext.createCommandBuffer(frameIdx, true);
 
   std::array<VkClearValue, 2> clearColors{};
   clearColors[0].color = {0.0f, 0.0f, 0.0f, 1.0f};
@@ -135,8 +134,6 @@ std::shared_ptr<Vugl::CommandBuffer> BattlefieldRenderer::createRenderList(size_
   renderWater(commandBuffer, frameIdx);
 
   commandBuffer.closeRendering();
-
-  return std::make_shared<Vugl::CommandBuffer>(std::move(commandBuffer));
 }
 
 bool BattlefieldRenderer::preparePatches(Vugl::RenderPass& renderPass) {

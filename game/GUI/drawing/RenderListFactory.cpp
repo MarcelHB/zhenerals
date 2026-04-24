@@ -47,8 +47,9 @@ RenderListFactory::RenderListFactory(
   , fontManager(fontManager)
 {}
 
-std::shared_ptr<Vugl::CommandBuffer> RenderListFactory::createRenderList(
-    size_t frameIndex
+void RenderListFactory::createRenderList(
+    Vugl::CommandBuffer& commandBuffer
+  , size_t frameIndex
   , Vugl::RenderPass& renderPass
 ) {
   TRACY(ZoneScoped);
@@ -65,10 +66,9 @@ std::shared_ptr<Vugl::CommandBuffer> RenderListFactory::createRenderList(
     pair.second.increaseMiss();
   }
 
-  auto commandBuffer = vuglContext.createCommandBuffer(frameIndex, true);
   if (!prepareCommandBuffer(commandBuffer, renderPass)) {
     ERROR_ZH("RenderListFactory", "Could not create command buffer.");
-    return {};
+    return;
   }
 
   createRenderList(rootComponent, commandBuffer, frameIndex, std::nullopt);
@@ -97,8 +97,6 @@ std::shared_ptr<Vugl::CommandBuffer> RenderListFactory::createRenderList(
       it++;
     }
   }
-
-  return std::make_shared<Vugl::CommandBuffer>(std::move(commandBuffer));
 }
 
 void RenderListFactory::createRenderList(

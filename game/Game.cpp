@@ -234,18 +234,32 @@ void Game::draw(void *obj) {
   clearColors[0].color = {0.0f, 0.0f, 0.0f, 1.0f};
   clearColors[1].depthStencil = {1.0f, 0};
 
+  std::vector<Vugl::CommandBuffer> commandBuffers;
+  auto numSwapchainImages = vuglContext.getSwapchainImages().size();
+
+  for (size_t i = 0; i < numSwapchainImages; ++i) {
+    // Primary + Game + GUI
+    commandBuffers.emplace_back(vuglContext.createCommandBuffer(i));
+    commandBuffers.emplace_back(vuglContext.createCommandBuffer(i, true));
+    commandBuffers.emplace_back(vuglContext.createCommandBuffer(i, true));
+  }
+
   while (true) {
     auto& frame = vuglContext.getNextFrame();
     auto frameIndex = frame.getImageIndex();
 
-    Vugl::CommandBuffer primary {vuglContext.createCommandBuffer(frameIndex)};
-    std::shared_ptr<Vugl::CommandBuffer> battlefieldSecondary;
-    std::shared_ptr<Vugl::CommandBuffer> guiSecondary;
+    for (size_t i = 0; i < 3; ++i) {
+      commandBuffers[frameIndex * 3 + i].reset();
+    }
+
+    auto& primary = commandBuffers[frameIndex * 3];
+    auto& battlefieldSecondary = commandBuffers[frameIndex * 3 + 1];
+    auto& guiSecondary = commandBuffers[frameIndex * 3 + 2];
 
     {
       auto lock = game->overlay->getLock();
-      battlefieldSecondary = game->mapRenderer->createRenderList(frameIndex, renderPass);
-      guiSecondary = game->renderListFactory->createRenderList(frameIndex, renderPass);
+      game->mapRenderer->createRenderList(battlefieldSecondary, frameIndex, renderPass);
+      game->renderListFactory->createRenderList(guiSecondary, frameIndex, renderPass);
       game->overlay->frameDoneTick();
     }
 
@@ -254,10 +268,8 @@ void Game::draw(void *obj) {
     }
 
     primary.beginRendering(renderPass, clearColors);
-    if (battlefieldSecondary) {
-      primary.executeSecondary(*battlefieldSecondary);
-    }
-    primary.executeSecondary(*guiSecondary);
+    primary.executeSecondary(battlefieldSecondary);
+    primary.executeSecondary(guiSecondary);
     primary.closeRendering();
 
     frame.submitAndPresent(primary);
