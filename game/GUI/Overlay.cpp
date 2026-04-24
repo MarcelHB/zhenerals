@@ -21,6 +21,7 @@ std::unique_lock<std::recursive_mutex> Overlay::getLock() {
 }
 
 bool Overlay::processEvent(const SDL_Event& event) {
+  TRACY(ZoneScoped);
   if (children.size() == 0) {
     return true;
   }
