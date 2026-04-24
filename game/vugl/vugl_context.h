@@ -4,6 +4,7 @@
 #define H_VUGL
 
 #include <cstdint>
+#include <mutex>
 #include <optional>
 #include <vector>
 
@@ -12,6 +13,7 @@
 #include "vk_mem_alloc.h"
 
 #include "vugl_combined_sampler.h"
+#include "vugl_command_pool.h"
 #include "vugl_compute_pipeline.h"
 #include "vugl_dynamic.h"
 #include "vugl_element_buffer.h"
@@ -63,7 +65,7 @@ class Context {
     uint32_t presenterQueueFamilyIndex;
     VkQueue vkGFXQueue;
     VkQueue vkPresenterQueue;
-    VkCommandPool vkCommandPool;
+    std::unique_ptr<Vugl::CommandPool> primaryCommandPool;
 
     VkSurfaceKHR vkSurface;
     VkSurfaceCapabilitiesKHR vkSurfaceCapabilities;
@@ -85,6 +87,7 @@ class Context {
     VkClearDepthStencilValue vkClearDepthStencilValue;
 
     uint32_t currentFrame;
+    std::mutex uploadMutex;
 
     void createSwapchainResources ();
 
@@ -118,6 +121,8 @@ class Context {
     Context& operator= (Context&&) = delete;
 
     CommandBuffer createCommandBuffer (size_t frameIndex, bool secondary = false);
+    CommandBuffer createCommandBuffer (size_t frameIndex, Vugl::CommandPool&);
+    CommandPool createCommandPool ();
     ComputePipeline createComputePipeline (const PipelineSetup&);
     ElementBuffer createElementBuffer (uint32_t binding);
     Pipeline createPipeline (const PipelineSetup&, VkRenderPass renderPass);

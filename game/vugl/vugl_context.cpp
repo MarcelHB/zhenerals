@@ -43,7 +43,7 @@ Context::Context (
   , presenterQueueFamilyIndex{0}
   , vkGFXQueue{VK_NULL_HANDLE}
   , vkPresenterQueue{VK_NULL_HANDLE}
-  , vkCommandPool{VK_NULL_HANDLE}
+  , primaryCommandPool{}
   , vkSurface{VK_NULL_HANDLE}
   , vkSurfaceCapabilities{}
   , vkSurfaceFormat{}
@@ -211,15 +211,9 @@ void Context::setSurface (
     return;
   }
 
-  VkCommandPoolCreateInfo vkCommandPoolCreateInfo = {};
-  vkCommandPoolCreateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-  vkCommandPoolCreateInfo.queueFamilyIndex = gfxQueueFamilyIndex;
-  vkCommandPoolCreateInfo.flags = VK_COMMAND_POOL_CREATE_TRANSIENT_BIT | VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+  this->primaryCommandPool = std::make_unique<Vugl::CommandPool>(vkDevice, gfxQueueFamilyIndex);
 
-  this->vkLastResult =
-    vkCreateCommandPool(vkDevice, &vkCommandPoolCreateInfo, nullptr, &(this->vkCommandPool));
-
-  if (this->vkLastResult != VK_SUCCESS) {
+  if (primaryCommandPool->getLastResult() != VK_SUCCESS) {
     return;
   }
 
@@ -234,7 +228,7 @@ void Context::setSurface (
   if (this->vkLastResult != VK_SUCCESS) {
     return;
   }
-  this->resourceAllocator = ResourceAllocator{vkDevice, vkPhysicalDevice, allocator, vkCommandPool};
+  this->resourceAllocator = ResourceAllocator{vkDevice, vkPhysicalDevice, allocator};
 
   vkGetDeviceQueue(vkDevice, gfxQueueFamilyIndex, 0, &(this->vkGFXQueue));
   vkGetDeviceQueue(vkDevice, presenterQueueFamilyIndex, 0, &(this->vkPresenterQueue));
@@ -459,8 +453,7 @@ void Context::destroy () {
   vkDestroySurfaceKHR(vkInstance, vkSurface, nullptr);
   this->vkSurface = VK_NULL_HANDLE;
 
-  vkDestroyCommandPool(vkDevice, vkCommandPool, nullptr);
-  this->vkCommandPool = VK_NULL_HANDLE;
+  primaryCommandPool.reset();
 
   vmaDestroyAllocator(allocator);
   this->allocator = VK_NULL_HANDLE;
@@ -483,7 +476,15 @@ void Context::destroySwapchainResources () {
 }
 
 CommandBuffer Context::createCommandBuffer (size_t frameIndex, bool secondary) {
-  return {resourceAllocator, frameIndex, secondary};
+  return {vkDevice, primaryCommandPool->getVkCommandPool(), frameIndex, secondary};
+}
+
+CommandBuffer Context::createCommandBuffer (size_t frameIndex, Vugl::CommandPool& commandPool) {
+  return {vkDevice, commandPool.getVkCommandPool(), frameIndex, true};
+}
+
+CommandPool Context::createCommandPool () {
+  return {vkDevice, gfxQueueFamilyIndex};
 }
 
 ComputePipeline Context::createComputePipeline (const PipelineSetup& setup) {
@@ -705,13 +706,14 @@ VkPhysicalDevice Context::pickSuitableVkPhysicalDevice (
 }
 
 bool Context::uploadResource (UploadableResource& resource) {
-  VkCommandBuffer buffer;
+  std::lock_guard lock {uploadMutex};
 
-  this->vkLastResult = resourceAllocator.allocateCommandBuffer(buffer);
-  if (vkLastResult != VK_SUCCESS) {
+  auto vuglCommandBuffer = createCommandBuffer(0);
+  if (vuglCommandBuffer.getLastResult() != VK_SUCCESS) {
     return false;
   }
 
+  VkCommandBuffer buffer = vuglCommandBuffer.getVkCommandBuffer();
   VkCommandBufferBeginInfo vkCmdBufferBeginInfo = {};
   vkCmdBufferBeginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
   vkCmdBufferBeginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
@@ -721,8 +723,6 @@ bool Context::uploadResource (UploadableResource& resource) {
   vkEndCommandBuffer(buffer);
 
   submitToGPUQueue(buffer);
-
-  resourceAllocator.freeCommandBuffer(buffer);
 
   return true;
 }

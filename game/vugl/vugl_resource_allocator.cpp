@@ -8,34 +8,16 @@ ResourceAllocator::ResourceAllocator ()
   : vkDevice{VK_NULL_HANDLE}
   , vkPhysicalDevice{VK_NULL_HANDLE}
   , allocator{VK_NULL_HANDLE}
-  , vkCommandPool{VK_NULL_HANDLE}
 {}
 
 ResourceAllocator::ResourceAllocator (
     VkDevice vkDevice
   , VkPhysicalDevice vkPhysicalDevice
   , VmaAllocator allocator
-  , VkCommandPool vkCommandPool
 ) : vkDevice{vkDevice}
   , vkPhysicalDevice{vkPhysicalDevice}
   , allocator{allocator}
-  , vkCommandPool{vkCommandPool}
 {}
-
-VkResult ResourceAllocator::allocateCommandBuffer (VkCommandBuffer& buffer, bool secondary) {
-  VkCommandBufferAllocateInfo vkCommandBufferAllocInfo = {};
-  vkCommandBufferAllocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-  vkCommandBufferAllocInfo.commandPool = vkCommandPool;
-  vkCommandBufferAllocInfo.level = secondary ? VK_COMMAND_BUFFER_LEVEL_SECONDARY : VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-  vkCommandBufferAllocInfo.commandBufferCount = 1;
-
-  return
-    vkAllocateCommandBuffers(
-        vkDevice
-      , &vkCommandBufferAllocInfo
-      , &buffer
-    );
-}
 
 VkResult ResourceAllocator::createVkBuffer (
     VkDeviceSize size
@@ -131,15 +113,6 @@ VkResult ResourceAllocator::createVkImage (
       , &vmaAllocation
       , nullptr
     );
-}
-
-void ResourceAllocator::freeCommandBuffer(VkCommandBuffer& buffer) {
-  vkFreeCommandBuffers(
-      vkDevice
-    , vkCommandPool
-    , 1
-    , &buffer
-  );
 }
 
 void ResourceAllocator::destroyVkBuffer (VkBuffer vkBuffer, VmaAllocation vmaAllocation) {

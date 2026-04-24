@@ -29,7 +29,6 @@ class ResourceAllocator {
     VkDevice vkDevice;
     VkPhysicalDevice vkPhysicalDevice;
     VmaAllocator allocator;
-    VkCommandPool vkCommandPool;
 
   public:
     ResourceAllocator ();
@@ -38,12 +37,6 @@ class ResourceAllocator {
         VkDevice vkDevice
       , VkPhysicalDevice vkPhysicalDevice
       , VmaAllocator allocator
-      , VkCommandPool vkCommandPool
-    );
-
-    VkResult allocateCommandBuffer (
-        VkCommandBuffer& buffer
-      , bool secondary = false
     );
 
     VkResult createVkBuffer (
@@ -72,8 +65,6 @@ class ResourceAllocator {
         VkImage image
       , VmaAllocation allocation
     );
-
-    void freeCommandBuffer(VkCommandBuffer& buffer);
 
     void* mapMemory (VmaAllocation allocation);
     void unmapMemory (VmaAllocation allocation);

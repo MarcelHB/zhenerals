@@ -137,6 +137,7 @@ SET(vugl_sources
   game/vugl/vma_loader.cpp
   game/vugl/vugl_combined_sampler.cpp
   game/vugl/vugl_command_buffer.cpp
+  game/vugl/vugl_command_pool.cpp
   game/vugl/vugl_compute_pipeline.cpp
   game/vugl/vugl_context.cpp
   game/vugl/vugl_descriptor_set.cpp

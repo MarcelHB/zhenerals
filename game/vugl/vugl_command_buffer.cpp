@@ -7,27 +7,46 @@
 namespace Vugl {
 
 CommandBuffer::CommandBuffer (CommandBuffer && other)
-  : allocator{other.allocator}
-  , vkCommandBuffer{std::move(other.vkCommandBuffer)}
+  : vkDevice{other.vkDevice}
+  , vkCommandPool{other.vkCommandPool}
+  , vkCommandBuffer{other.vkCommandBuffer}
   , state{other.state}
   , frameIndex{other.frameIndex}
   , secondary{other.secondary}
 {
+  other.vkCommandBuffer = VK_NULL_HANDLE;
   other.state = State::DESTROYED;
 }
 
 CommandBuffer::CommandBuffer (
-    ResourceAllocator& allocator
+    VkDevice vkDevice
+  , VkCommandPool vkCommandPool
   , size_t frameIndex
   , bool secondary
 )
-  : allocator{allocator}
+  : vkDevice{vkDevice}
+  , vkCommandPool{vkCommandPool}
   , vkCommandBuffer{}
   , state{State::NEW}
   , frameIndex{frameIndex}
   , secondary(secondary)
 {
-  allocator.allocateCommandBuffer(vkCommandBuffer, secondary);
+  VkCommandBufferAllocateInfo vkCommandBufferAllocInfo = {};
+  vkCommandBufferAllocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+  vkCommandBufferAllocInfo.commandPool = vkCommandPool;
+  vkCommandBufferAllocInfo.level = secondary ? VK_COMMAND_BUFFER_LEVEL_SECONDARY : VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+  vkCommandBufferAllocInfo.commandBufferCount = 1;
+
+  this->vkLastResult =
+    vkAllocateCommandBuffers(
+        vkDevice
+      , &vkCommandBufferAllocInfo
+      , &vkCommandBuffer
+    );
+}
+
+VkResult CommandBuffer::getLastResult () const {
+  return vkLastResult;
 }
 
 VkResult CommandBuffer::beginCommands (uint32_t /*numberBuffers*/) {
@@ -200,7 +219,12 @@ void CommandBuffer::reset () {
 
 void CommandBuffer::destroy () {
   if (State::DESTROYED != state) {
-    allocator.freeCommandBuffer(vkCommandBuffer);
+    vkFreeCommandBuffers(
+        vkDevice
+      , vkCommandPool
+      , 1
+      , &vkCommandBuffer
+    );
   }
 
   this->state = State::DESTROYED;

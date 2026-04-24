@@ -28,19 +28,28 @@ class CommandBuffer {
     };
 
   private:
-    ResourceAllocator& allocator;
+    VkDevice vkDevice;
+    VkCommandPool vkCommandPool;
     VkCommandBuffer vkCommandBuffer;
     State state;
     size_t frameIndex;
     bool secondary;
+    VkResult vkLastResult = VK_SUCCESS;
 
   public:
     CommandBuffer (const CommandBuffer&) = delete;
     CommandBuffer& operator=(const CommandBuffer&) = delete;
 
-    CommandBuffer (ResourceAllocator& allocator, size_t frameIndex, bool secondary = false);
+    CommandBuffer (
+        VkDevice
+      , VkCommandPool
+      , size_t frameIndex
+      , bool secondary = false
+    );
     CommandBuffer (CommandBuffer &&);
     ~CommandBuffer ();
+
+    VkResult getLastResult() const;
 
     VkResult beginCommands (uint32_t numberBuffers);
     VkResult beginRendering (
