@@ -234,14 +234,17 @@ void Game::draw(void *obj) {
   clearColors[0].color = {0.0f, 0.0f, 0.0f, 1.0f};
   clearColors[1].depthStencil = {1.0f, 0};
 
+  auto guiCommandPool = vuglContext.createCommandPool();
+  auto gameCommandPool = vuglContext.createCommandPool();
+
   std::vector<Vugl::CommandBuffer> commandBuffers;
   auto numSwapchainImages = vuglContext.getSwapchainImages().size();
 
   for (size_t i = 0; i < numSwapchainImages; ++i) {
-    // Primary + Game + GUI
+    // primary + game + GUI
     commandBuffers.emplace_back(vuglContext.createCommandBuffer(i));
-    commandBuffers.emplace_back(vuglContext.createCommandBuffer(i, true));
-    commandBuffers.emplace_back(vuglContext.createCommandBuffer(i, true));
+    commandBuffers.emplace_back(vuglContext.createCommandBuffer(i, gameCommandPool));
+    commandBuffers.emplace_back(vuglContext.createCommandBuffer(i, guiCommandPool));
   }
 
   while (true) {
@@ -258,8 +261,17 @@ void Game::draw(void *obj) {
 
     {
       auto lock = game->overlay->getLock();
-      game->mapRenderer->createRenderList(battlefieldSecondary, frameIndex, renderPass);
-      game->renderListFactory->createRenderList(guiSecondary, frameIndex, renderPass);
+      #pragma omp parallel sections num_threads(2)
+      {
+        #pragma omp section
+        {
+          game->mapRenderer->createRenderList(battlefieldSecondary, frameIndex, renderPass);
+        }
+        #pragma omp section
+        {
+          game->renderListFactory->createRenderList(guiSecondary, frameIndex, renderPass);
+        }
+      }
       game->overlay->frameDoneTick();
     }
 
