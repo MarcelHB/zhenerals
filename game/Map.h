@@ -222,7 +222,7 @@ class Map {
 
     Map(MapBuilder&);
 
-    float getCenterHeight(const glm::vec2&);
+    float getHeight(const glm::vec2&);
     std::pair<float, bool> getHeight(size_t, size_t, uint8_t);
     const std::vector<uint8_t>& getHeightMap() const;
     Size getSize() const;

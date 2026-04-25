@@ -129,7 +129,7 @@ const std::list<Battlefield::ScorchData>& Battlefield::getScorches() const {
 
 float Battlefield::getWorldHeight(const glm::vec3& pos) const {
   auto offPos = map->getWorldOffsetMatrix() * glm::vec4 {pos, 1.0f};
-  return map->getCenterHeight(glm::vec2 {offPos.x, offPos.z}) + pos.y;
+  return map->getHeight(glm::vec2 {offPos.x, offPos.z}) + pos.y * (1.0f/Map::TERRAIN_HEIGHT_SCALE);
 }
 
 void Battlefield::moveCameraAxially(float x, float y) {

@@ -18,8 +18,6 @@ struct WaterScene {
   alignas(16) glm::mat4 mvp;
 };
 
-static constexpr float MODEL_HEIGHT_SCALE = 1.6f;
-
 BattlefieldRenderer::BattlefieldRenderer(
     Vugl::Context& vuglContext
   , const Config& config

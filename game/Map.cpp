@@ -485,7 +485,7 @@ void Map::tesselateHeightMap(
   }
 }
 
-float Map::getCenterHeight(const glm::vec2& pos) {
+float Map::getHeight(const glm::vec2& pos) {
   size_t x = static_cast<size_t>(pos.x / 10);
   size_t y = static_cast<size_t>(pos.y / 10);
 
@@ -502,37 +502,37 @@ float Map::getCenterHeight(const glm::vec2& pos) {
 
   if (flipped) {
     // lower left
-    if (subY > 1.0f - subX) {
+    if (subY < 1.0f - subX) {
       return interpolateVertexTriangle(
-          glm::vec3 { 0.0f, h2,  0.0f}
-        , glm::vec3 {10.0f, h3,  0.0f}
-        , glm::vec3 { 0.0f, h0, 10.0f}
+          glm::vec3 { 0.0f, h0,  0.0f}
+        , glm::vec3 {10.0f, h1,  0.0f}
+        , glm::vec3 { 0.0f, h2, 10.0f}
         , glm::vec2 {subX, subY}
       );
     // upper right
     } else {
       return interpolateVertexTriangle(
-          glm::vec3 {10.0f, h3,  0.0f}
-        , glm::vec3 {10.0f, h1, 10.0f}
-        , glm::vec3 { 0.0f, h0, 10.0f}
+          glm::vec3 {10.0f, h1,  0.0f}
+        , glm::vec3 {10.0f, h3, 10.0f}
+        , glm::vec3 { 0.0f, h2, 10.0f}
         , glm::vec2 {subX, subY}
       );
     }
   } else {
     // lower right
-    if (subX < subY) {
+    if (subX > subY) {
       return interpolateVertexTriangle(
-          glm::vec3 { 0.0f, h2,  0.0f}
-        , glm::vec3 {10.0f, h3,  0.0f}
-        , glm::vec3 {10.0f, h1, 10.0f}
+          glm::vec3 { 0.0f, h0,  0.0f}
+        , glm::vec3 {10.0f, h1,  0.0f}
+        , glm::vec3 {10.0f, h3, 10.0f}
         , glm::vec2 {subX, subY}
       );
     // upper left
     } else {
       return interpolateVertexTriangle(
-          glm::vec3 { 0.0f, h2,  0.0f}
-        , glm::vec3 { 0.0f, h0, 10.0f}
-        , glm::vec3 {10.0f, h1, 10.0f}
+          glm::vec3 { 0.0f, h0,  0.0f}
+        , glm::vec3 { 0.0f, h2, 10.0f}
+        , glm::vec3 {10.0f, h3, 10.0f}
         , glm::vec2 {subX, subY}
       );
     }
