@@ -572,7 +572,7 @@ std::optional<ModelCondition> getModelCondition(const std::string_view& value) {
   } else if (value == "DAMAGED") {
     return {ModelCondition::DAMAGED};
   } else if (value == "REALLYDAMAGED") {
-    return {ModelCondition::REALLYDAMAGED};
+    return {ModelCondition::REALLY_DAMAGED};
   } else if (value == "RUBBLE") {
     return {ModelCondition::RUBBLE};
   } else if (value == "SPECIAL_DAMAGED") {

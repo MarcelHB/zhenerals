@@ -21,6 +21,8 @@ std::shared_ptr<Instance> InstanceFactory::getInstance(const MapObject& mapObjec
   instance.angle = mapObject.angle;
   instance.id = Instance::nextID++;
 
+  instance.health = mapObject.properties.getInt("objectInitialHealth").value_or(100);
+
   return std::make_shared<Instance>(std::move(instance));
 }
 
