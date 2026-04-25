@@ -52,6 +52,8 @@ class InstanceRenderer {
     struct InstanceData {
       struct DrawState {
         uint64_t modelID = 0;
+        bool hidden = false;
+        std::string modelName;
         std::set<Objects::ModelCondition> applicableConditions;
       };
 
@@ -73,6 +75,12 @@ class InstanceRenderer {
         const Objects::Instance&
       , const std::shared_ptr<const Objects::DrawData>&
       , InstanceData&
+    );
+
+    void determineModel(
+        const Objects::Instance&
+      , const std::shared_ptr<const Objects::ModelDrawData>&
+      , InstanceData::DrawState&
     );
 };
 

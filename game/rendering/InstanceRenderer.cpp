@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0
 
+#include <algorithm>
+
 #include "InstanceRenderer.h"
 
 namespace ZH {
@@ -105,20 +107,66 @@ bool InstanceRenderer::prepareModelDrawData(
     modelName = modelSpec->defaultConditionState.model;
   }
 
-  if (modelName.empty()) {
+  auto& drawState = instanceDrawState.currentDrawStates.emplace_back();
+
+  determineModel(instance, modelSpec, drawState);
+  if (drawState.hidden) {
     return true;
   }
 
-  auto& drawState = instanceDrawState.currentDrawStates.emplace_back();
-  drawState.modelID = nextModelID++;
-  drawState.applicableConditions = {Objects::ModelCondition::ALL};
-
-  if (!modelRenderer.prepareModel(drawState.modelID, modelName)) {
-    WARN_ZH("BattlefieldRenderer", "Unable to find model {} for {}", modelName, base->name);
+  if (!modelRenderer.prepareModel(drawState.modelID, drawState.modelName)) {
+    WARN_ZH("BattlefieldRenderer", "Unable to find model {} for {}", drawState.modelName, base->name);
     return false;
   }
 
   return true;
+}
+
+void InstanceRenderer::determineModel(
+    const Objects::Instance& instance
+  , const std::shared_ptr<const Objects::ModelDrawData>& modelDrawSpec
+  , InstanceData::DrawState& drawState
+) {
+  if (drawState.modelID == 0) {
+    drawState.modelID = nextModelID++;
+  }
+
+  drawState.hidden = false;
+
+  auto& instanceConditions = instance.getCurrentConditions();
+
+  // No conditions without default state -> nothing r/n
+  if (instanceConditions.empty() && modelDrawSpec->defaultConditionState.model.empty()) {
+    drawState.hidden = true;
+    return;
+  }
+
+  // EVAL aliases
+  // Look for what has the biggest intersection
+  auto bestIt = modelDrawSpec->conditionStates.cend();
+  size_t numCommon = 0;
+  for (auto it = modelDrawSpec->conditionStates.cbegin(); it != modelDrawSpec->conditionStates.cend(); ++it) {
+    std::set<Objects::ModelCondition> intersection;
+    std::set_intersection(
+        instanceConditions.cbegin(), instanceConditions.cend()
+      , it->conditions.cbegin(), it->conditions.cend()
+      , std::inserter(intersection, intersection.begin())
+    );
+
+    if (intersection.size() > numCommon) {
+      numCommon = intersection.size();
+      bestIt = it;
+    }
+  }
+
+  if (bestIt != modelDrawSpec->conditionStates.cend()) {
+    drawState.modelName = bestIt->model;
+    drawState.applicableConditions = bestIt->conditions;
+    return;
+  }
+
+  // fallback
+  drawState.modelName = modelDrawSpec->defaultConditionState.model;
 }
 
 bool InstanceRenderer::prepareTreeDrawData(
