@@ -1315,13 +1315,13 @@ std::optional<WeaponSet::Condition> getWeaponSetCondition(const std::string_view
     return {WeaponSet::Condition::HERO};
   } else if (value == "PLAYER_UPGRADE") {
     return {WeaponSet::Condition::PLAYER_UPGRADE};
-  } else if (value == "CRATE_UPGRADE_ONE") {
+  } else if (value == "CRATEUPGRADE_ONE") {
     return {WeaponSet::Condition::CRATE_UPGRADE_ONE};
-  } else if (value == "CRATE_UPGRADE_TWO") {
+  } else if (value == "CRATEUPGRADE_TWO") {
     return {WeaponSet::Condition::CRATE_UPGRADE_TWO};
   } else if (value == "HIJACK") {
     return {WeaponSet::Condition::HIJACK};
-  } else if (value == "CAR_BOMB") {
+  } else if (value == "CARBOMB") {
     return {WeaponSet::Condition::CAR_BOMB};
   } else if (value == "MONE_CLEARNING") {
     return {WeaponSet::Condition::MONE_CLEARNING};
