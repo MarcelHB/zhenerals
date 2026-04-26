@@ -166,6 +166,11 @@ void InstanceRenderer::determineModel(
   }
 
   // fallback
+  if (modelDrawSpec->defaultConditionState.model.empty()) {
+    drawState.hidden = true;
+    return;
+  }
+
   drawState.modelName = modelDrawSpec->defaultConditionState.model;
 }
 
