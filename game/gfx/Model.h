@@ -26,6 +26,11 @@ struct Model {
   std::vector<uint32_t> textureIndices;
   glm::mat4 transformation {1.0f};
 
+  glm::vec3 boundingBoxFrom;
+  glm::vec3 boundingBoxTo;
+  glm::vec3 boundingSphere;
+  float boundingSphereRadius = 1.0f;
+
   bool backfaceCulling = true;
 
   static Model fromW3D(const W3DModel&);

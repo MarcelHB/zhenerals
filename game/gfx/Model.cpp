@@ -36,6 +36,11 @@ Model Model::fromW3D(const W3DModel& w3d) {
   model.textureIndices = materialPass.textureIndices;
   model.transformation = w3d.transformation;
 
+  model.boundingBoxFrom = w3d.boundingBoxFrom;
+  model.boundingBoxTo = w3d.boundingBoxTo;
+  model.boundingSphere = w3d.boundingSphere;
+  model.boundingSphereRadius = w3d.boundingSphereRadius;
+
   if (w3d.flags & 0x2000) {
     model.backfaceCulling = false;
   }
@@ -46,18 +51,12 @@ Model Model::fromW3D(const W3DModel& w3d) {
 std::array<glm::vec3, 2> Model::getExtremes() const {
   // min, max
   std::array<glm::vec3, 2> extremes;
-  extremes[0] = glm::vec3 {std::numeric_limits<float>::max()};
-  extremes[1] = glm::vec3 {std::numeric_limits<float>::min()};
 
-  for (auto& vd : vertexData) {
-    auto& pos = vd.position;
-    auto v = transformation * glm::vec4 {pos, 1.0f};
+  auto pMin = transformation * glm::vec4 {boundingBoxFrom, 1.0f};
+  auto pMax = transformation * glm::vec4 {boundingBoxTo, 1.0f};
 
-    for (size_t i = 0; i < 3; ++i) {
-      extremes[0][i] = std::min(extremes[0][i], v[i]);
-      extremes[1][i] = std::max(extremes[1][i], v[i]);
-    }
-  }
+  extremes[0] = glm::vec3 {pMin};
+  extremes[1] = glm::vec3 {pMax};
 
   return extremes;
 }
