@@ -113,7 +113,7 @@ size_t W3DFile::parseNextChunk(std::vector<std::shared_ptr<W3DModel>>& models) {
       totalBytes += numBytes;
     }
   } else {
-    if (model == nullptr && !(chunkType >= 0x101 && chunkType <= 0x203)) {
+    if (model == nullptr && !(chunkType == 0x740 || (chunkType >= 0x101 && chunkType <= 0x203))) {
       broken = true;
       return totalBytes;
     }
@@ -129,6 +129,7 @@ size_t W3DFile::parseNextChunk(std::vector<std::shared_ptr<W3DModel>>& models) {
       case 0x701:
       case 0x703:
       case 0x704:
+      case 0x740:
         stream.seekg(chunkSize, std::ios::cur);
         totalBytes += chunkSize;
         break;

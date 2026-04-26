@@ -375,6 +375,10 @@ Result parseChunk(std::istream& stream, uint16_t depth, State& state) {
       dump(depth, "Chunk 0x{:x}: (HLOD item)", chunkType);
       skip = true;
       break;
+    case 0x740:
+      dump(depth, "Chunk 0x{:x}: (Chunk box)", chunkType);
+      skip = true;
+      break;
     default:
       skip = true;
       dump(depth, "Chunk 0x{:x}: UNSUPPORTED", chunkType);
