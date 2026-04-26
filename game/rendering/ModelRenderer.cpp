@@ -86,9 +86,9 @@ bool ModelRenderer::prepareModel(uint64_t id, const std::string& modelName) {
   renderData->numModels = models->size();
   renderData->shaderData.resize(models->size());
 
-  renderData->orderData.resize(models->size() * 8);
   renderData->drawOrder.resize(models->size());
   renderData->backfaceCulling.resize(models->size());
+  renderData->boundingSpheres.resize(models->size());
 
   uint32_t i = 0;
   for (auto& model : *models) {
@@ -117,7 +117,17 @@ bool ModelRenderer::prepareModel(uint64_t id, const std::string& modelName) {
       vertexData.emplace(std::make_pair(key, std::move(modelVertices)));
     }
 
-    calculateBoundingCorners(*model, *renderData, i);
+    // Assume the biggest radius is the one to use for everything
+    if (model->boundingSphereRadius > renderData->boundingSphere.radius) {
+      renderData->boundingSphere.radius = model->boundingSphereRadius;
+      renderData->boundingSphere.position =
+        glm::vec3 {renderData->transformations[i] * glm::vec4 {model->boundingSphere, 1.0f}};
+    }
+
+    renderData->boundingSpheres[i] = {
+        glm::vec3 {renderData->transformations[i] * glm::vec4 {model->boundingSphere, 1.0f}}
+      , model->boundingSphereRadius
+    };
 
     i += 1;
 
@@ -145,20 +155,6 @@ bool ModelRenderer::prepareModel(uint64_t id, const std::string& modelName) {
   return true;
 }
 
-void ModelRenderer::calculateBoundingCorners(const Model& model, RenderData& renderData, size_t i) {
-  auto x = model.getExtremes();
-
-  auto& od = renderData.orderData;
-  od[i * 8 + 0] = {x[0][0], x[0][1], x[0][2]};
-  od[i * 8 + 1] = {x[1][0], x[0][1], x[0][2]};
-  od[i * 8 + 2] = {x[0][0], x[1][1], x[0][2]};
-  od[i * 8 + 3] = {x[0][0], x[0][1], x[1][2]};
-  od[i * 8 + 4] = {x[1][0], x[1][1], x[1][2]};
-  od[i * 8 + 5] = {x[0][0], x[1][1], x[1][2]};
-  od[i * 8 + 6] = {x[1][0], x[0][1], x[1][2]};
-  od[i * 8 + 7] = {x[1][0], x[1][1], x[0][2]};
-}
-
 void ModelRenderer::bindPipeline(Vugl::CommandBuffer& commandBuffer) {
   commandBuffer.bindResource(*pipeline);
 }
@@ -169,32 +165,14 @@ ModelRenderer::BoundingSphere ModelRenderer::getBoundingSphere(uint64_t id) cons
     return {};
   }
 
-  auto& renderData = lookup->second;
-  glm::vec3 min {std::numeric_limits<float>::max()};
-  glm::vec3 max {std::numeric_limits<float>::min()};
-
-  for (auto& corner : renderData->orderData) {
-    for (uint8_t i = 0; i < 3; ++i) {
-      min[i] = std::min(min[i], corner[i]);
-      max[i] = std::max(max[i], corner[i]);
-    }
-  }
-
-  glm::vec3 center {0.0f};
-  float lengths = 0.0;
-  for (uint8_t i = 0; i < 3; ++i) {
-    lengths += std::pow(((max[i] - min[i]) / 2.0f), 2.0f);
-    center[i] = max[i] - (max[i] - min[i]) / 2.0f;
-  }
-
-  return {std::move(center), std::sqrt(lengths)};
+  return lookup->second->boundingSphere;
 }
 
 void ModelRenderer::updateModel(
     uint64_t id
   , size_t frameIdx
   , const glm::mat4& mvp
-  , const glm::mat4& camera
+  , const glm::vec3& cameraPos
   , const glm::mat4& normal
   , const glm::vec3& sunlightNormal
 ) {
@@ -222,42 +200,15 @@ void ModelRenderer::updateModel(
         * transformRotation;
     shaderData.sunlight = sunlightNormal;
     renderData->uniformBuffers[i].writeData(shaderData, frameIdx);
-  }
-
-  if (renderData->numModels == 1) {
-    renderData->drawOrder[0] = 0;
-    return;
-  }
-
-  using Order = std::pair<size_t, float>;
-  std::vector<Order> transformedOrder;
-  transformedOrder.resize(renderData->orderData.size());
-
-  for (size_t i = 0; i < renderData->orderData.size(); ++i) {
-    auto& to = transformedOrder[i];
-    auto& od = renderData->orderData[i];
-
-    to.first = i / 8;
-    to.second = glm::vec3 {camera * glm::vec4 {od, 1.0f}}[2];
+    renderData->drawOrder[i] =
+      std::make_pair(i, glm::length(cameraPos - renderData->boundingSpheres[i].position));
   }
 
   std::sort(
-      transformedOrder.begin()
-    , transformedOrder.end()
-    , [](const Order& a, const Order& b) { return a.second > b.second; }
+      renderData->drawOrder.begin()
+    , renderData->drawOrder.end()
+    , [](const OrderPair& a, const OrderPair& b) { return a.second > b.second; }
   );
-
-  for (size_t i = 0, j = 0; i < transformedOrder.size(); ++i) {
-    auto v = transformedOrder[i].first;
-
-    if (i == 0 || renderData->drawOrder[j - 1] != v) {
-      renderData->drawOrder[j++] = v;
-    }
-
-    if (j == renderData->drawOrder.size()) {
-      break;
-    }
-  }
 }
 
 bool ModelRenderer::renderModel(uint64_t id, Vugl::CommandBuffer& commandBuffer) {
@@ -271,7 +222,8 @@ bool ModelRenderer::renderModel(uint64_t id, Vugl::CommandBuffer& commandBuffer)
   auto& renderData = renderDataLookup->second;
   renderData->decreaseMiss();
 
-  for (auto i : renderData->drawOrder) {
+  for (auto& pair : renderData->drawOrder) {
+    auto i = pair.first;
     MurmurHash3_32 hasher;
     hasher.feed(renderData->vertexKey);
     hasher.feed(i);

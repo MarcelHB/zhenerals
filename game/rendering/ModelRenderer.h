@@ -37,11 +37,12 @@ class ModelRenderer {
 
     void bindPipeline(Vugl::CommandBuffer&);
     BoundingSphere getBoundingSphere(uint64_t id) const;
+
     void updateModel(
         uint64_t id
       , size_t frameIdx
       , const glm::mat4& mvp
-      , const glm::mat4& camera
+      , const glm::vec3& cameraPos
       , const glm::mat4& normal
       , const glm::vec3& sunlightNormal
     );
@@ -53,6 +54,7 @@ class ModelRenderer {
       alignas(16) glm::mat4 normalMatrix;
     };
 
+    using OrderPair = std::pair<size_t, float>;
     struct RenderData : public GFX::FrameDisposable {
       std::vector<Vugl::DescriptorSet> descriptorSets;
       std::vector<glm::mat4> transformations;
@@ -60,9 +62,10 @@ class ModelRenderer {
       std::vector<ShaderData> shaderData;
       uint32_t vertexKey = 0;
       size_t numModels = 1;
-      std::vector<glm::vec3> orderData;
-      std::vector<size_t> drawOrder;
+      std::vector<OrderPair> drawOrder;
       std::vector<bool> backfaceCulling;
+      std::vector<BoundingSphere> boundingSpheres;
+      BoundingSphere boundingSphere;
     };
 
     Vugl::Context& vuglContext;
@@ -72,8 +75,6 @@ class ModelRenderer {
     GFX::TextureCache& textureCache;
     std::unordered_map<uint64_t, std::shared_ptr<RenderData>> renderDataMap;
     std::unordered_map<uint32_t, std::shared_ptr<Vugl::ElementBuffer>> vertexData;
-
-    void calculateBoundingCorners(const Model&, RenderData&, size_t);
 };
 
 }

@@ -208,7 +208,7 @@ void InstanceRenderer::updateInstance(
     const Objects::Instance& instance
   , size_t frameIdx
   , const glm::mat4& mvp
-  , const glm::mat4& camera
+  , const glm::vec3& cameraPos
   , const glm::mat4& normal
   , const glm::vec3& sunlightNormal
 )  {
@@ -223,7 +223,7 @@ void InstanceRenderer::updateInstance(
         drawState.modelID
       , frameIdx
       , mvp
-      , camera
+      , cameraPos
       , normal
       , sunlightNormal
     );

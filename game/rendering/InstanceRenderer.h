@@ -42,7 +42,7 @@ class InstanceRenderer {
         const Objects::Instance&
       , size_t frameIdx
       , const glm::mat4& mvp
-      , const glm::mat4& camera
+      , const glm::vec3& cameraPos
       , const glm::mat4& normal
       , const glm::vec3& sunlightNormal
     );
