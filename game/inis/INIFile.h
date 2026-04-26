@@ -118,13 +118,13 @@ class INIFile {
         for (size_t i = 1; i < static_cast<std::underlying_type<T>::type>(T::ALL); ++i) {
           set.insert(static_cast<T>(i));
         }
+
+        if (values.size() == 1) {
+          return true;
+        }
       }
 
-      if (values.size() == 1) {
-        return true;
-      }
-
-      size_t startIndex = (firstValue == "ALL" || firstValue == "NONE") ? 1 : 0;
+      size_t startIndex = (firstValue == "ALL" || firstValue == "NONE" || firstValue == "None") ? 1 : 0;
 
       for (size_t i = startIndex; i < values.size(); ++i) {
         auto& value = values[i];

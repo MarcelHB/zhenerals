@@ -454,6 +454,14 @@ ADD_UNIT_TEST(MemoryViewStream
   game/tests/Test_MemoryViewStream.cpp
 )
 
+ADD_UNIT_TEST(ObjectsINI
+  game/inis/INIFile.cpp
+  game/inis/ObjectsINI.cpp
+  game/MurmurHash.cpp
+  game/objects/Object.cpp
+  game/tests/Test_ObjectsINI.cpp
+)
+
 ADD_UNIT_TEST(ResourceLoader
   game/MemoryViewStream.cpp
   game/formats/BIGFile.cpp
