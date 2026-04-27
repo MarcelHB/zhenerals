@@ -49,48 +49,6 @@ void expectGenericTree(const Objects::ObjectBuilder& builder) {
   EXPECT_EQ(0.1f, builder.scaleFuzziness);
 }
 
-TEST(ObjectsINITest, parsingAirforceGeneral) {
-  Config config;
-  ResourceLoader w3dLoader {{"INIZH.big"}, config.baseDir};
-
-  auto fileStream =
-    w3dLoader.getFileStream("data\\ini\\object\\airforcegeneral.ini");
-
-  auto stream = fileStream->getStream();
-  ObjectsINI objectsINI {stream};
-
-  objectsINI.parse();
-  ASSERT_FALSE(objectsINI.hasErroneousObject());
-}
-
-TEST(ObjectsINITest, parsingCivilianBuilding) {
-  Config config;
-  ResourceLoader w3dLoader {{"INIZH.big"}, config.baseDir};
-
-  auto fileStream =
-    w3dLoader.getFileStream("data\\ini\\object\\civilianbuilding.ini");
-
-  auto stream = fileStream->getStream();
-  ObjectsINI objectsINI {stream};
-
-  objectsINI.parse();
-  ASSERT_FALSE(objectsINI.hasErroneousObject());
-}
-
-TEST(ObjectsINITest, parsingCivilianProp) {
-  Config config;
-  ResourceLoader w3dLoader {{"INIZH.big"}, config.baseDir};
-
-  auto fileStream =
-    w3dLoader.getFileStream("data\\ini\\object\\civilianprop.ini");
-
-  auto stream = fileStream->getStream();
-  ObjectsINI objectsINI {stream};
-
-  objectsINI.parse();
-  ASSERT_FALSE(objectsINI.hasErroneousObject());
-}
-
 TEST(ObjectsINITest, parsingNatureProp) {
   Config config;
   ResourceLoader w3dLoader {{"INIZH.big"}, config.baseDir};
@@ -134,60 +92,68 @@ TEST(ObjectsINITest, parsingNatureProp) {
   EXPECT_EQ(3.0f, palm.geometry.majorRadius);
 }
 
-TEST(ObjectsINITest, parsingTechBuildings) {
-  Config config;
-  ResourceLoader w3dLoader {{"INIZH.big"}, config.baseDir};
+class ParamObjectsINITest : public testing::TestWithParam<std::string> {
+protected:
+  ResourceLoader::MemoryStream stream;
+  MemoryViewStream streamView {nullptr, 0};
+  ObjectsINI *unit;
 
-  auto fileStream =
-    w3dLoader.getFileStream("data\\ini\\object\\techbuildings.ini");
+  static ResourceLoader *w3dLoader;
 
-  auto stream = fileStream->getStream();
-  ObjectsINI objectsINI {stream};
+public:
+  void SetUp() override {
+    stream = *w3dLoader->getFileStream(GetParam());
+    streamView = std::move(stream.getStream());
+    unit = new ObjectsINI {streamView};
+  }
 
-  objectsINI.parse();
-  ASSERT_FALSE(objectsINI.hasErroneousObject());
+  void TearDown() override {
+    delete unit;
+  }
+
+  static void SetUpTestSuite() {
+    Config config;
+    w3dLoader = new ResourceLoader {{"INIZH.big"}, config.baseDir};
+  }
+
+  static void TearDownTestSuite() {
+    delete w3dLoader;
+  }
+};
+
+ResourceLoader* ParamObjectsINITest::w3dLoader = nullptr;
+
+TEST_P(ParamObjectsINITest, parse) {
+  unit->parse();
+  ASSERT_FALSE(unit->hasErroneousObject());
 }
 
-TEST(ObjectsINITest, parsingCivilianUnit) {
-  Config config;
-  ResourceLoader w3dLoader {{"INIZH.big"}, config.baseDir};
+INSTANTIATE_TEST_SUITE_P(
+    ObjectsINIInstances
+  , ParamObjectsINITest
+  , testing::Values(
+        "data\\ini\\object\\airforcegeneral.ini"
+      , "data\\ini\\object\\chinavehicle.ini"
+      , "data\\ini\\object\\civilianbuilding.ini"
+      , "data\\ini\\object\\civilianprop.ini"
+      , "data\\ini\\object\\civilianunit.ini"
+      , "data\\ini\\object\\factionbuilding.ini"
+      , "data\\ini\\object\\natureprop.ini"
+      , "data\\ini\\object\\techbuildings.ini"
+    )
+  , [](const testing::TestParamInfo<ParamObjectsINITest::ParamType>& info) {
+      std::string name {info.param};
+      auto pos = name.find("\\");
+      while (std::string::npos != pos) {
+        name[pos] = '_';
+        pos = name.find("\\");
+      }
 
-  auto fileStream =
-    w3dLoader.getFileStream("data\\ini\\object\\civilianunit.ini");
+      pos = name.find(".");
+      name[pos] = '_';
 
-  auto stream = fileStream->getStream();
-  ObjectsINI objectsINI {stream};
-
-  objectsINI.parse();
-  ASSERT_FALSE(objectsINI.hasErroneousObject());
-}
-
-TEST(ObjectsINITest, parsingFactionBuilding) {
-  Config config;
-  ResourceLoader w3dLoader {{"INIZH.big"}, config.baseDir};
-
-  auto fileStream =
-    w3dLoader.getFileStream("data\\ini\\object\\factionbuilding.ini");
-
-  auto stream = fileStream->getStream();
-  ObjectsINI objectsINI {stream};
-
-  objectsINI.parse();
-  ASSERT_FALSE(objectsINI.hasErroneousObject());
-}
-
-TEST(ObjectsINITest, parsingChinaVehicle) {
-  Config config;
-  ResourceLoader w3dLoader {{"INIZH.big"}, config.baseDir};
-
-  auto fileStream =
-    w3dLoader.getFileStream("data\\ini\\object\\chinavehicle.ini");
-
-  auto stream = fileStream->getStream();
-  ObjectsINI objectsINI {stream};
-
-  objectsINI.parse();
-  ASSERT_FALSE(objectsINI.hasErroneousObject());
-}
+      return name;
+    }
+);
 
 }
