@@ -121,6 +121,8 @@ size_t W3DFile::parseNextChunk(std::vector<std::shared_ptr<W3DModel>>& models) {
     switch (chunkType) {
       case 0x22: // shade indices, skip
       case 0x2D: // vertex material info (?)
+      case 0x2E: // args
+      case 0x2F: // args
       case 0x3B: // vertex diffuse colors
       case 0x103:
       case 0x201:

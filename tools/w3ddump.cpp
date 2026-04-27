@@ -81,6 +81,20 @@ void dump(uint16_t depth, fmt::format_string<ARGS...> message, ARGS&& ...args) {
   fmt::print(std::cout, "\n");
 }
 
+void formatNewlines(std::string& string) {
+  auto pos = string.find("\n");
+  while (pos != std::string::npos) {
+    string[pos] = ' ';
+    pos = string.find("\n");
+  }
+
+  pos = string.find("\r");
+  while (pos != std::string::npos) {
+    string[pos] = ' ';
+    pos = string.find("\r");
+  }
+}
+
 struct State {
   size_t numPivots = 0;
   size_t numShaderValues = 0;
@@ -207,6 +221,24 @@ Result parseChunk(std::istream& stream, uint16_t depth, State& state) {
       dump(depth, "Chunk 0x{:x}: Material name", chunkType);
       readStr(chunkSize - 1);
       dump(d1, "Name: {}", strBuffer);
+
+      stream.seekg(1, std::ios::cur);
+      totalBytes += 1;
+      break;
+    case 0x2E:
+      dump(depth, "Chunk 0x{:x}: Args 0", chunkType);
+      readStr(chunkSize - 1);
+      formatNewlines(strBuffer);
+      dump(d1, "Args: {}", strBuffer);
+
+      stream.seekg(1, std::ios::cur);
+      totalBytes += 1;
+      break;
+    case 0x2F:
+      dump(depth, "Chunk 0x{:x}: Args 1", chunkType);
+      readStr(chunkSize - 1);
+      formatNewlines(strBuffer);
+      dump(d1, "Args: {}", strBuffer);
 
       stream.seekg(1, std::ios::cur);
       totalBytes += 1;
