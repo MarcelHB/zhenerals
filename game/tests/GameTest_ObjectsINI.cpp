@@ -133,6 +133,7 @@ INSTANTIATE_TEST_SUITE_P(
   , ParamObjectsINITest
   , testing::Values(
         "data\\ini\\object\\airforcegeneral.ini"
+      , "data\\ini\\object\\americavehicle.ini"
       , "data\\ini\\object\\chinavehicle.ini"
       , "data\\ini\\object\\civilianbuilding.ini"
       , "data\\ini\\object\\civilianprop.ini"

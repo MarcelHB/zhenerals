@@ -2856,6 +2856,8 @@ static INIApplierMap<Objects::ObjectBuilder> ObjectDataKVMap = {
       return opt.has_value();
     }
   },
+  // Garbage workaround
+  { "Upgrade_AmericaHallfireDrone", [](Objects::ObjectBuilder& b, INIFile& f) { return true; } },
   { "UpgradeCameo1", [](Objects::ObjectBuilder& b, INIFile& f) { b.upgradeCameos[0] = f.parseString(); return !b.upgradeCameos[0].empty(); } },
   { "UpgradeCameo2", [](Objects::ObjectBuilder& b, INIFile& f) { b.upgradeCameos[1] = f.parseString(); return !b.upgradeCameos[0].empty(); } },
   { "UpgradeCameo3", [](Objects::ObjectBuilder& b, INIFile& f) { b.upgradeCameos[2] = f.parseString(); return !b.upgradeCameos[0].empty(); } },
