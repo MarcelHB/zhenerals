@@ -13,13 +13,14 @@ ObjectLoader::ObjectLoader(ResourceLoader& iniLoader) : iniLoader(iniLoader) {}
 bool ObjectLoader::init() {
   TRACY(ZoneScoped);
 
-  // whitelist as long as every INI file needs to be review
+  // whitelist as long as every INI file needs to be reviewed
   std::vector<std::string> keys = {
       "data\\ini\\object\\civilianbuilding.ini"
     , "data\\ini\\object\\civilianprop.ini"
     , "data\\ini\\object\\civilianunit.ini"
     , "data\\ini\\object\\factionbuilding.ini"
     , "data\\ini\\object\\natureprop.ini"
+    , "data\\ini\\object\\techbuildings.ini"
   };
 
 #pragma omp parallel num_threads(4)
