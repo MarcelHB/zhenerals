@@ -53,6 +53,7 @@ bool InstanceRenderer::prepareInstance(const Objects::Instance& instance) {
     if (drawMetaData.type == Objects::DrawType::DEPENDENCY_MODEL_DRAW
         || drawMetaData.type == Objects::DrawType::MODEL_DRAW
         || drawMetaData.type == Objects::DrawType::OVERLORD_AIRCRAFT_DRAW
+        || drawMetaData.type == Objects::DrawType::OVERLORD_TANK_DRAW
         || drawMetaData.type == Objects::DrawType::POLICE_CAR_DRAW
         || drawMetaData.type == Objects::DrawType::SUPPLY_DRAW
         || drawMetaData.type == Objects::DrawType::TANK_DRAW

@@ -23,6 +23,7 @@ enum class DrawType {
   , DEPENDENCY_MODEL_DRAW
   , MODEL_DRAW
   , OVERLORD_AIRCRAFT_DRAW
+  , OVERLORD_TANK_DRAW
   , OVERLORD_TRUCK_DRAW
   , POLICE_CAR_DRAW
   , TANK_DRAW
@@ -116,8 +117,16 @@ struct DependencyModelDrawData : public ModelDrawData {
 
 struct TankDrawData : public ModelDrawData {
   float treadAnimationRate = 1.0f;
+  float treadDriveSpeedFraction = 1.0f;
+  float treadPivotSpeedFraction = 1.0f;
   std::string treadDebrisLeft;
   std::string treadDebrisRight;
+};
+
+struct OverlordTankDrawData : public TankDrawData {
+  float treadAnimationRate = 1.0f;
+  float treadDriveSpeedFraction = 1.0f;
+  float treadPivotSpeedFraction = 1.0f;
 };
 
 struct TreeDrawData : public DrawData {

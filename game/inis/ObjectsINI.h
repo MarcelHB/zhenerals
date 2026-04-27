@@ -28,6 +28,7 @@ class ObjectsINI : public INIFile {
     bool parseBehavior(Objects::ObjectBuilder&);
     bool parseBody(Objects::ObjectBuilder&);
     bool parseClientUpdate(Objects::ObjectBuilder&);
+    std::set<Objects::ModelCondition> parseConditionStateConditions();
     bool parseDraw(Objects::ObjectBuilder&);
 };
 

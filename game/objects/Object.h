@@ -80,7 +80,7 @@ struct WeaponSet {
     , CRATE_UPGRADE_TWO
     , HIJACK
     , CAR_BOMB
-    , MONE_CLEARNING
+    , MINE_CLEARNING
     , RIDER1
     , RIDER2
     , RIDER3

@@ -813,6 +813,8 @@ std::optional<ModuleType> getModuleType(const std::string_view& value) {
     return {ModuleType::ARMOR_UPGRADE};
   } else if (value == "AssistedTargetingUpdate") {
     return {ModuleType::ASSISTED_TARGETING};
+  } else if (value == "AssaultTransportAIUpdate") {
+    return {ModuleType::ASSAULT_TRANSPORT};
   } else if (value == "AutoDepositUpdate") {
     return {ModuleType::AUTO_DEPOSIT};
   } else if (value == "AutoFindHealingUpdate") {
@@ -923,6 +925,8 @@ std::optional<ModuleType> getModuleType(const std::string_view& value) {
     return {ModuleType::HIGHLANDER_BODY};
   } else if (value == "HiveStructureBody") {
     return {ModuleType::HIVE_STRUCTURE_BODY};
+  } else if (value == "HordeUpdate") {
+    return {ModuleType::HORDE};
   } else if (value == "ImmortalBody") {
     return {ModuleType::IMMORTAL_BODY};
   } else if (value == "InstantDeathBehavior") {
@@ -1323,8 +1327,8 @@ std::optional<WeaponSet::Condition> getWeaponSetCondition(const std::string_view
     return {WeaponSet::Condition::HIJACK};
   } else if (value == "CARBOMB") {
     return {WeaponSet::Condition::CAR_BOMB};
-  } else if (value == "MONE_CLEARNING") {
-    return {WeaponSet::Condition::MONE_CLEARNING};
+  } else if (value == "MINE_CLEARING_DETAIL") {
+    return {WeaponSet::Condition::MINE_CLEARNING};
   } else if (value == "RIDER1") {
     return {WeaponSet::Condition::RIDER1};
   } else if (value == "RIDER2") {

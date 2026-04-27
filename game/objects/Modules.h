@@ -103,6 +103,7 @@ enum class ModuleType {
   , HELIX_CONTAIN
   , HIGHLANDER_BODY
   , HIVE_STRUCTURE_BODY
+  , HORDE
   , IMMORTAL_BODY
   , INSTANT_DEATH
   , INTERNET_HACK_CONTAIN
@@ -203,7 +204,7 @@ struct Turret {
   bool disabled = false;
   std::set<WeaponSlot> controlledSlots;
   float firePitch = 0.0f;
-  std::array<std::optional<float>, 3> fireAngleSweep;
+  std::array<float, 3> fireAngleSweep;
   float groundUnitPitch = 0.0f;
   float maxScanAngle = 0.0f;
   Duration maxScanIntervalMs = 1;
@@ -237,7 +238,7 @@ struct AnimationSteering : public Module {
 };
 
 struct AssaultTransport : public AI {
-  Percent healedWhenBelow = 50; // float!
+  float healedWhenBelow = 0.5f; // float!
   bool clearRangeForAttackMove = true;
 };
 
@@ -421,6 +422,14 @@ struct Die : public Module {
   std::set<Status> excludedStates;
   std::set<Status> requiredStates;
   std::set<Veterancy> veterancyLevels;
+};
+
+// to avoid diamond hierarchy
+struct DieUpgrade : public Die {
+  std::list<std::string> triggers; // TODO Upgrade
+  std::list<std::string> conflicts;
+  std::list<std::string> removing;
+  bool needAllTriggers = false;
 };
 
 struct CreateCrateDie : public Die {
@@ -644,11 +653,6 @@ struct FireWeaponWhenDamaged : public Module {
   std::string reactionWeaponRubble;
 };
 
-struct FireWeaponWhenDead : public Module {
-  bool active = true;
-  std::string weapon; // TODO Weapon
-};
-
 struct Flammable : public Module {
   Duration burnedDelayMs = 0;
   Duration burningDurationMs = 0;
@@ -746,6 +750,17 @@ struct HeightDie : public Module {
 struct HiveStructureBody : public ActiveBody {
   std::set<DamageType> absorbDamages;
   std::set<DamageType> propagateDamages;
+};
+
+struct Horde : public Module {
+  std::string action; // TODO Action/FX
+  bool alliesOnly = true;
+  bool exactMatch = true;
+  std::set<Attribute> kindOf;
+  uint32_t minCount = 5;
+  float radius = 10.0f;
+  float rubOffRadius = 10.0f;
+  Duration updateIntervalMs = 1000;
 };
 
 struct InstantDeath : public Die {
@@ -900,7 +915,7 @@ struct TransportContain : public OpenContain {
   bool exitOrientationAsContainer = false;
   bool exitResetMoodCheck = true;
   bool exitScattering = true;
-  std::string initialPayload; // objects?
+  std::pair<std::string, uint32_t> initialPayload; // objects?
   float healthRegenPerSecond = 1.0f;
   uint32_t slots = 1;
 };
@@ -1355,6 +1370,7 @@ struct StealthDetector : public Module {
   std::string particles;
   std::string brightParticles;
   std::string gridParticles;
+  std::string particlesBone;
   Duration rateMs = 1000;
   float range = 5.0f;
 };
@@ -1458,9 +1474,9 @@ struct FireWeaponWhenDamagedUpgrade : public Upgrade {
   float damageAmount = 1.0f;
 };
 
-struct FireWeaponWhenDeadUpgrade : public Die, public Upgrade {
+struct FireWeaponWhenDead : public DieUpgrade {
   bool active = true;
-  std::string deathWeapon; // TODO Weapon
+  std::string weapon; // TODO Weapon
 };
 
 struct GrantScienceUpgrade : public Upgrade {
