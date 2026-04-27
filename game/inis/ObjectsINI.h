@@ -20,9 +20,11 @@ class ObjectsINI : public INIFile {
     ObjectMap parse();
 
   private:
-    bool parseObject(ObjectMap&);
+    bool erroneousObject = false;
+    bool parseObject(ObjectMap&, bool reskin = false);
 
   public:
+    bool hasErroneousObject() const;
     bool parseBehavior(Objects::ObjectBuilder&);
     bool parseBody(Objects::ObjectBuilder&);
     bool parseClientUpdate(Objects::ObjectBuilder&);

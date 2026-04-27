@@ -60,6 +60,7 @@ TEST(ObjectsINITest, parsingAirforceGeneral) {
   ObjectsINI objectsINI {stream};
 
   objectsINI.parse();
+  ASSERT_FALSE(objectsINI.hasErroneousObject());
 }
 
 TEST(ObjectsINITest, parsingCivilianBuilding) {
@@ -73,6 +74,7 @@ TEST(ObjectsINITest, parsingCivilianBuilding) {
   ObjectsINI objectsINI {stream};
 
   objectsINI.parse();
+  ASSERT_FALSE(objectsINI.hasErroneousObject());
 }
 
 TEST(ObjectsINITest, parsingCivilianProp) {
@@ -86,6 +88,7 @@ TEST(ObjectsINITest, parsingCivilianProp) {
   ObjectsINI objectsINI {stream};
 
   objectsINI.parse();
+  ASSERT_FALSE(objectsINI.hasErroneousObject());
 }
 
 TEST(ObjectsINITest, parsingNatureProp) {
@@ -98,6 +101,7 @@ TEST(ObjectsINITest, parsingNatureProp) {
   ObjectsINI objectsINI {stream};
 
   auto builders = objectsINI.parse();
+  ASSERT_FALSE(objectsINI.hasErroneousObject());
   EXPECT_EQ(179, builders.size());
 
   MurmurHash3_32 hasher1;
@@ -141,6 +145,7 @@ TEST(ObjectsINITest, parsingTechBuildings) {
   ObjectsINI objectsINI {stream};
 
   objectsINI.parse();
+  ASSERT_FALSE(objectsINI.hasErroneousObject());
 }
 
 TEST(ObjectsINITest, parsingCivilianUnit) {
@@ -154,6 +159,7 @@ TEST(ObjectsINITest, parsingCivilianUnit) {
   ObjectsINI objectsINI {stream};
 
   objectsINI.parse();
+  ASSERT_FALSE(objectsINI.hasErroneousObject());
 }
 
 TEST(ObjectsINITest, parsingFactionBuilding) {
@@ -167,6 +173,21 @@ TEST(ObjectsINITest, parsingFactionBuilding) {
   ObjectsINI objectsINI {stream};
 
   objectsINI.parse();
+  ASSERT_FALSE(objectsINI.hasErroneousObject());
+}
+
+TEST(ObjectsINITest, parsingChinaVehicle) {
+  Config config;
+  ResourceLoader w3dLoader {{"INIZH.big"}, config.baseDir};
+
+  auto fileStream =
+    w3dLoader.getFileStream("data\\ini\\object\\chinavehicle.ini");
+
+  auto stream = fileStream->getStream();
+  ObjectsINI objectsINI {stream};
+
+  objectsINI.parse();
+  ASSERT_FALSE(objectsINI.hasErroneousObject());
 }
 
 }

@@ -3647,20 +3647,20 @@ ObjectsINI::ObjectMap ObjectsINI::parse() {
   ObjectMap objects;
 
   while (!stream.eof()) {
-    parseObject(objects);
+    auto token = consumeComment();
+    if (token != "ObjectReskin" && token != "Object") {
+      return objects;
+    }
+
+    if (!parseObject(objects, token == "ObjectReskin")) {
+      erroneousObject = true;
+    }
   }
 
   return objects;
 }
 
-bool ObjectsINI::parseObject(ObjectMap& objects) {
-  auto token = consumeComment();
-
-  if (token != "ObjectReskin" && token != "Object") {
-    return false;
-  }
-  bool reskinning = token == "ObjectReskin";
-
+bool ObjectsINI::parseObject(ObjectMap& objects, bool reskinning) {
   advanceStream();
   auto key = getTokenInLine();
 
@@ -3694,9 +3694,9 @@ bool ObjectsINI::parseObject(ObjectMap& objects) {
       , std::make_shared<Objects::ObjectBuilder>(std::move(builder))
     );
     return true;
-  } else {
-    return false;
   }
+
+  return false;
 }
 
 bool ObjectsINI::parseBehavior(Objects::ObjectBuilder& builder) {
@@ -4364,6 +4364,10 @@ bool ObjectsINI::parseDraw(Objects::ObjectBuilder& builder) {
       WARN_ZH("ObjectsINI", "Module type not supported as draw data: {}", token);
       return false;
   }
+}
+
+bool ObjectsINI::hasErroneousObject() const {
+  return erroneousObject;
 }
 
 }
