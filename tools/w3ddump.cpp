@@ -135,6 +135,10 @@ Result parseChunk(std::istream& stream, uint16_t depth, State& state) {
       dump(depth, "Chunk 0x{:x}: (Normals)", chunkType);
       skip = true;
       break;
+    case 0xE:
+      dump(depth, "Chunk 0x{:x}: (Vertex influences)", chunkType);
+      skip = true;
+      break;
     case 0x1F:
       dump(depth, "Chunk 0x{:x}: Mesh header", chunkType);
 
