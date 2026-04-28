@@ -16,11 +16,13 @@ bool ObjectLoader::init() {
   // whitelist as long as every INI file needs to be reviewed
   std::vector<std::string> keys = {
       "data\\ini\\object\\americavehicle.ini"
+    , "data\\ini\\object\\chinaair.ini"
     , "data\\ini\\object\\chinavehicle.ini"
     , "data\\ini\\object\\civilianbuilding.ini"
     , "data\\ini\\object\\civilianprop.ini"
     , "data\\ini\\object\\civilianunit.ini"
     , "data\\ini\\object\\factionbuilding.ini"
+    , "data\\ini\\object\\glainfantry.ini"
     , "data\\ini\\object\\natureprop.ini"
     , "data\\ini\\object\\techbuildings.ini"
   };

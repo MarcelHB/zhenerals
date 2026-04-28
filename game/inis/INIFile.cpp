@@ -91,10 +91,14 @@ std::string INIFile::getToken() {
 
 std::string INIFile::getTokenInLine() {
   readBuffer.clear();
+  bool inQuote = false;
 
   do {
     auto peek = stream.peek();
-    if (peek == ' ' || peek == '\n' || peek == '\r' || peek == ';' || peek == '/') {
+    if (peek == '"') {
+      inQuote = !inQuote;
+      stream.get();
+    } else if (!inQuote && (peek == ' ' || peek == '\n' || peek == '\r' || peek == ';' || peek == '/')) {
       break;
     } else {
       auto c = stream.get();

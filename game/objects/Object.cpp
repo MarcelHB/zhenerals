@@ -851,6 +851,10 @@ std::optional<ModuleType> getModuleType(const std::string_view& value) {
     return {ModuleType::COMMAND_BUTTON_HUNT};
   } else if (value == "CommandSetUpgrade") {
     return {ModuleType::COMMAND_SET_UPGRADE};
+  } else if (value == "ConvertToCarBombCrateCollide") {
+    return {ModuleType::CONVERT_TO_CAR_BOMB};
+  } else if (value == "ConvertToHijackedVehicleCrateCollide") {
+    return {ModuleType::CONVERT_TO_HIJACKED};
   } else if (value == "CountermeasuresBehavior") {
     return {ModuleType::COUNTERMEASURE};
   } else if (value == "CostModifierUpgrade") {
@@ -923,6 +927,8 @@ std::optional<ModuleType> getModuleType(const std::string_view& value) {
     return {ModuleType::HELIX_CONTAIN};
   } else if (value == "HighlanderBody") {
     return {ModuleType::HIGHLANDER_BODY};
+  } else if (value == "HijackerUpdate") {
+    return {ModuleType::HIJACKER};
   } else if (value == "HiveStructureBody") {
     return {ModuleType::HIVE_STRUCTURE_BODY};
   } else if (value == "HordeUpdate") {
@@ -953,6 +959,8 @@ std::optional<ModuleType> getModuleType(const std::string_view& value) {
     return {ModuleType::MISSILE_AI};
   } else if (value == "MissileLauncherBuildingUpdate") {
     return {ModuleType::MISSILE_LAUNCHER_BUILDING};
+  } else if (value == "MobMemberSlavedUpdate") {
+    return {ModuleType::MOB_MEMBER_SLAVED};
   } else if (value == "ModelConditionUpgrade") {
     return {ModuleType::MODEL_CONDITION_UPGRADE};
   } else if (value == "ObjectCreationUpgrade") {
@@ -970,6 +978,8 @@ std::optional<ModuleType> getModuleType(const std::string_view& value) {
   } else if (value == "ParkingPlaceBehavior") {
     return {ModuleType::PARKING_PLACE};
   } else if (value == "ParticleUplinkCannonUpdate") {
+    return {ModuleType::PARTICLE_UPLINK_CANNON};
+  } else if (value == "PassengersFireUpgrade") {
     return {ModuleType::PARTICLE_UPLINK_CANNON};
   } else if (value == "PhysicsBehavior") {
     return {ModuleType::PHYSICS};
@@ -1013,6 +1023,20 @@ std::optional<ModuleType> getModuleType(const std::string_view& value) {
     return {ModuleType::REPAIR_DOCK};
   } else if (value == "ReplaceObjectUpgrade") {
     return {ModuleType::REPLACE_OBJECT_UPGRADE};
+  } else if (value == "SabotageCommandCenterCrateCollide") {
+    return {ModuleType::SABOTAGE_COMMAND_CENTER};
+  } else if (value == "SabotageFakeBuildingCrateCollide") {
+    return {ModuleType::SABOTAGE_FAKE_BUILDING};
+  } else if (value == "SabotageInternetCenterCrateCollide") {
+    return {ModuleType::SABOTAGE_INTERNET_CENTER};
+  } else if (value == "SabotageMilitaryFactoryCrateCollide") {
+    return {ModuleType::SABOTAGE_MILITARY_FACTORY};
+  } else if (value == "SabotagePowerPlantCrateCollide") {
+    return {ModuleType::SABOTAGE_POWER_PLANT};
+  } else if (value == "SabotageSuperweaponCrateCollide") {
+    return {ModuleType::SABOTAGE_SUPERWEAPON};
+  } else if (value == "SabotageSupplyCenterCrateCollide") {
+    return {ModuleType::SABOTAGE_SUPPLY_CENTER};
   } else if (value == "SlavedUpdate") {
     return {ModuleType::SLAVED};
   } else if (value == "SlowDeathBehavior") {
@@ -1049,6 +1073,8 @@ std::optional<ModuleType> getModuleType(const std::string_view& value) {
     return {ModuleType::STRUCTURE_COLLAPSE};
   } else if (value == "StructureToppleUpdate") {
     return {ModuleType::STRUCTURE_TOPPLE};
+  } else if (value == "SubObjectsUpgrade") {
+    return {ModuleType::SUB_OBJECTS_UPGRADE};
   } else if (value == "SupplyCenterCreate") {
     return {ModuleType::SUPPLY_CENTER};
   } else if (value == "SupplyCenterDockUpdate") {
@@ -1091,6 +1117,8 @@ std::optional<ModuleType> getModuleType(const std::string_view& value) {
     return {ModuleType::WEAPON_BONUS_UPGRADE};
   } else if (value == "WeaponSetUpgrade") {
     return {ModuleType::WEAPON_SET_UPGRADE};
+  } else if (value == "WorkerAIUpdate") {
+    return {ModuleType::WORKER_AI};
   } else {
     return {};
   }

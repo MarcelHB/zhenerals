@@ -52,7 +52,7 @@ enum class ModuleType {
   , COMMAND_BUTTON_HUNT
   , COMMAND_SET_UPGRADE
   , CONVERT_TO_CAR_BOMB
-  , CONVERT_TO_HIJACK
+  , CONVERT_TO_HIJACKED
   , COST_MODIFIER_UPGRADE
   , COUNTERMEASURE
   , CRATE_COLLISION
@@ -102,6 +102,7 @@ enum class ModuleType {
   , HELICOPTER_SLOW_DEATH
   , HELIX_CONTAIN
   , HIGHLANDER_BODY
+  , HIJACKER
   , HIVE_STRUCTURE_BODY
   , HORDE
   , IMMORTAL_BODY
@@ -118,6 +119,7 @@ enum class ModuleType {
   , MAX_HEALTH_UPGRADE
   , MISSILE_AI
   , MISSILE_LAUNCHER_BUILDING
+  , MOB_MEMBER_SLAVED
   , MONEY_CRATE_COLLISION
   , MODEL_CONDITION_UPGRADE
   , NEUTRON_MISSILE_SLOW_DEATH
@@ -130,6 +132,7 @@ enum class ModuleType {
   , PARACHUTE_CONTAIN
   , PARKING_PLACE
   , PARTICLE_UPLINK_CANNON
+  , PASSENGERS_FIRE_UPGRADE
   , PREORDER_CREATE
   , PHYSICS
   , PILOT_FIND_VEHICLE
@@ -151,6 +154,13 @@ enum class ModuleType {
   , REBUILD_HOLE_EXPOSE_DIE
   , REPAIR_DOCK
   , REPLACE_OBJECT_UPGRADE
+  , SABOTAGE_COMMAND_CENTER
+  , SABOTAGE_FAKE_BUILDING
+  , SABOTAGE_INTERNET_CENTER
+  , SABOTAGE_MILITARY_FACTORY
+  , SABOTAGE_POWER_PLANT
+  , SABOTAGE_SUPERWEAPON
+  , SABOTAGE_SUPPLY_CENTER
   , SALVAGE_CRATE_COLLISION
   , SLAVED
   , SLOW_DEATH
@@ -178,6 +188,7 @@ enum class ModuleType {
   , STRUCTURE_BODY
   , STRUCTURE_COLLAPSE
   , STRUCTURE_TOPPLE
+  , SUB_OBJECTS_UPGRADE
   , SWAY_CLIENT
   , TECH_BUILDING
   , TENSILE_FORMATION
@@ -194,6 +205,7 @@ enum class ModuleType {
   , WAVE_GUIDE
   , WEAPON_BONUS_UPGRADE
   , WEAPON_SET_UPGRADE
+  , WORKER_AI
 };
 
 struct Turret {
@@ -428,7 +440,7 @@ struct Die : public Module {
 struct DieUpgrade : public Die {
   std::list<std::string> triggers; // TODO Upgrade
   std::list<std::string> conflicts;
-  std::list<std::string> removing;
+  std::list<std::string> removes;
   bool needAllTriggers = false;
 };
 
@@ -747,6 +759,11 @@ struct HeightDie : public Module {
   uint32_t initialDelay = 0;
 };
 
+struct Hijacker : public Module {
+  std::string attachedBone;
+  std::string parachute;
+};
+
 struct HiveStructureBody : public ActiveBody {
   std::set<DamageType> absorbDamages;
   std::set<DamageType> propagateDamages;
@@ -842,6 +859,13 @@ struct MissileLauncherBuilding : public Module {
   std::string doorOpenEffect;
   std::string doorOpenIdleAudio;
   std::string doorWaitingToCloseEffect;
+};
+
+struct MobMemberSlaved : public Module {
+  uint32_t catchUpRadius = 50;
+  uint32_t saveRadius = 10;
+  float squirrelliness = 0.1f;
+  uint32_t numCatchUpCrisisBailCalls = 10;
 };
 
 struct FactionOCL {
@@ -985,6 +1009,7 @@ struct QueueProductionExit : public Module {
   glm::vec3 createPoint;
   glm::vec3 rallyPoint;
   Duration exitDelayMs = 1000;
+  uint32_t initialBurst = 0;
 };
 
 struct RailedTransportAI : public AI {
@@ -998,6 +1023,22 @@ struct RailedTransportDock : public Dock {
 };
 
 struct RailroadBehavior : public Physics {
+};
+
+struct SabotageInternetCenter : public CrateCollision {
+  Duration durationMs = 1000;
+};
+
+struct SabotageMilitaryFactory : public CrateCollision {
+  Duration durationMs = 1000;
+};
+
+struct SabotagePowerPlant : public CrateCollision {
+  Duration durationMs = 1000;
+};
+
+struct SabotageSupplyCenter : public CrateCollision {
+  Money amount = 1000;
 };
 
 struct SalvageCrateCollision : public CrateCollision {
@@ -1178,12 +1219,15 @@ struct SpecialPower : public Module {
 struct SpecialPowerUpdate : public Module {
   float abilityAbortRange = 1.0f;
   float abilityStartRange = 1.0f;
+  bool approachRequiresLOS = true;
   std::string captureEffect;
   float fleeRange = 100.0f;
   bool loseStealth = true;
   uint16_t maxSpecialObjects = 1;
+  bool needToFaceTarget = true;
   Duration packTimeMs = 1000;
   Duration preparationTimeMs = 0;
+  bool persistenceRequiresRecharge = true;
   Duration persistentPreparationTimeMs = 0;
   bool skipPackingWithoutTarget = true;
   std::string specialPower; // TODO Special power
@@ -1237,7 +1281,8 @@ struct SpyVisionSpecialPower : public SpecialPower {
 
 struct Spawn : public Module {
   bool aggregateHealth = false;
-  int32_t initialBurst = 0;
+  bool exitByBudding = false;
+  uint32_t initialBurst = 0;
   int32_t number = 1;
   bool once = false;
   bool reclaimOrphans = false;
@@ -1441,7 +1486,7 @@ struct TransitionDamageFX : public Module {
 struct Upgrade : public Module {
   std::list<std::string> triggers; // TODO Upgrade
   std::list<std::string> conflicts;
-  std::list<std::string> removing;
+  std::list<std::string> removes;
   bool needAllTriggers = false;
 };
 
@@ -1508,6 +1553,11 @@ struct SpyVision : public Upgrade {
   std::set<Attribute> spyOn;
 };
 
+struct SubObjectsUpgrade : public Upgrade {
+  std::vector<std::string> hideObjects;
+  std::vector<std::string> showObjects;
+};
+
 struct UnpauseSpecialPowerUpgrade : public Upgrade {
   std::string specialPower; // TODO special power
 };
@@ -1552,6 +1602,18 @@ struct WaveGuide : public Module {
   std::string bridgeParticles; // TODO ParticlesSystem
   float bridgeParticlesAngle = 0.0f;
   std::string loopingSound;
+};
+
+struct WorkerAI : public AI {
+  Duration boredAfterMs = 5000;
+  float boredRange = 100.0f;
+  std::string depletionSound;
+  uint32_t maxBoxes = 1;
+  Percent repairPerSecond = 5.0f;
+  Duration supplyCenterDelayMs = 1000;
+  uint32_t upgradeSupplyBoost = 1;
+  Duration warehouseDelayMs = 1000;
+  float warehouseScanDistance = 1000.0f;
 };
 
 }

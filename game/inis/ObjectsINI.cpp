@@ -557,18 +557,16 @@ static INIApplierMap<Objects::ConditionState> ConditionStateKVMap = {
     }
   },
   { "AnimationSpeedFactorRange", [](Objects::ConditionState& cs, INIFile& f) {
-      auto range = f.parseStringList();
-      if (range.size() != 2) {
-        return false;
-      }
-
-      auto opt = f.parseFloat(range[0]);
+      // one buggy ini, missing `=`
+      auto token = f.parseLooseValue();
+      auto opt = f.parseFloat(token);
       if (!opt) {
         return false;
       }
       cs.minAnimationSpeed = *opt;
 
-      opt = f.parseFloat(range[1]);
+      token = f.parseLooseValue();
+      opt = f.parseFloat(token);
       if (!opt) {
         return false;
       }
@@ -653,7 +651,7 @@ static INIApplierMap<Objects::ConditionState> ConditionStateKVMap = {
     }
   },
   { "WaitForStateToFinishIfPossible", [](Objects::ConditionState& cs, INIFile& f) {
-      cs.waitForState = f.parseString();
+      cs.waitForState = f.parseLooseValue();
       return !cs.waitForState.empty();
     }
   },
@@ -705,6 +703,10 @@ static INIApplierMap<Objects::CommandSetUpgrade> CommandSetUpgradeKVMap = {
   { "TriggerAlt", [](Objects::CommandSetUpgrade& csu, INIFile& f) { csu.altTrigger = f.parseString(); return !csu.altTrigger.empty(); } }
 };
 
+static INIApplierMap<Objects::ConvertToCarBomb> ConvertToCarBombKVMap = {
+  { "FXList", [](Objects::ConvertToCarBomb& ctc, INIFile& f) { ctc.effect = f.parseString(); return !ctc.effect.empty(); } }
+};
+
 static INIApplierMap<Objects::CostModifierUpgrade> CostModifierUpgradeKVMap = {
   { "EffectKindOf", [](Objects::CostModifierUpgrade& cmu, INIFile& f) {
       return f.parseEnumSet<Objects::Attribute>(cmu.affecting, CALL(Objects::getAttribute));
@@ -724,6 +726,7 @@ static INIApplierMap<Objects::Countermeasure> CountermeasureKVMap = {
 };
 
 static INIApplierMap<Objects::CrateCollision> CrateCollisionKVMap = {
+  { "BuildingPickup", [](Objects::CrateCollision& cc, INIFile& f) { cc.buildingCanPickUp = f.parseBool(); return true; } },
   { "ForbiddenKindOf", [](Objects::CrateCollision& cc, INIFile& f) {
       return f.parseEnumSet<Objects::Attribute>(cc.collisionExclusion, CALL(Objects::getAttribute));
     }
@@ -1295,11 +1298,12 @@ static INIApplierMap<Objects::HelicopterSlowDeath> HelicopterSlowDeathKVMap = {
       return opt.has_value();
     }
   },
-  { "SoundDeathLoop", [](Objects::HelicopterSlowDeath& hd, INIFile& f) {
-      hd.deathSound = f.parseString();
-      return !hd.deathSound.empty();
-    }
-  }
+  { "SoundDeathLoop", [](Objects::HelicopterSlowDeath& hd, INIFile& f) { hd.deathSound = f.parseString(); return !hd.deathSound.empty(); } }
+};
+
+static INIApplierMap<Objects::Hijacker> HijackerKVMap = {
+  { "AttachToTargetBone", [](Objects::Hijacker& hj, INIFile& f) { hj.attachedBone = f.parseString(); return !hj.attachedBone.empty(); } },
+  { "ParachuteName", [](Objects::Hijacker& hj, INIFile& f) { hj.parachute = f.parseString(); return !hj.parachute.empty(); } }
 };
 
 static INIApplierMap<Objects::Horde> HordeKVMap = {
@@ -1562,6 +1566,33 @@ static INIApplierMap<Objects::MaxHealthUpgrade> MaxHealthUpgradeKVMap = {
   { "ChangeType", [](Objects::MaxHealthUpgrade& mh, INIFile& f) {
       auto opt = f.parseEnum<Objects::MaxHealthModifier>(CALL(Objects::getMaxHealthModifier));
       mh.modifier = opt.value_or(mh.modifier);
+      return opt.has_value();
+    }
+  }
+};
+
+static INIApplierMap<Objects::MobMemberSlaved> MobMemberSlavedKVMap = {
+  { "CatchUpCrisisBailTime", [](Objects::MobMemberSlaved& mm, INIFile& f) {
+      auto opt = f.parseInteger();
+      mm.numCatchUpCrisisBailCalls = opt.value_or(mm.numCatchUpCrisisBailCalls);
+      return opt.has_value();
+    }
+  },
+  { "MustCatchUpRadius", [](Objects::MobMemberSlaved& mm, INIFile& f) {
+      auto opt = f.parseInteger();
+      mm.catchUpRadius = opt.value_or(mm.catchUpRadius);
+      return opt.has_value();
+    }
+  },
+  { "NoNeedToCatchUpRadius", [](Objects::MobMemberSlaved& mm, INIFile& f) {
+      auto opt = f.parseInteger();
+      mm.saveRadius = opt.value_or(mm.saveRadius);
+      return opt.has_value();
+    }
+  },
+  { "Squirrelliness", [](Objects::MobMemberSlaved& mm, INIFile& f) {
+      auto opt = f.parseFloat();
+      mm.squirrelliness = opt.value_or(mm.squirrelliness);
       return opt.has_value();
     }
   }
@@ -2131,6 +2162,31 @@ static INIApplierMap<Objects::ReplaceObjectUpgrade> ReplaceObjectUpgradeKVMap = 
   { "ReplaceObject", [](Objects::ReplaceObjectUpgrade& up, INIFile& f) { up.object = f.parseString(); return !up.object.empty(); } }
 };
 
+static INIApplierMap<Objects::SabotageSupplyCenter> SabotageSupplyCenterKVMap = {
+ { "StealCashAmount", [](Objects::SabotageSupplyCenter& s, INIFile& f) {
+      auto opt = f.parseInteger();
+      s.amount = opt.value_or(s.amount);
+      return opt.has_value();
+    }
+  }
+};
+
+template <typename T>
+static INIApplierMap<T> SabotageDurationKVMap = {
+ { "SabotagePowerDuration", [](T& s, INIFile& f) {
+     auto opt = f.parseInteger();
+     s.durationMs = opt.value_or(s.durationMs);
+     return opt.has_value();
+   }
+ },
+ { "SabotageDuration", [](T& s, INIFile& f) {
+      auto opt = f.parseInteger();
+      s.durationMs = opt.value_or(s.durationMs);
+      return opt.has_value();
+    }
+  }
+};
+
 static INIApplierMap<Objects::TransportContain> TransportContainKVMap = {
   { "ArmedRidersUpgradeMyWeaponSet", [](Objects::TransportContain& tc, INIFile& f) { tc.armedRidersWeaponUpgrade = f.parseBool(); return true; } },
   { "DestroyRidersWhoAreNotFreeToExit", [](Objects::TransportContain& tc, INIFile& f) { tc.destroyTrappedRiders = f.parseBool(); return true; } },
@@ -2391,12 +2447,14 @@ static INIApplierMap<Objects::ObjectBuilder> UnitSpecificSoundsKV = {
   { "VoiceGetHealed", [](Objects::ObjectBuilder& b, INIFile& f) { return parseSound(b, f, Objects::Noise::VOICE_GET_HEALED); } },
   { "VoiceLowFuel", [](Objects::ObjectBuilder& b, INIFile& f) { return parseSound(b, f, Objects::Noise::VOICE_LOW_FUEL); } },
   { "VoiceMelee", [](Objects::ObjectBuilder& b, INIFile& f) { return parseSound(b, f, Objects::Noise::VOICE_MELEE); } },
+  { "VoiceMoveUpgraded", [](Objects::ObjectBuilder& b, INIFile& f) { return parseSound(b, f, Objects::Noise::VOICE_MOVE_UPGRADED); } },
   { "VoiceNoBuild", [](Objects::ObjectBuilder& b, INIFile& f) { return parseSound(b, f, Objects::Noise::VOICE_NO_BUILD); } },
   { "VoicePrimaryWeaponMode", [](Objects::ObjectBuilder& b, INIFile& f) { return parseSound(b, f, Objects::Noise::VOICE_PRIMARY_WEAPON_MODE); } },
   { "VoiceRapidFire", [](Objects::ObjectBuilder& b, INIFile& f) { return parseSound(b, f, Objects::Noise::VOICE_RAPID_FIRE); } },
   { "VoiceRepair", [](Objects::ObjectBuilder& b, INIFile& f) { return parseSound(b, f, Objects::Noise::VOICE_REPAIR); } },
   { "VoiceSalvage", [](Objects::ObjectBuilder& b, INIFile& f) { return parseSound(b, f, Objects::Noise::VOICE_SALVAGE); } },
   { "VoiceSecondaryWeaponMode", [](Objects::ObjectBuilder& b, INIFile& f) { return parseSound(b, f, Objects::Noise::VOICE_SECONDARY_WEAPON_MODE); } },
+  { "VoiceSnipePilot", [](Objects::ObjectBuilder& b, INIFile& f) { return parseSound(b, f, Objects::Noise::VOICE_SNIPE_PILOT); } },
   { "VoiceSubdue", [](Objects::ObjectBuilder& b, INIFile& f) { return parseSound(b, f, Objects::Noise::VOICE_SUBDUE); } },
   { "VoiceSupply", [](Objects::ObjectBuilder& b, INIFile& f) { return parseSound(b, f, Objects::Noise::VOICE_SUPPLY); } },
   { "VoiceUnload", [](Objects::ObjectBuilder& b, INIFile& f) { return parseSound(b, f, Objects::Noise::VOICE_UNLOAD); } },
@@ -2433,6 +2491,17 @@ static INIApplierMap<T> UpgradeKVMap = {
       }
 
       upg.conflicts.insert(upg.conflicts.end(), values.cbegin(), values.cend());
+
+      return true;
+    }
+  },
+  { "RemovesUpgrades", [](T& upg, INIFile& f) {
+      auto values = f.parseStringList();
+      if (values.empty()) {
+        return false;
+      }
+
+      upg.removes.insert(upg.removes.end(), values.cbegin(), values.cend());
 
       return true;
     }
@@ -2653,6 +2722,7 @@ static INIApplierMap<Objects::ObjectBuilder> ObjectDataKVMap = {
       return opt.has_value();
     }
   },
+  { "EnterGuard", [](Objects::ObjectBuilder& b, INIFile& f) { b.enterGuard = f.parseBool(); return true; } },
   { "ExperienceRequired", [](Objects::ObjectBuilder& b, INIFile& f) {
       auto opt = parseExperience(f);
       if (!opt) {
@@ -2714,6 +2784,7 @@ static INIApplierMap<Objects::ObjectBuilder> ObjectDataKVMap = {
     }
   },
   { "GeometryIsSmall", [](Objects::ObjectBuilder& b, INIFile& f) { b.geometry.small = f.parseBool(); return true; } },
+  { "HijackGuard", [](Objects::ObjectBuilder& b, INIFile& f) { b.hijackGuard = f.parseBool(); return true; } },
   { "InstanceScaleFuzziness", [](Objects::ObjectBuilder& b, INIFile& f) {
       auto value = f.parseFloat();
       b.scaleFuzziness = value.value_or(b.scaleFuzziness);
@@ -2859,10 +2930,10 @@ static INIApplierMap<Objects::ObjectBuilder> ObjectDataKVMap = {
   // Garbage workaround
   { "Upgrade_AmericaHallfireDrone", [](Objects::ObjectBuilder& b, INIFile& f) { return true; } },
   { "UpgradeCameo1", [](Objects::ObjectBuilder& b, INIFile& f) { b.upgradeCameos[0] = f.parseString(); return !b.upgradeCameos[0].empty(); } },
-  { "UpgradeCameo2", [](Objects::ObjectBuilder& b, INIFile& f) { b.upgradeCameos[1] = f.parseString(); return !b.upgradeCameos[0].empty(); } },
-  { "UpgradeCameo3", [](Objects::ObjectBuilder& b, INIFile& f) { b.upgradeCameos[2] = f.parseString(); return !b.upgradeCameos[0].empty(); } },
-  { "UpgradeCameo4", [](Objects::ObjectBuilder& b, INIFile& f) { b.upgradeCameos[3] = f.parseString(); return !b.upgradeCameos[0].empty(); } },
-  { "UpgradeCameo5", [](Objects::ObjectBuilder& b, INIFile& f) { b.upgradeCameos[4] = f.parseString(); return !b.upgradeCameos[0].empty(); } },
+  { "UpgradeCameo2", [](Objects::ObjectBuilder& b, INIFile& f) { b.upgradeCameos[1] = f.parseString(); return !b.upgradeCameos[1].empty(); } },
+  { "UpgradeCameo3", [](Objects::ObjectBuilder& b, INIFile& f) { b.upgradeCameos[2] = f.parseString(); return !b.upgradeCameos[2].empty(); } },
+  { "UpgradeCameo4", [](Objects::ObjectBuilder& b, INIFile& f) { b.upgradeCameos[3] = f.parseString(); return !b.upgradeCameos[3].empty(); } },
+  { "UpgradeCameo5", [](Objects::ObjectBuilder& b, INIFile& f) { b.upgradeCameos[4] = f.parseString(); return !b.upgradeCameos[4].empty(); } },
   { "UnitSpecificFX", [](Objects::ObjectBuilder& b, INIFile& f) { return f.parseAttributeBlock(b, UnitSpecificFXKV); } },
   { "UnitSpecificSounds", [](Objects::ObjectBuilder& b, INIFile& f) { return f.parseAttributeBlock(b, UnitSpecificSoundsKV); } },
   { "VisionRange", [](Objects::ObjectBuilder& b, INIFile& f) {
@@ -2892,6 +2963,12 @@ static INIApplierMap<Objects::QueueProductionExit> QueueProductionExitKVMap = {
   { "ExitDelay", [](Objects::QueueProductionExit& qpe, INIFile& f) {
       auto opt = f.parseInteger();
       qpe.exitDelayMs = opt.value_or(qpe.exitDelayMs);
+      return opt.has_value();
+    }
+  },
+  { "InitialBurst", [](Objects::QueueProductionExit& qpe, INIFile& f) {
+      auto opt = f.parseInteger();
+      qpe.initialBurst = opt.value_or(qpe.initialBurst);
       return opt.has_value();
     }
   },
@@ -2982,7 +3059,15 @@ static INIApplierMap<Objects::RebuildHoleExposeDie> RebuildHoleExposeDieKVMap = 
 };
 
 static INIApplierMap<Objects::Spawn> SpawnKVMap = {
+  { "AggregateHealth", [](Objects::Spawn& s, INIFile& f) { s.aggregateHealth = f.parseBool(); return true; } },
+  { "ExitByBudding", [](Objects::Spawn& s, INIFile& f) { s.exitByBudding = f.parseBool(); return true; } },
   { "CanReclaimOrphans", [](Objects::Spawn& s, INIFile& f) { s.reclaimOrphans = f.parseBool(); return true; } },
+  { "InitialBurst", [](Objects::Spawn& s, INIFile& f) {
+      auto opt = f.parseInteger();
+      s.initialBurst = opt.value_or(s.initialBurst);
+      return opt.has_value();
+    }
+  },
   { "OneShot", [](Objects::Spawn& s, INIFile& f) { s.once = f.parseBool(); return true; } },
   { "SlavesHaveFreeWill", [](Objects::Spawn& s, INIFile& f) { s.spawnsWithFreeWill = f.parseBool(); return true; } },
   { "SpawnedRequireSpawner", [](Objects::Spawn& s, INIFile& f) { s.requiresSpawner = f.parseBool(); return true; } },
@@ -3250,6 +3335,7 @@ static INIApplierMap<Objects::SpecialPowerUpdate> SpecialPowerUpdateKVMap = {
     }
   },
   { "AlwaysValidateSpecialObjects", [](Objects::SpecialPowerUpdate& sd, INIFile& f) { sd.validateSpecialObject = f.parseBool(); return true; } },
+  { "ApproachRequiresLOS", [](Objects::SpecialPowerUpdate& sd, INIFile& f) { sd.approachRequiresLOS = f.parseBool(); return true; } },
   { "AwardXPForTriggering", [](Objects::SpecialPowerUpdate& sd, INIFile& f) {
       auto value = f.parseInteger();
       sd.xpAward = value.value_or(sd.xpAward);
@@ -3271,12 +3357,14 @@ static INIApplierMap<Objects::SpecialPowerUpdate> SpecialPowerUpdateKVMap = {
       return value.has_value();
     }
   },
+  { "NeedToFaceTarget", [](Objects::SpecialPowerUpdate& sd, INIFile& f) { sd.needToFaceTarget = f.parseBool(); return true; } },
   { "PackTime", [](Objects::SpecialPowerUpdate& sd, INIFile& f) {
       auto value = f.parseInteger();
       sd.packTimeMs = value.value_or(sd.packTimeMs);
       return value.has_value();
     }
   },
+  { "PersistenceRequiresRecharge", [](Objects::SpecialPowerUpdate& sd, INIFile& f) { sd.persistenceRequiresRecharge = f.parseBool(); return true; } },
   { "PersistentPrepTime", [](Objects::SpecialPowerUpdate& sd, INIFile& f) {
       auto value = f.parseInteger();
       sd.persistentPreparationTimeMs = value.value_or(sd.persistentPreparationTimeMs);
@@ -3596,6 +3684,19 @@ static INIApplierMap<Objects::StructureTopple> StructureToppleKVMap = {
   { "ToppleStartFX", [](Objects::StructureTopple& st, INIFile& f) { st.topplingStartEffect = f.parseString(); return !st.topplingStartEffect.empty(); } },
 };
 
+static INIApplierMap<Objects::SubObjectsUpgrade> SubObjectsUpgradeKVMap = {
+  { "HideSubObjects", [](Objects::SubObjectsUpgrade& sou, INIFile& f) {
+      sou.hideObjects = f.parseStringList();
+      return !sou.hideObjects.empty();
+    }
+  },
+  { "ShowSubObjects", [](Objects::SubObjectsUpgrade& sou, INIFile& f) {
+      sou.showObjects = f.parseStringList();
+      return !sou.showObjects.empty();
+    }
+  }
+};
+
 static INIApplierMap<Objects::Topple> ToppleKVMap = {
   { "BounceFX", [](Objects::Topple& t, INIFile& f) { t.bounceEffect = f.parseString(); return !t.bounceEffect.empty(); } },
   { "BounceVelocityPercent", [](Objects::Topple& t, INIFile& f) {
@@ -3736,6 +3837,58 @@ static INIApplierMap<Objects::VeterancyGain> VeterancyGainKVMap = {
   { "StartingLevel", [](Objects::VeterancyGain& vg, INIFile& f) {
       auto opt = Objects::getVeterancy(f.parseString());
       vg.starting = opt.value_or(vg.starting);
+      return opt.has_value();
+    }
+  }
+};
+
+static INIApplierMap<Objects::WorkerAI> WorkerAIKVMap = {
+  { "BoredRange", [](Objects::WorkerAI& w, INIFile& f) {
+      auto opt = f.parseFloat();
+      w.boredRange = opt.value_or(w.boredRange);
+      return opt.has_value();
+    }
+  },
+  { "BoredTime", [](Objects::WorkerAI& w, INIFile& f) {
+      auto opt = f.parseInteger();
+      w.boredAfterMs = opt.value_or(w.boredAfterMs);
+      return opt.has_value();
+    }
+  },
+  { "MaxBoxes", [](Objects::WorkerAI& w, INIFile& f) {
+      auto opt = f.parseInteger();
+      w.maxBoxes = opt.value_or(w.maxBoxes);
+      return opt.has_value();
+    }
+  },
+  { "RepairHealthPercentPerSecond", [](Objects::WorkerAI& w, INIFile& f) {
+      auto opt = f.parsePercent();
+      w.repairPerSecond = opt.value_or(w.repairPerSecond);
+      return opt.has_value();
+    }
+  },
+  { "SupplyCenterActionDelay", [](Objects::WorkerAI& w, INIFile& f) {
+      auto opt = f.parseInteger();
+      w.supplyCenterDelayMs = opt.value_or(w.supplyCenterDelayMs);
+      return opt.has_value();
+    }
+  },
+  { "SupplyWarehouseActionDelay", [](Objects::WorkerAI& w, INIFile& f) {
+      auto opt = f.parseInteger();
+      w.warehouseDelayMs = opt.value_or(w.warehouseDelayMs);
+      return opt.has_value();
+    }
+  },
+  { "SupplyWarehouseScanDistance", [](Objects::WorkerAI& w, INIFile& f) {
+      auto opt = f.parseFloat();
+      w.warehouseScanDistance = opt.value_or(w.warehouseScanDistance);
+      return opt.has_value();
+    }
+  },
+  { "SuppliesDepletedVoice", [](Objects::WorkerAI& w, INIFile& f) { w.depletionSound = f.parseString(); return !w.depletionSound.empty(); } },
+  { "UpgradedSupplyBoost", [](Objects::WorkerAI& w, INIFile& f) {
+      auto opt = f.parseInteger();
+      w.upgradeSupplyBoost = opt.value_or(w.upgradeSupplyBoost);
       return opt.has_value();
     }
   }
@@ -3895,6 +4048,18 @@ bool ObjectsINI::parseBehavior(Objects::ObjectBuilder& builder) {
           , CommandSetUpgradeKVMap
           , UpgradeKVMap<Objects::Upgrade>
         );
+    case Objects::ModuleType::CONVERT_TO_CAR_BOMB:
+      return
+        parseSubtypedAttributeBlocks<Objects::ConvertToCarBomb>(
+            std::move(behavior.moduleData)
+          , ConvertToCarBombKVMap
+          , CrateCollisionKVMap
+        );
+    case Objects::ModuleType::SABOTAGE_COMMAND_CENTER:
+    case Objects::ModuleType::SABOTAGE_FAKE_BUILDING:
+    case Objects::ModuleType::SABOTAGE_SUPERWEAPON:
+    case Objects::ModuleType::CONVERT_TO_HIJACKED:
+      return parseSubtypedAttributeBlock<Objects::CrateCollision>(std::move(behavior.moduleData), CrateCollisionKVMap);
     case Objects::ModuleType::COST_MODIFIER_UPGRADE:
       return
         parseSubtypedAttributeBlocks<Objects::CostModifierUpgrade>(
@@ -4041,6 +4206,8 @@ bool ObjectsINI::parseBehavior(Objects::ObjectBuilder& builder) {
           , TransportContainKVMap
           , OpenContainKVMap
         );
+    case Objects::ModuleType::HIJACKER:
+      return parseSubtypedAttributeBlock<Objects::Hijacker>(std::move(behavior.moduleData), HijackerKVMap);
     case Objects::ModuleType::HORDE:
       return parseSubtypedAttributeBlock<Objects::Horde>(std::move(behavior.moduleData), HordeKVMap);
     case Objects::ModuleType::INSTANT_DEATH:
@@ -4074,6 +4241,8 @@ bool ObjectsINI::parseBehavior(Objects::ObjectBuilder& builder) {
       return parseSubtypedAttributeBlock<Objects::MissileAI>(std::move(behavior.moduleData), MissileAIKVMap);
     case Objects::ModuleType::MISSILE_LAUNCHER_BUILDING:
       return parseSubtypedAttributeBlock<Objects::MissileLauncherBuilding>(std::move(behavior.moduleData), MissileLauncherBuildingKVMap);
+    case Objects::ModuleType::MOB_MEMBER_SLAVED:
+      return parseSubtypedAttributeBlock<Objects::MobMemberSlaved>(std::move(behavior.moduleData), MobMemberSlavedKVMap);
     case Objects::ModuleType::MODEL_CONDITION_UPGRADE:
       return
         parseSubtypedAttributeBlocks<Objects::ModelConditionUpgrade>(
@@ -4175,6 +4344,38 @@ bool ObjectsINI::parseBehavior(Objects::ObjectBuilder& builder) {
           , ReplaceObjectUpgradeKVMap
           , UpgradeKVMap<Objects::Upgrade>
         );
+    case Objects::ModuleType::SABOTAGE_INTERNET_CENTER:
+      return
+        parseSubtypedAttributeBlocks<Objects::SabotageInternetCenter>(
+            std::move(behavior.moduleData)
+          , SabotageDurationKVMap<Objects::SabotageInternetCenter>
+          , CrateCollisionKVMap
+        );
+      break;
+    case Objects::ModuleType::SABOTAGE_MILITARY_FACTORY:
+      return
+        parseSubtypedAttributeBlocks<Objects::SabotageMilitaryFactory>(
+            std::move(behavior.moduleData)
+          , SabotageDurationKVMap<Objects::SabotageMilitaryFactory>
+          , CrateCollisionKVMap
+        );
+      break;
+    case Objects::ModuleType::SABOTAGE_POWER_PLANT:
+      return
+        parseSubtypedAttributeBlocks<Objects::SabotagePowerPlant>(
+            std::move(behavior.moduleData)
+          , SabotageDurationKVMap<Objects::SabotagePowerPlant>
+          , CrateCollisionKVMap
+        );
+      break;
+    case Objects::ModuleType::SABOTAGE_SUPPLY_CENTER:
+      return
+        parseSubtypedAttributeBlocks<Objects::SabotageSupplyCenter>(
+            std::move(behavior.moduleData)
+          , SabotageSupplyCenterKVMap
+          , CrateCollisionKVMap
+        );
+      break;
     case Objects::ModuleType::SLAVED:
       return parseSubtypedAttributeBlock<Objects::Slaved>(std::move(behavior.moduleData), SlavedKVMap);
     case Objects::ModuleType::SLOW_DEATH:
@@ -4218,6 +4419,13 @@ bool ObjectsINI::parseBehavior(Objects::ObjectBuilder& builder) {
       return parseSubtypedAttributeBlock<Objects::StructureCollapse>(std::move(behavior.moduleData), StructureCollapseKVMap);
     case Objects::ModuleType::STRUCTURE_TOPPLE:
       return parseSubtypedAttributeBlock<Objects::StructureTopple>(std::move(behavior.moduleData), StructureToppleKVMap);
+    case Objects::ModuleType::SUB_OBJECTS_UPGRADE:
+      return
+        parseSubtypedAttributeBlocks<Objects::SubObjectsUpgrade>(
+            std::move(behavior.moduleData)
+          , SubObjectsUpgradeKVMap
+          , UpgradeKVMap<Objects::Upgrade>
+        );
     case Objects::ModuleType::SUPPLY_CENTER_DOCK:
       return parseSubtypedAttributeBlocks<Objects::SupplyCenterDock>( std::move(behavior.moduleData) , DockKVMap);
     case Objects::ModuleType::SUPPLY_TRUCK_AI:
@@ -4261,6 +4469,7 @@ bool ObjectsINI::parseBehavior(Objects::ObjectBuilder& builder) {
     case Objects::ModuleType::ARMOR_UPGRADE:
     case Objects::ModuleType::LOCOMOTOR_SET_UPGRADE:
     case Objects::ModuleType::RADAR_UPGRADE:
+    case Objects::ModuleType::PASSENGERS_FIRE_UPGRADE:
     case Objects::ModuleType::POWER_PLANT_UPGRADE:
     case Objects::ModuleType::STEALTH_UPGRADE:
     case Objects::ModuleType::UPGRADE:
@@ -4291,6 +4500,13 @@ bool ObjectsINI::parseBehavior(Objects::ObjectBuilder& builder) {
         );
     case Objects::ModuleType::VETERANCY_GAIN:
       return parseSubtypedAttributeBlock<Objects::VeterancyGain>(std::move(behavior.moduleData), VeterancyGainKVMap);
+    case Objects::ModuleType::WORKER_AI:
+      return
+        parseSubtypedAttributeBlocks<Objects::WorkerAI>(
+            std::move(behavior.moduleData)
+          , WorkerAIKVMap
+          , AIKVMap
+        );
     default:
       WARN_ZH("ObjectsINI", "Module type not supported as behavior: {}", values[0]);
       return false;

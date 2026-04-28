@@ -118,8 +118,8 @@ struct ObjectBuilder {
   std::list<std::string> buildVariations; // object names
   std::set<Attribute> attributes;
   std::string buttonImage;
-  bool canEnterWhenGuarding = false;
-  bool canHijackWhenGuarding = false;
+  bool enterGuard = false;
+  bool hijackGuard = false;
   float cloakRange = 0.0f; // EVAL shroudRange
   Color color;
   std::string commandSet; // TODO CommandSet
