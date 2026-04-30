@@ -287,15 +287,13 @@ ADD_EXECUTABLE(w3ddump
   tools/w3ddump.cpp
 )
 
-# w3d viewer
-ADD_EXECUTABLE(w3dview
+SET(common_viewer_sources
   game/common.cpp
   game/formats/BIGFile.cpp
   game/formats/DDSFile.cpp
   game/formats/TGAFile.cpp
   game/formats/W3DFile.cpp
   game/gfx/Camera.cpp
-  # maybe this can be dropped somehow
   game/gfx/font/Atlas.cpp
   game/gfx/font/FontManager.cpp
   game/gfx/font/TextureGenerator.cpp
@@ -316,6 +314,28 @@ ADD_EXECUTABLE(w3dview
   game/rendering/ModelRenderer.cpp
   game/ResourceLoader.cpp
   game/Window.cpp
+  tools/ViewHelpers.cpp
+)
+
+# obj viewer
+ADD_EXECUTABLE(objview
+  game/formats/Dict.cpp
+  game/InflatingStream.cpp
+  game/inis/ObjectsINI.cpp
+  game/objects/Instance.cpp
+  game/objects/InstanceFactory.cpp
+  game/objects/Object.cpp
+  game/ObjectLoader.cpp
+  game/rendering/InstanceRenderer.cpp
+  ${common_viewer_sources}
+  tools/objview.cpp
+
+  ${vugl_sources}
+)
+
+# w3d viewer
+ADD_EXECUTABLE(w3dview
+  ${common_viewer_sources}
   tools/w3dview.cpp
 
   ${vugl_sources}
@@ -329,6 +349,14 @@ TARGET_LINK_LIBRARIES(w3ddump
   fmt::fmt
 )
 
+TARGET_LINK_LIBRARIES(objview
+  fmt::fmt
+  ${FREETYPE_LIBRARIES}
+  glm::glm
+  ${SDL3_LIBRARIES}
+  ${Vulkan_LIBRARY}
+)
+
 TARGET_LINK_LIBRARIES(w3dview
   fmt::fmt
   ${FREETYPE_LIBRARIES}
@@ -338,6 +366,7 @@ TARGET_LINK_LIBRARIES(w3dview
 )
 
 IF (USE_TRACY)
+  TARGET_LINK_LIBRARIES(objview Tracy::TracyClient)
   TARGET_LINK_LIBRARIES(w3dview Tracy::TracyClient)
 ENDIF()
 

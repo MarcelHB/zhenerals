@@ -7,26 +7,16 @@
 
 #include "../game/Config.h"
 #include "../game/gfx/Camera.h"
-#include "../game/gfx/font/FontManager.h"
-#include "../game/gfx/ModelCache.h"
-#include "../game/gfx/TextureCache.h"
-#include "../game/gfx/TextureLoader.h"
 #include "../game/Logger.h"
-#include "../game/rendering/LineRenderer.h"
 #include "../game/rendering/ModelRenderer.h"
-#include "../game/ResourceLoader.h"
 #include "../game/Window.h"
+#include "ViewHelpers.h"
 
 class Viewer {
   private:
     ZH::Window& window;
-    std::shared_ptr<ZH::LineRenderer> lineRenderer;
-    std::shared_ptr<ZH::GFX::ModelCache> modelCache;
-    std::shared_ptr<ZH::ResourceLoader> modelLoader;
     std::shared_ptr<ZH::ModelRenderer> modelRenderer;
-    std::shared_ptr<ZH::ResourceLoader> texturesResourceLoader;
-    std::shared_ptr<ZH::GFX::TextureCache> textureCache;
-    std::shared_ptr<ZH::GFX::TextureLoader> textureLoader;
+    ViewHelpers viewHelpers;
     std::string modelName;
     std::array<glm::vec3, 2> modelExtremes;
     ZH::GFX::Camera camera;
@@ -36,49 +26,17 @@ class Viewer {
     Viewer (ZH::Window& window) : window(window) {}
 
     bool init(ZH::Config& config, std::string&& modelName) {
-      modelLoader =
-        std::shared_ptr<ZH::ResourceLoader> {
-          new ZH::ResourceLoader {{"W3DZH.big", "ZH_Generals/W3D.big"} , config.baseDir}
-        };
-      modelCache = std::make_shared<ZH::GFX::ModelCache>(*modelLoader);
-
-      texturesResourceLoader =
-        std::shared_ptr<ZH::ResourceLoader> {
-          new ZH::ResourceLoader {{
-              "TexturesZH.big"
-            , "TerrainZH.big"
-            , "MapsZH.big"
-            , "EnglishZH.big"
-            , "ZH_Generals/Textures.big"
-            , "ZH_Generals/Terrain.big"
-            , "ZH_Generals/Maps.big"
-            , "ZH_Generals/English.big"
-          }
-          , config.baseDir
-        }
-      };
-
-      ZH::GFX::Font::FontManager fontManager {};
-      textureLoader =
-        std::make_shared<ZH::GFX::TextureLoader>(*texturesResourceLoader);
-      textureCache =
-        std::make_shared<ZH::GFX::TextureCache>(
-            window.getVuglContext()
-          , *textureLoader
-          , fontManager // will vanish, Ok
-        );
+      viewHelpers = createViewHelpers(config, window.getVuglContext());
 
       modelRenderer =
         std::make_shared<ZH::ModelRenderer>(
             window.getVuglContext()
           , config
-          , *textureCache
-          , *modelCache
+          , *viewHelpers.textureCache
+          , *viewHelpers.modelCache
         );
 
-      lineRenderer = std::make_shared<ZH::LineRenderer>(window.getVuglContext());
-
-      auto models = modelCache->getModels(modelName);
+      auto models = viewHelpers.modelCache->getModels(modelName);
       if (!models) {
         ERROR_ZH("Main", "Unable to load model {}", modelName);
         return false;
@@ -208,33 +166,12 @@ class Viewer {
         return;
       }
 
-      lineRenderer->preparePipeline(renderPass);
-
-      // RGB/XYZ axes
-      auto axes =
-        lineRenderer->createLines(
-            {
-                {0.0f, 0.0f, 0.0f}
-              , {1.0f, 0.0f, 0.0f}
-              , {0.0f, 0.0f, 0.0f}
-              , {0.0f, 1.0f, 0.0f}
-              , {0.0f, 0.0f, 0.0f}
-              , {0.0f, 0.0f, 1.0f}
-            }
-          , {
-                {255, 0, 0}
-              , {255, 0, 0}
-              , {0, 255, 0}
-              , {0, 255, 0}
-              , {0, 0, 255}
-              , {0, 0, 255}
-            }
-        );
+      viewHelpers.preparePipeline(renderPass);
 
       std::vector<glm::vec3> normalsData;
       std::vector<ZH::Color> normalsColor;
 
-      auto models = modelCache->getModels(modelName);
+      auto models = viewHelpers.modelCache->getModels(modelName);
 
       // Normals
       size_t i = 0;
@@ -249,7 +186,8 @@ class Viewer {
         }
       }
 
-      auto normals = lineRenderer->createLines(normalsData, normalsColor);
+      auto normals =
+        viewHelpers.lineRenderer->createLines(normalsData, normalsColor);
 
       // Bounding Sphere
       auto sphere = modelRenderer->getBoundingSphere(1);
@@ -274,7 +212,8 @@ class Viewer {
         sphereColors[i * 2 + 1] = ZH::Color {255, 255, 255};
       }
 
-      auto sphereLines = lineRenderer->createLines(sphereData, sphereColors);
+      auto sphereLines =
+        viewHelpers.lineRenderer->createLines(sphereData, sphereColors);
       auto sphereMatrix =
         glm::translate(
             glm::mat4 {1.0f}
@@ -379,10 +318,11 @@ class Viewer {
           );
           frameIdxSet |= (1 << frameIndex);
 
-          axes.setMatrix(camera.getProjectionMatrix() * camera.getCameraMatrix());
+          auto camProjMatrix =
+            camera.getProjectionMatrix() * camera.getCameraMatrix();
+          viewHelpers.setAxesMatrix(camProjMatrix);
           normals.setMatrix(
-              camera.getProjectionMatrix()
-                * camera.getCameraMatrix()
+                  camProjMatrix
                 * modelMatrix
                 * axisFlip
               );
@@ -404,17 +344,16 @@ class Viewer {
         modelRenderer->bindPipeline(secondary);
         modelRenderer->renderModel(1, secondary);
 
-        lineRenderer->bindPipeline(secondary);
-        axes.writeMatrix(frameIndex);
-        lineRenderer->renderLines(axes, secondary);
+        viewHelpers.lineRenderer->bindPipeline(secondary);
+        viewHelpers.renderAxes(frameIndex, secondary);
 
         if (showNormals) {
           normals.writeMatrix(frameIndex);
-          lineRenderer->renderLines(normals, secondary);
+          viewHelpers.lineRenderer->renderLines(normals, secondary);
         }
         if (showSphere) {
           sphereLines.writeMatrix(frameIndex);
-          lineRenderer->renderLines(sphereLines, secondary);
+          viewHelpers.lineRenderer->renderLines(sphereLines, secondary);
         }
 
         secondary.closeRendering();
