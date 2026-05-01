@@ -248,11 +248,34 @@ void RenderListFactory::createChildrenRenderList(
 }
 
 void RenderListFactory::createLabelRenderList(
-    Label&
-  , Vugl::CommandBuffer&
-  , size_t /*frameIndex*/
-  , OptionalCRef<RenderComponent>)
-{ }
+    Label& label
+  , Vugl::CommandBuffer& commandBuffer
+  , size_t frameIndex
+  , OptionalCRef<RenderComponent> parent
+) {
+  if (label.getText().size() == 0) {
+    return;
+  }
+
+  auto fontRef = label.getFont().value_or(TextRenderConfig::defaultFontRef);
+  auto& font = fontRef.get();
+
+  switchToPipeline(Pipeline::FONT, commandBuffer);
+  if (!switchToFont(font.size, font.bold)) {
+    return;
+  }
+
+  TextRenderConfig renderConfig {label, font};
+  renderConfig.flags = BitField<TextRenderConfig::TextFlags>(TextRenderConfig::TextFlags::CENTERED);
+  renderConfig.bbox.size = label.getSize();
+  renderConfig.bbox.position = label.getPosition();
+  if (parent) {
+    renderConfig.bbox.position += parent->get().positionOffset;
+  }
+  renderConfig.tint = Color::White;
+
+  renderText(label.getText(), renderConfig, commandBuffer, frameIndex);
+}
 
 void RenderListFactory::createRectangularRenderList(
     const Component& component
