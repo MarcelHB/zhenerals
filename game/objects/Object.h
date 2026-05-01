@@ -45,6 +45,8 @@ struct DrawMetaData {
   std::string moduleTag;
   DrawType type;
   std::shared_ptr<DrawData> drawData;
+
+  bool hasStateConditions() const;
 };
 
 struct GeometryData {

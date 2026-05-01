@@ -4,6 +4,17 @@
 
 namespace ZH::Objects {
 
+bool DrawMetaData::hasStateConditions() const {
+  if (type == DrawType::DEFAULT_DRAW
+      || type == DrawType::LASER_DRAW
+      || type == DrawType::TREE_DRAW
+  ) {
+    return false;
+  }
+
+  return true;
+}
+
 std::optional<AnimationMode> getAnimationMode(const std::string_view& value) {
   if (value == "NONE") {
     return {AnimationMode::NONE};
