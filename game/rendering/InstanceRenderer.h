@@ -37,7 +37,7 @@ class InstanceRenderer {
     bool prepareInstance(const Objects::Instance&);
     bool preparePipeline(Vugl::RenderPass&);
     void resetFrames(const Objects::Instance&);
-
+    bool renderInstance(const Objects::Instance&, Vugl::CommandBuffer&);
     void updateInstance(
         const Objects::Instance&
       , size_t frameIdx
@@ -47,7 +47,11 @@ class InstanceRenderer {
       , const glm::vec3& sunlightNormal
     );
 
-    bool renderInstance(const Objects::Instance&, Vugl::CommandBuffer&);
+    bool useConditionState(
+        const Objects::Instance&
+      , size_t drawDataIndex
+      , const Objects::ConditionState&
+    );
   private:
     struct InstanceData {
       struct DrawState {

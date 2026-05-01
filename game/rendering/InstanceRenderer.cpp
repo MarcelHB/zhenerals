@@ -175,6 +175,36 @@ void InstanceRenderer::determineModel(
   drawState.modelName = modelDrawSpec->defaultConditionState.model;
 }
 
+bool InstanceRenderer::useConditionState(
+    const Objects::Instance& instance
+  , size_t drawDataIndex
+  , const Objects::ConditionState& state
+) {
+  if (state.model.empty()) {
+    return false;
+  }
+
+  auto id = instance.getID();
+  auto ddLookup = drawData.find(id);
+  if (ddLookup == drawData.cend()) {
+    return false;
+  }
+
+  // already there
+  auto& ds = ddLookup->second.currentDrawStates[drawDataIndex];
+  if (ds.applicableConditions == state.conditions) {
+    return true;
+  }
+
+  // replace model
+  ds.modelID = nextModelID++;
+  ds.hidden = false;
+  ds.modelName = state.model;
+  ds.applicableConditions = state.conditions;
+
+  return modelRenderer.prepareModel(ds.modelID, ds.modelName);
+}
+
 bool InstanceRenderer::prepareTreeDrawData(
     const Objects::Instance& instance
   , const std::shared_ptr<const Objects::DrawData>& instanceDrawSpec
