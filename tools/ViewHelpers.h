@@ -4,11 +4,13 @@
 #define H_TOOLS_VIEW_HELPERS
 
 #include "../game/Config.h"
+#include "../game/gfx/font/FontManager.h"
 #include "../game/gfx/ModelCache.h"
 #include "../game/gfx/TextureCache.h"
 #include "../game/gfx/TextureLoader.h"
 #include "../game/rendering/LineRenderer.h"
 #include "../game/ResourceLoader.h"
+
 
 struct ViewHelpers {
   std::shared_ptr<ZH::ResourceLoader> texturesResourceLoader;
@@ -17,6 +19,8 @@ struct ViewHelpers {
   std::shared_ptr<ZH::ResourceLoader> modelLoader;
   std::shared_ptr<ZH::GFX::ModelCache> modelCache;
   std::shared_ptr<ZH::LineRenderer> lineRenderer;
+  std::shared_ptr<ZH::GFX::Font::FontManager> fontManager;
+
   ZH::LineRenderer::Lines axes;
 
   void preparePipeline(Vugl::RenderPass&);

@@ -1,7 +1,11 @@
 // SPDX-License-Identifier: GPL-2.0
 
+#include <fmt/xchar.h>
+
 #include "../game/Config.h"
 #include "../game/gfx/Camera.h"
+#include "../game/GUI/Component.h"
+#include "../game/GUI/drawing/RenderListFactory.h"
 #include "../game/Logger.h"
 #include "../game/Map.h"
 #include "../game/ObjectLoader.h"
@@ -9,6 +13,10 @@
 #include "../game/rendering/InstanceRenderer.h"
 #include "../game/Window.h"
 #include "ViewHelpers.h"
+
+struct RootOverlay : ZH::GUI::Component {
+  RootOverlay() : ZH::GUI::Component(ZH::GUI::WND::Window::Type::OVERLAY) {}
+};
 
 class ObjectViewer {
   private:
@@ -20,6 +28,8 @@ class ObjectViewer {
     std::shared_ptr<ZH::ObjectLoader> objectLoader;
     std::shared_ptr<ZH::Objects::InstanceFactory> instanceFactory;
     std::shared_ptr<ZH::Objects::Instance> instance;
+    RootOverlay rootComponent;
+    std::shared_ptr<ZH::GUI::Drawing::RenderListFactory> guiRenderer;
 
     std::shared_ptr<ZH::InstanceRenderer> instanceRenderer;
     ZH::GFX::Camera camera;
@@ -48,6 +58,14 @@ class ObjectViewer {
         return false;
       }
 
+      guiRenderer =
+        std::make_shared<ZH::GUI::Drawing::RenderListFactory>(
+            window.getVuglContext()
+          , rootComponent
+          , *viewHelpers.textureCache
+          , *viewHelpers.fontManager
+        );
+
       instanceRenderer =
         std::make_shared<ZH::InstanceRenderer>(
             window.getVuglContext()
@@ -55,6 +73,8 @@ class ObjectViewer {
           , *viewHelpers.textureCache
           , *viewHelpers.modelCache
         );
+
+      buildGUI();
 
       return true;
     }
@@ -67,6 +87,7 @@ class ObjectViewer {
       auto& vuglContext = window.getVuglContext();
 
       bool updateMatrices = true;
+      bool updateUI = true;
       bool mouseDown = false;
 
       glm::mat4 mvp {1.0f};
@@ -173,6 +194,10 @@ class ObjectViewer {
           updateMatrices = false;
         }
 
+        if (updateUI) {
+          updateLabels();
+        }
+
         Vugl::CommandBuffer primary {vuglContext.createCommandBuffer(frameIndex)};
         primary.beginRendering(renderPass, clearColors);
         Vugl::CommandBuffer secondary {vuglContext.createCommandBuffer(frameIndex, true)};
@@ -184,11 +209,64 @@ class ObjectViewer {
         viewHelpers.lineRenderer->bindPipeline(secondary);
         viewHelpers.renderAxes(frameIndex, secondary);
 
+        guiRenderer->createRenderList(secondary, frameIndex, renderPass);
+
         secondary.closeRendering();
         primary.executeSecondary(secondary);
         primary.closeRendering();
         frame.submitAndPresent(primary);
       }
+    }
+
+  private:
+    size_t currentDrawDataIdx = 0;
+    size_t currentStateIdx = 0;
+
+    void buildGUI() {
+      auto vp = window.getVuglContext().getViewport();
+
+      std::shared_ptr<ZH::GUI::Label> label =
+        std::make_shared<ZH::GUI::Label>();
+      label->setName("numDrawData");
+      label->setPosition(ZH::Point {vp.width - 150, 20});
+      label->setSize(ZH::Size { 140, 20 });
+
+      rootComponent.getChildren().emplace_back(std::move(label));
+
+      label = std::make_shared<ZH::GUI::Label>();
+      label->setName("numStates");
+      label->setPosition(ZH::Point {vp.width - 150, 20});
+      label->setSize(ZH::Size { 140, 40 });
+
+      rootComponent.getChildren().emplace_back(std::move(label));
+    }
+
+    void updateLabels() {
+      auto label1 = rootComponent.findByName<ZH::GUI::Label>("numDrawData");
+      label1->setText(
+        fmt::format(
+            u"# draw data: {} ({})"
+          , instance->getBase()->drawMetaData.size()
+          , currentDrawDataIdx
+        )
+      );
+
+      size_t numStates = 1;
+      auto& currentDrawData = instance->getBase()->drawMetaData[currentDrawDataIdx];
+      if (currentDrawData.hasStateConditions()) {
+        // EVAL assumption for now
+        auto md = std::static_pointer_cast<ZH::Objects::ModelDrawData>(currentDrawData.drawData);
+        numStates = md->conditionStates.size() + 1;
+      }
+
+      auto label2 = rootComponent.findByName<ZH::GUI::Label>("numStates");
+      label2->setText(
+        fmt::format(
+            u"# states: {} ({})"
+          , numStates
+          , currentStateIdx
+        )
+      );
     }
 };
 

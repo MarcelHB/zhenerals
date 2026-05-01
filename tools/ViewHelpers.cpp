@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: GPL-2.0
 
-#include "../game/gfx/font/FontManager.h"
 #include "ViewHelpers.h"
 
 ViewHelpers createViewHelpers(const ZH::Config& config, Vugl::Context& vuglContext) {
@@ -28,14 +27,14 @@ ViewHelpers createViewHelpers(const ZH::Config& config, Vugl::Context& vuglConte
     }
   };
 
-  ZH::GFX::Font::FontManager fontManager {};
+  helpers.fontManager = std::make_shared<ZH::GFX::Font::FontManager>();
   helpers.textureLoader =
     std::make_shared<ZH::GFX::TextureLoader>(*helpers.texturesResourceLoader);
   helpers.textureCache =
     std::make_shared<ZH::GFX::TextureCache>(
         vuglContext
       , *helpers.textureLoader
-      , fontManager // will vanish, Ok
+      , *helpers.fontManager
     );
 
   helpers.lineRenderer = std::make_shared<ZH::LineRenderer>(vuglContext);

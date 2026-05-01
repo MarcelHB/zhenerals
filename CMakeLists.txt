@@ -319,6 +319,7 @@ SET(common_viewer_sources
 
 # obj viewer
 ADD_EXECUTABLE(objview
+  game/Color.cpp
   game/formats/Dict.cpp
   game/InflatingStream.cpp
   game/inis/ObjectsINI.cpp
@@ -326,6 +327,18 @@ ADD_EXECUTABLE(objview
   game/objects/InstanceFactory.cpp
   game/objects/Object.cpp
   game/ObjectLoader.cpp
+  game/GUI/Button.cpp
+  game/GUI/Component.cpp
+  game/GUI/Label.cpp
+  game/GUI/Window.cpp
+  game/GUI/drawing/RenderListFactory.cpp
+  game/GUI/wnd/DrawData.cpp
+  game/GUI/wnd/Font.cpp
+  game/GUI/wnd/Layout.cpp
+  game/GUI/wnd/ScreenRect.cpp
+  game/GUI/wnd/TextColor.cpp
+  game/GUI/wnd/Window.cpp
+  game/GUI/wnd/WindowAndLayout.cpp
   game/rendering/InstanceRenderer.cpp
   ${common_viewer_sources}
   tools/objview.cpp
