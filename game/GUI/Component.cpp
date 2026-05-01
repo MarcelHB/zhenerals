@@ -23,21 +23,6 @@ void Component::addClickListener(ClickListener&& listener) {
   clickListeners.emplace_back(std::move(listener));
 }
 
-std::shared_ptr<Component> Component::findByName(const std::string& name) const {
-  for (auto& child : children) {
-    if (child->getName() == name) {
-      return child;
-    } else {
-      auto result = child->findByName(name);
-      if (result) {
-        return result;
-      }
-    }
-  }
-
-  return {};
-}
-
 void Component::fireClickEvent() {
   for (auto& listener : clickListeners) {
     listener(*this);

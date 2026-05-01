@@ -65,7 +65,7 @@ bool MainMenu::init() {
   rootWindow->setDrawImage(false);
 
   for (auto& buttonName : buttonsToHide) {
-    auto button = rootWindow->findByName(buttonName);
+    auto button = rootWindow->findByName<ZH::GUI::Button>(buttonName);
     if (button) {
       button->setHidden(true);
     }

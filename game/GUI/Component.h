@@ -34,7 +34,22 @@ class Component {
     bool operator!=(const Component&) const;
 
     void addClickListener(ClickListener&&);
-    std::shared_ptr<Component> findByName(const std::string&) const;
+
+    template<typename C = GUI::Component>
+    std::shared_ptr<C> findByName(const std::string& name) const {
+      for (auto& child : children) {
+        if (child->getName() == name) {
+          return static_pointer_cast<C>(child);
+        } else {
+          auto result = child->findByName<C>(name);
+          if (result) {
+            return static_pointer_cast<C>(result);
+          }
+        }
+      }
+
+      return {};
+    }
 
     ChildrenContainer& getChildren();
     const ImagesContainer& getEnabledImages() const;
