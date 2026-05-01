@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0
 
+#include <iterator>
+
 #include <fmt/xchar.h>
 
 #include "../game/Config.h"
@@ -13,6 +15,18 @@
 #include "../game/rendering/InstanceRenderer.h"
 #include "../game/Window.h"
 #include "ViewHelpers.h"
+
+std::u16string fromASCIIString(const std::string& input) {
+  std::u16string output;
+  output.resize(input.size() * 2);
+
+  for (size_t i = 0; i < input.size(); ++i) {
+    uint16_t w = input[i];
+    output[i] = w;
+  }
+
+  return output;
+}
 
 struct RootOverlay : ZH::GUI::Component {
   RootOverlay() : ZH::GUI::Component(ZH::GUI::WND::Window::Type::OVERLAY) {}
@@ -34,6 +48,102 @@ class ObjectViewer {
     std::shared_ptr<ZH::InstanceRenderer> instanceRenderer;
     ZH::GFX::Camera camera;
 
+    size_t currentDrawDataIdx = 0;
+    size_t currentStateIdx = 0;
+
+    bool shiftState(bool next) {
+      auto& currentDrawData = instance->getBase()->drawMetaData[currentDrawDataIdx];
+      if (!currentDrawData.hasStateConditions()) {
+        return false;
+      }
+
+      if (currentStateIdx == 0 && !next) {
+        return false;
+      }
+
+      auto md = std::static_pointer_cast<ZH::Objects::ModelDrawData>(currentDrawData.drawData);
+      if (currentStateIdx == md->conditionStates.size() && next) {
+        return false;
+      }
+
+      currentStateIdx += next ? 1 : -1;
+
+      return true;
+    }
+
+    void buildGUI() {
+      auto vp = window.getVuglContext().getViewport();
+
+      std::shared_ptr<ZH::GUI::Label> label =
+        std::make_shared<ZH::GUI::Label>();
+      label->setName("numDrawData");
+      label->setPosition(ZH::Point {vp.width - 150, 20});
+      label->setSize(ZH::Size { 140, 20 });
+
+      rootComponent.getChildren().emplace_back(std::move(label));
+
+      label = std::make_shared<ZH::GUI::Label>();
+      label->setName("numStates");
+      label->setPosition(ZH::Point {vp.width - 150, 20});
+      label->setSize(ZH::Size { 140, 40 });
+
+      rootComponent.getChildren().emplace_back(std::move(label));
+
+      label = std::make_shared<ZH::GUI::Label>();
+      label->setName("currentModel");
+      label->setPosition(ZH::Point {vp.width / 2 - 100, 20});
+      label->setSize(ZH::Size { 200, 60 });
+
+      rootComponent.getChildren().emplace_back(std::move(label));
+    }
+
+    const ZH::Objects::ConditionState& getCurrentConditionState() const {
+      const ZH::Objects::ConditionState *nextState = nullptr;
+      auto& currentDrawData = instance->getBase()->drawMetaData[currentDrawDataIdx];
+      auto md = std::static_pointer_cast<ZH::Objects::ModelDrawData>(currentDrawData.drawData);
+
+      if (currentStateIdx == 0) {
+        return md->defaultConditionState;
+      } else {
+        auto it = md->conditionStates.cbegin();
+        std::advance(it, currentStateIdx - 1);
+        return *it;
+      }
+    }
+
+    void updateLabels() {
+      auto label = rootComponent.findByName<ZH::GUI::Label>("numDrawData");
+      label->setText(
+        fmt::format(
+            u"# draw data: {} ({})"
+          , instance->getBase()->drawMetaData.size()
+          , currentDrawDataIdx
+        )
+      );
+
+      size_t numStates = 1;
+      auto& currentDrawData = instance->getBase()->drawMetaData[currentDrawDataIdx];
+      if (currentDrawData.hasStateConditions()) {
+        // EVAL assumption for now
+        auto md = std::static_pointer_cast<ZH::Objects::ModelDrawData>(currentDrawData.drawData);
+        numStates = md->conditionStates.size() + 1;
+      }
+
+      label = rootComponent.findByName<ZH::GUI::Label>("numStates");
+      label->setText(
+        fmt::format(
+            u"# states: {} ({})"
+          , numStates
+          , currentStateIdx
+        )
+      );
+
+      auto& currentState = getCurrentConditionState();
+      if (!currentState.model.empty()) {
+        label = rootComponent.findByName<ZH::GUI::Label>("currentModel");
+        label->setText(fromASCIIString(currentState.model));
+      }
+    }
   public:
     ObjectViewer (ZH::Window& window) : window(window) {}
 
@@ -88,6 +198,7 @@ class ObjectViewer {
 
       bool updateMatrices = true;
       bool updateUI = true;
+      bool updateState = true;
       bool mouseDown = false;
 
       glm::mat4 mvp {1.0f};
@@ -164,7 +275,28 @@ class ObjectViewer {
               break;
             case SDL_EVENT_WINDOW_CLOSE_REQUESTED:
               return;
+            case SDL_EVENT_KEY_DOWN:
+              switch (event.key.key) {
+                case SDLK_S:
+                  updateState = shiftState(false);
+                  break;
+                case SDLK_W:
+                  updateState = shiftState(true);
+                  break;
+                default: break;
+              }
+              // fallthrough
+            default: break;
           }
+        }
+
+        if (updateState) {
+          auto& nextState = getCurrentConditionState();
+          if (instanceRenderer->useConditionState(*instance, currentDrawDataIdx, nextState)) {
+            updateMatrices = true;
+          }
+          updateUI = true;
+          updateState = false;
         }
 
         auto& frame = vuglContext.getNextFrame();
@@ -216,57 +348,6 @@ class ObjectViewer {
         primary.closeRendering();
         frame.submitAndPresent(primary);
       }
-    }
-
-  private:
-    size_t currentDrawDataIdx = 0;
-    size_t currentStateIdx = 0;
-
-    void buildGUI() {
-      auto vp = window.getVuglContext().getViewport();
-
-      std::shared_ptr<ZH::GUI::Label> label =
-        std::make_shared<ZH::GUI::Label>();
-      label->setName("numDrawData");
-      label->setPosition(ZH::Point {vp.width - 150, 20});
-      label->setSize(ZH::Size { 140, 20 });
-
-      rootComponent.getChildren().emplace_back(std::move(label));
-
-      label = std::make_shared<ZH::GUI::Label>();
-      label->setName("numStates");
-      label->setPosition(ZH::Point {vp.width - 150, 20});
-      label->setSize(ZH::Size { 140, 40 });
-
-      rootComponent.getChildren().emplace_back(std::move(label));
-    }
-
-    void updateLabels() {
-      auto label1 = rootComponent.findByName<ZH::GUI::Label>("numDrawData");
-      label1->setText(
-        fmt::format(
-            u"# draw data: {} ({})"
-          , instance->getBase()->drawMetaData.size()
-          , currentDrawDataIdx
-        )
-      );
-
-      size_t numStates = 1;
-      auto& currentDrawData = instance->getBase()->drawMetaData[currentDrawDataIdx];
-      if (currentDrawData.hasStateConditions()) {
-        // EVAL assumption for now
-        auto md = std::static_pointer_cast<ZH::Objects::ModelDrawData>(currentDrawData.drawData);
-        numStates = md->conditionStates.size() + 1;
-      }
-
-      auto label2 = rootComponent.findByName<ZH::GUI::Label>("numStates");
-      label2->setText(
-        fmt::format(
-            u"# states: {} ({})"
-          , numStates
-          , currentStateIdx
-        )
-      );
     }
 };
 
