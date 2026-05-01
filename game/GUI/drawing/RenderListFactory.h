@@ -54,6 +54,9 @@ struct TextRenderConfig {
   BitField<TextFlags> flags;
   IntFlatBox bbox;
   Color tint = {255, 255, 255, 255};
+
+  static Font defaultFont;
+  static std::reference_wrapper<Font> defaultFontRef;
 };
 
 struct UIMatrices {

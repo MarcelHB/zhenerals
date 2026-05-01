@@ -15,6 +15,9 @@ static_cast<typename std::underlying_type<ImageIndex>::type>(imageIndex)
 
 namespace ZH::GUI::Drawing {
 
+GUI::Font TextRenderConfig::defaultFont { .size = 12, .bold = false };
+std::reference_wrapper<GUI::Font> TextRenderConfig::defaultFontRef { TextRenderConfig::defaultFont };
+
 TextCacheKey::TextCacheKey(
     const std::u16string& text
   , uint8_t size
@@ -203,32 +206,34 @@ void RenderListFactory::createButtonRenderList(
     , texture3
   );
 
-  // EVAL default font?
-  auto fontOpt = button.getFont();
-  if (fontOpt && button.getText().size() > 0) {
-    auto& font = fontOpt->get();
-    switchToPipeline(Pipeline::FONT, commandBuffer);
-    if (!switchToFont(font.size, font.bold)) {
-      return;
-    }
-
-    TextRenderConfig renderConfig {button, font};
-    renderConfig.flags = BitField<TextRenderConfig::TextFlags>(TextRenderConfig::TextFlags::CENTERED);
-    renderConfig.bbox.size = button.getSize();
-    renderConfig.bbox.position = button.getPosition() + parent->get().positionOffset;
-    renderConfig.tint = Color::White;
-
-    auto textColorOpt = button.getTextColor();
-    if (textColorOpt) {
-      if (button.isHighlighted() && textColorOpt->get().getHighlight()) {
-        renderConfig.tint = *textColorOpt->get().getHighlight();
-      } else if (textColorOpt->get().getEnabled()) {
-        renderConfig.tint = *textColorOpt->get().getEnabled();
-      }
-    }
-
-    renderText(button.getText(), renderConfig, commandBuffer, frameIndex);
+  if (button.getText().size() == 0) {
+    return;
   }
+
+  auto fontRef = button.getFont().value_or(TextRenderConfig::defaultFontRef);
+  auto& font = fontRef.get();
+
+  switchToPipeline(Pipeline::FONT, commandBuffer);
+  if (!switchToFont(font.size, font.bold)) {
+    return;
+  }
+
+  TextRenderConfig renderConfig {button, font};
+  renderConfig.flags = BitField<TextRenderConfig::TextFlags>(TextRenderConfig::TextFlags::CENTERED);
+  renderConfig.bbox.size = button.getSize();
+  renderConfig.bbox.position = button.getPosition() + parent->get().positionOffset;
+  renderConfig.tint = Color::White;
+
+  auto textColorOpt = button.getTextColor();
+  if (textColorOpt) {
+    if (button.isHighlighted() && textColorOpt->get().getHighlight()) {
+      renderConfig.tint = *textColorOpt->get().getHighlight();
+    } else if (textColorOpt->get().getEnabled()) {
+      renderConfig.tint = *textColorOpt->get().getEnabled();
+    }
+  }
+
+  renderText(button.getText(), renderConfig, commandBuffer, frameIndex);
 }
 
 void RenderListFactory::createChildrenRenderList(
