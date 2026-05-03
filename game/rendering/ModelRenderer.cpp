@@ -52,6 +52,7 @@ bool ModelRenderer::preparePipeline(Vugl::RenderPass& renderPass) {
   pipelineSetup.addVertexInput(VK_FORMAT_R32G32B32_SFLOAT, 0, 12, 0);
   pipelineSetup.addVertexInput(VK_FORMAT_R32G32B32_SFLOAT, 12, 12, 0);
   pipelineSetup.addVertexInput(VK_FORMAT_R32G32_SFLOAT, 24, 8, 0);
+  pipelineSetup.addVertexInput(VK_FORMAT_R32_UINT, 32, 4, 0);
 
   pipeline =
     std::make_shared<Vugl::Pipeline>(vuglContext.createPipeline(pipelineSetup, renderPass.getVkRenderPass()));

@@ -18,7 +18,8 @@ struct Model {
     glm::vec3 position;
     glm::vec3 normal;
     glm::vec2 uv;
-    uint16_t pivotIdx = 0;
+    // EVAL wasteful but alignment requirements in shader
+    uint32_t pivotIdx = 0;
   };
 
   std::vector<VertexData> vertexData;
