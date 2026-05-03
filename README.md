@@ -27,6 +27,7 @@ The source code is subject to GPLv2 unless specified otherwise. Please consult t
 ## Build requirements
 
 * CMake
+* C++20 compiler, lld (r/n)
 * FreeType2
 * OpenAL
 * SDL3
@@ -56,6 +57,6 @@ After building the project, start `zhen(.exe)`.
 * `BIG`: inspecting and extracting items from `.big` files.
 * `decompress`: decompressing asset files
 * `mapdump`: printing of MAP file information
-* `objdump`: stand-alone rendering of objects
+* `objview`: stand-alone rendering of objects
 * `w3ddump`: printing of W3D model information
 * `w3dview`: stand-alone rendering of model files
