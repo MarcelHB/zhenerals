@@ -38,7 +38,8 @@ struct WeaponFX {
 };
 
 struct Animation {
-  std::string name;
+  std::string skeleton;
+  std::string animation;
   uint32_t distanceCovered = 0;
   uint32_t interval = 0;
 };

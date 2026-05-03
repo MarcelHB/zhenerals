@@ -516,7 +516,17 @@ static std::optional<Objects::Animation> parseAnimation(INIFile& f) {
   }
 
   Objects::Animation anim;
-  anim.name = std::move(values[0]);
+  auto lookup = values[0].find('.');
+  if (lookup == std::string::npos) {
+    if (values[0] != "None" && values[0] != "NONE") {
+      WARN_ZH("ObjectsINI", "Animation {} without conventional naming", values[0]);
+      anim.skeleton = values[0];
+      anim.animation = values[0];
+    }
+  } else {
+    anim.skeleton = values[0].substr(0, lookup);
+    anim.animation = values[0].substr(lookup + 1);
+  }
 
   if (values.size() > 1) {
     auto opt = f.parseInteger(values[1]);
