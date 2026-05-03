@@ -10,16 +10,20 @@ Model Model::fromW3D(const W3DModel& w3d) {
   Model model;
 
   model.vertexData.resize(w3d.vertices.size());
+  bool hasNormals = !w3d.normals.empty();
 
   // EVAL multi pass stuff
   auto& materialPass = w3d.materialPasses.back();
-  // EVAL uvs of some models when not here
   bool hasUVs = !materialPass.uv.empty();
 
   for (size_t i = 0; i < w3d.vertices.size(); ++i) {
     auto& vertexData = model.vertexData[i];
     vertexData.position = w3d.vertices[i];
-    vertexData.normal = w3d.normals[i];
+
+    if (hasNormals) {
+      vertexData.normal = w3d.normals[i];
+    }
+
     if (hasUVs) {
       vertexData.uv = materialPass.uv[i];
     }

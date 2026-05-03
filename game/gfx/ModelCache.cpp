@@ -30,14 +30,14 @@ ModelCache::Models ModelCache::getModels(const std::string& key) {
   auto stream = lookup->getStream();
   auto w3d = W3DFile(stream);
 
-  auto w3dModels = w3d.parse();
-  if (w3dModels.empty()) {
+  auto w3dData = w3d.parse();
+  if (w3dData.models.empty()) {
     return {};
   }
 
   Models models = std::make_shared<std::vector<std::shared_ptr<Model>>>();
 
-  for (auto& w3dModel : w3dModels) {
+  for (auto& w3dModel : w3dData.models) {
     auto model =
       std::make_shared<Model>(std::move(Model::fromW3D(*w3dModel)));
     models->emplace_back(std::move(model));

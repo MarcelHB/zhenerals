@@ -18,10 +18,10 @@ TEST(W3DTest, parsing) {
   auto fileStream = w3dLoader.getFileStream("art\\w3d\\ptdogwod01_s.w3d");
   auto stream = fileStream->getStream();
   W3DFile w3d {stream};
-  auto models = w3d.parse();
-  ASSERT_EQ(1, models.size());
+  auto data = w3d.parse();
+  ASSERT_EQ(1, data.models.size());
 
-  auto& model = models.front();
+  auto& model = data.models.front();
   EXPECT_EQ("OBJECT04", model->name);
   EXPECT_EQ("PTDOGWOD01_S", model->containerName);
   EXPECT_EQ(52, model->vertices.size());
@@ -43,8 +43,8 @@ TEST(W3DTest, parsingPtPalm02) {
   auto fileStream = w3dLoader.getFileStream("art\\w3d\\ptpalm02.w3d");
   auto stream = fileStream->getStream();
   W3DFile w3d {stream};
-  auto models = w3d.parse();
-  ASSERT_EQ(2, models.size());
+  auto data = w3d.parse();
+  ASSERT_EQ(2, data.models.size());
 }
 
 TEST(W3DTest, parsingPRG02) {
@@ -54,8 +54,8 @@ TEST(W3DTest, parsingPRG02) {
   auto fileStream = w3dLoader.getFileStream("art\\w3d\\prg02.w3d");
   auto stream = fileStream->getStream();
   W3DFile w3d {stream};
-  auto models = w3d.parse();
-  ASSERT_EQ(1, models.size());
+  auto data = w3d.parse();
+  ASSERT_EQ(1, data.models.size());
 }
 
 TEST(W3DTest, parsingSwing) {
@@ -65,8 +65,8 @@ TEST(W3DTest, parsingSwing) {
   auto fileStream = w3dLoader.getFileStream("art\\w3d\\pmswing.w3d");
   auto stream = fileStream->getStream();
   W3DFile w3d {stream};
-  auto models = w3d.parse();
-  ASSERT_EQ(3, models.size());
+  auto data = w3d.parse();
+  ASSERT_EQ(3, data.models.size());
 }
 
 TEST(W3DTest, multiModelExtremesAndBoundings) {
@@ -76,11 +76,12 @@ TEST(W3DTest, multiModelExtremesAndBoundings) {
   auto fileStream = w3dLoader.getFileStream("art\\w3d\\cbnhotel01.w3d");
   auto stream = fileStream->getStream();
   W3DFile w3d {stream};
-  auto models = w3d.parse();
-  ASSERT_EQ(2, models.size());
+  auto data = w3d.parse();
+  ASSERT_EQ(2, data.models.size());
+  ASSERT_EQ(3, data.pivots.size());
 
-  auto model1 = Model::fromW3D(*models[0]);
-  auto model2 = Model::fromW3D(*models[1]);
+  auto model1 = Model::fromW3D(*data.models[0]);
+  auto model2 = Model::fromW3D(*data.models[1]);
 
   auto extremes1 = model1.getExtremes();
   EXPECT_FLOAT_EQ(11.162782f, extremes1[0].x);
@@ -97,6 +98,19 @@ TEST(W3DTest, multiModelExtremesAndBoundings) {
   EXPECT_FLOAT_EQ(27.313433f, extremes2[1].x);
   EXPECT_FLOAT_EQ(18.679104f, extremes2[1].y);
   EXPECT_FLOAT_EQ(75.862373f, extremes2[1].z);
+}
+
+TEST(W3DTest, parsePivotsOnly) {
+  Config config;
+  ResourceLoader w3dLoader {{"ZH_Generals/W3D.big"}, config.baseDir};
+
+  auto fileStream = w3dLoader.getFileStream("art\\w3d\\uirgrd_skl.w3d");
+  auto stream = fileStream->getStream();
+  W3DFile w3d {stream};
+  auto data = w3d.parse();
+
+  ASSERT_EQ(0, data.models.size());
+  ASSERT_EQ(19, data.pivots.size());
 }
 
 }

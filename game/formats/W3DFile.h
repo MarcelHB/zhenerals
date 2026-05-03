@@ -46,16 +46,22 @@ struct W3DModel {
   uint32_t flags = 0;
 };
 
+struct W3DData {
+  struct Pivot {
+    std::string name;
+    std::optional<uint32_t> parentIdx = {};
+    glm::mat4 transformation {1.0f};
+  };
+
+  std::vector<std::shared_ptr<W3DModel>> models;
+  std::vector<Pivot> pivots;
+  glm::vec3 hierarchyCenter {0.0f, 0.0f, 0.0f};
+};
+
 class W3DFile {
   public:
-    struct Pivot {
-      std::string name;
-      std::optional<uint32_t> parentIdx = {};
-      glm::mat4 transformation {1.0f};
-    };
-
     W3DFile(std::istream&);
-    std::vector<std::shared_ptr<W3DModel>> parse();
+    W3DData parse();
   private:
     bool broken = false;
     std::optional<size_t> currentVertMaterialIdx;
@@ -63,12 +69,9 @@ class W3DFile {
     std::optional<size_t> currentMaterialPassIdx;
     std::istream& stream;
 
-    glm::vec3 hierarchyCenter {0.0f, 0.0f, 0.0f};
-    std::vector<Pivot> pivots;
-
-    size_t parseHeader(W3DModel&);
+    size_t parseHeader(W3DData&, W3DModel&);
     size_t parseMaterialInfo(W3DModel&);
-    size_t parseNextChunk(std::vector<std::shared_ptr<W3DModel>>&);
+    size_t parseNextChunk(W3DData&);
 
     template<typename T>
     size_t parseContiguous(std::vector<T>& vector, uint32_t chunkSize) {

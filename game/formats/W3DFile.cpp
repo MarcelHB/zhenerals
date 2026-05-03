@@ -30,24 +30,25 @@ W3DFile::W3DFile(std::istream& stream) : stream(stream) {}
     return totalBytes; \
   }
 
-std::vector<std::shared_ptr<W3DModel>> W3DFile::parse() {
+W3DData W3DFile::parse() {
   TRACY(ZoneScoped);
-  std::vector<std::shared_ptr<W3DModel>> models;
+  W3DData w3dData;
 
   while (!stream.eof() && !broken) {
-    parseNextChunk(models);
+    parseNextChunk(w3dData);
   }
 
   if (broken) {
     return {};
   }
 
-  return models;
+  return w3dData;
 }
 
 // TODO: prevent a potential memory overkill over some non-plausible num values
 
-size_t W3DFile::parseNextChunk(std::vector<std::shared_ptr<W3DModel>>& models) {
+size_t W3DFile::parseNextChunk(W3DData& w3dData) {
+  uint16_t buffer2 = 0;
   uint32_t buffer4 = 0;
   size_t bytesRead = 0;
   size_t totalBytes = 0;
@@ -60,13 +61,19 @@ size_t W3DFile::parseNextChunk(std::vector<std::shared_ptr<W3DModel>>& models) {
   uint32_t chunkSize = (buffer4 & 0x7FFFFFFF);
 
   std::shared_ptr<W3DModel> model;
-  if (!models.empty()) {
-    model = models.back();
+  if (!w3dData.models.empty()) {
+    model = w3dData.models.back();
   }
 
   if (hasSubchunks) {
     bytesRead = 0;
     switch (chunkType) {
+      case 0x0: // root
+        model = w3dData.models.emplace_back(std::make_shared<W3DModel>());
+        currentVertMaterialIdx = std::nullopt;
+        currentTextureIdx = std::nullopt;
+        currentMaterialPassIdx = std::nullopt;
+        break;
       case 0x2B: // vertex material
         if (!currentVertMaterialIdx) {
           currentVertMaterialIdx = {0};
@@ -88,12 +95,6 @@ size_t W3DFile::parseNextChunk(std::vector<std::shared_ptr<W3DModel>>& models) {
           currentMaterialPassIdx = {1 + *currentMaterialPassIdx};
         }
         break;
-      case 0x0: // root
-        model = models.emplace_back(std::make_shared<W3DModel>());
-        currentVertMaterialIdx = std::nullopt;
-        currentTextureIdx = std::nullopt;
-        currentMaterialPassIdx = std::nullopt;
-        break;
       case 0x2A: // vertex materials (subs)
       case 0x30: // textures (subs)
       case 0x48: // texture stage
@@ -108,7 +109,7 @@ size_t W3DFile::parseNextChunk(std::vector<std::shared_ptr<W3DModel>>& models) {
     }
 
     while (bytesRead < chunkSize && !stream.eof() && !broken) {
-      auto numBytes = parseNextChunk(models);
+      auto numBytes = parseNextChunk(w3dData);
       bytesRead += numBytes;
       totalBytes += numBytes;
     }
@@ -143,7 +144,7 @@ size_t W3DFile::parseNextChunk(std::vector<std::shared_ptr<W3DModel>>& models) {
         totalBytes += parseContiguous(model->normals, chunkSize);
         break;
       case 0x1F: // header
-        totalBytes += parseHeader(*model);
+        totalBytes += parseHeader(w3dData, *model);
         break;
       case 0x20: // triangles
         totalBytes += parseContiguous(model->triangles, chunkSize);
@@ -254,18 +255,18 @@ size_t W3DFile::parseNextChunk(std::vector<std::shared_ptr<W3DModel>>& models) {
         totalBytes += 20;
 
         read4()
-        pivots.resize(buffer4);
+        w3dData.pivots.resize(buffer4);
 
         float bufferf = 0.0f;
         for (size_t i = 0; i < 3; ++i) {
           readf()
-          hierarchyCenter[i] = bufferf;
+          w3dData.hierarchyCenter[i] = bufferf;
         }
 
         break;
       }
       case 0x102:
-        for (auto& pivot : pivots) {
+        for (auto& pivot : w3dData.pivots) {
           auto& str = pivot.name;
           str.resize(16);
           stream.read(str.data(), 16);
@@ -341,7 +342,7 @@ size_t W3DFile::parseMaterialInfo(W3DModel& model) {
   return totalBytes;
 }
 
-size_t W3DFile::parseHeader(W3DModel& model) {
+size_t W3DFile::parseHeader(W3DData& w3dData, W3DModel& model) {
   uint32_t buffer4 = 0;
   float bufferf = 0.0f;
   size_t bytesRead = 0;
@@ -366,8 +367,9 @@ size_t W3DFile::parseHeader(W3DModel& model) {
     model.name.resize(nullPos);
   }
 
+  auto& pivots = w3dData.pivots;
   auto lookup =
-    std::find_if(pivots.cbegin(), pivots.cend(), [&model](const Pivot& p) {
+    std::find_if(pivots.cbegin(), pivots.cend(), [&model](const W3DData::Pivot& p) {
       return model.name == p.name;
     });
 
@@ -396,8 +398,9 @@ size_t W3DFile::parseHeader(W3DModel& model) {
   model.triangles.resize(buffer4);
 
   read4()
-  model.vertices.resize(buffer4);
-  model.normals.resize(buffer4);
+  uint32_t numVertices = buffer4;
+  // EVAL channel mask can make this conditional
+  model.vertices.resize(numVertices);
 
   // shader material
   read4()
@@ -407,6 +410,9 @@ size_t W3DFile::parseHeader(W3DModel& model) {
 
   read4()
   uint32_t vertexChannels = buffer4;
+  if (vertexChannels & 0x2) {
+    model.normals.resize(numVertices);
+  }
 
   read4()
   uint32_t faceChannels = buffer4;
