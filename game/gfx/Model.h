@@ -18,6 +18,7 @@ struct Model {
     glm::vec3 position;
     glm::vec3 normal;
     glm::vec2 uv;
+    uint16_t pivotIdx = 0;
   };
 
   std::vector<VertexData> vertexData;
@@ -34,6 +35,8 @@ struct Model {
   bool backfaceCulling = true;
 
   static Model fromW3D(const W3DModel&);
+
+  void attachPivots(const std::vector<uint16_t>&);
   std::array<glm::vec3, 2> getExtremes() const;
 };
 

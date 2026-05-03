@@ -14,6 +14,14 @@ namespace ZH {
 
 W3DFile::W3DFile(std::istream& stream) : stream(stream) {}
 
+#define read2() \
+  stream.read(reinterpret_cast<char*>(&buffer2), 2); \
+  bytesRead = stream.gcount(); \
+  totalBytes += bytesRead; \
+  if (bytesRead != 2) { \
+    return totalBytes; \
+  }
+
 #define read4() \
   stream.read(reinterpret_cast<char*>(&buffer4), 4); \
   bytesRead = stream.gcount(); \
@@ -120,7 +128,6 @@ size_t W3DFile::parseNextChunk(W3DData& w3dData) {
     }
 
     switch (chunkType) {
-      case 0xE:  // Vertex bone influences
       case 0x22: // shade indices, skip
       case 0x2D: // vertex material info (?)
       case 0x2E: // args
@@ -142,6 +149,14 @@ size_t W3DFile::parseNextChunk(W3DData& w3dData) {
         break;
       case 0x3:  // normals
         totalBytes += parseContiguous(model->normals, chunkSize);
+        break;
+      case 0xE:  // Vertex bone influences
+        for (size_t i = 0; i < model->vertices.size(); ++i) {
+          read2()
+          model->pivotIdxs[i] = buffer2;
+          stream.seekg(6, std::ios::cur);
+          totalBytes += 6;
+        }
         break;
       case 0x1F: // header
         totalBytes += parseHeader(w3dData, *model);
@@ -412,6 +427,9 @@ size_t W3DFile::parseHeader(W3DData& w3dData, W3DModel& model) {
   uint32_t vertexChannels = buffer4;
   if (vertexChannels & 0x2) {
     model.normals.resize(numVertices);
+  }
+  if (vertexChannels & 0x10) {
+    model.pivotIdxs.resize(numVertices);
   }
 
   read4()

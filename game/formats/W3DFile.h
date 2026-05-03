@@ -38,6 +38,7 @@ struct W3DModel {
   std::vector<MaterialPass> materialPasses;
   std::vector<std::string> vertexMaterials;
   std::vector<std::string> textures;
+  std::vector<uint16_t> pivotIdxs;
   glm::vec3 boundingBoxFrom;
   glm::vec3 boundingBoxTo;
   glm::vec3 boundingSphere;

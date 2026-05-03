@@ -11,6 +11,7 @@ Model Model::fromW3D(const W3DModel& w3d) {
 
   model.vertexData.resize(w3d.vertices.size());
   bool hasNormals = !w3d.normals.empty();
+  bool hasPivots = !w3d.pivotIdxs.empty();
 
   // EVAL multi pass stuff
   auto& materialPass = w3d.materialPasses.back();
@@ -26,6 +27,10 @@ Model Model::fromW3D(const W3DModel& w3d) {
 
     if (hasUVs) {
       vertexData.uv = materialPass.uv[i];
+    }
+
+    if (hasPivots) {
+      vertexData.pivotIdx = w3d.pivotIdxs[i];
     }
   }
 
@@ -63,6 +68,17 @@ std::array<glm::vec3, 2> Model::getExtremes() const {
   extremes[1] = glm::vec3 {pMax};
 
   return extremes;
+}
+
+void Model::attachPivots(const std::vector<uint16_t>& pivots) {
+  if (pivots.size() != vertexData.size()) {
+    WARN_ZH("Model", "Cannot attach pivots, mismatching size.");
+    return;
+  }
+
+  for (size_t i = 0; i < vertexData.size(); ++i) {
+    vertexData[i].pivotIdx = pivots[i];
+  }
 }
 
 }
