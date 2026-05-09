@@ -47,4 +47,8 @@ ModelCache::Models ModelCache::getModels(const std::string& key) {
   return models;
 }
 
+ResourceLoader& ModelCache::getResourceLoader() {
+  return resourceLoader;
+}
+
 }

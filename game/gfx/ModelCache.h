@@ -21,6 +21,7 @@ class ModelCache {
     ModelCache(ResourceLoader& resourceLoader);
 
     Models getModels(const std::string&);
+    ResourceLoader& getResourceLoader();
   private:
     ResourceLoader& resourceLoader;
     Cache<std::vector<std::shared_ptr<Model>>> modelCache;
