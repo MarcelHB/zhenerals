@@ -66,6 +66,7 @@ class InstanceRenderer {
       uint64_t frameIdxSet = 0;
     };
 
+    GFX::ModelCache& modelCache;
     ModelRenderer modelRenderer;
     std::unordered_map<uint64_t, InstanceData> drawData;
     uint64_t nextModelID = 0;
@@ -85,6 +86,10 @@ class InstanceRenderer {
         const Objects::Instance&
       , const std::shared_ptr<const Objects::ModelDrawData>&
       , InstanceData::DrawState&
+    );
+
+    std::vector<glm::mat4> getAnimationPivots(
+      const std::shared_ptr<const Objects::ModelDrawData>&
     );
 };
 

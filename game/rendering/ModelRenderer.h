@@ -33,7 +33,11 @@ class ModelRenderer {
     void finishResourceCounting();
 
     bool preparePipeline(Vugl::RenderPass&);
-    bool prepareModel(uint64_t id, const std::string&);
+    bool prepareModel(
+        uint64_t id
+      , const std::string& modelName
+      , std::vector<glm::mat4>&& pivotMatrices = {glm::mat4 {1.0f}}
+    );
 
     void bindPipeline(Vugl::CommandBuffer&);
     BoundingSphere getBoundingSphere(uint64_t id) const;
@@ -52,14 +56,21 @@ class ModelRenderer {
       alignas(16) glm::mat4 mvp;
       alignas(16) glm::vec3 sunlight;
       alignas(16) glm::mat4 normalMatrix;
+      alignas(16) uint32_t pivotEnabler = 0;
+    };
+
+    struct PivotData {
+      alignas(16) glm::mat4 transformation;
     };
 
     using OrderPair = std::pair<size_t, float>;
     struct RenderData : public GFX::FrameDisposable {
       std::vector<Vugl::DescriptorSet> descriptorSets;
+      std::shared_ptr<Vugl::UniformBuffer> pivotBuffer;
       std::vector<glm::mat4> transformations;
       std::vector<Vugl::UniformBuffer> uniformBuffers;
       std::vector<ShaderData> shaderData;
+      std::vector<PivotData> pivotData;
       uint32_t vertexKey = 0;
       size_t numModels = 1;
       std::vector<OrderPair> drawOrder;
@@ -73,8 +84,10 @@ class ModelRenderer {
     std::shared_ptr<Vugl::Pipeline> pipeline;
     GFX::ModelCache& modelCache;
     GFX::TextureCache& textureCache;
-    std::unordered_map<uint64_t, std::shared_ptr<RenderData>> renderDataMap;
+    std::unordered_map<uint64_t, RenderData> renderDataMap;
     std::unordered_map<uint32_t, std::shared_ptr<Vugl::ElementBuffer>> vertexData;
+
+    void createPivotBuffer(RenderData&, std::vector<glm::mat4>&&);
 };
 
 }

@@ -11,7 +11,8 @@ InstanceRenderer::InstanceRenderer(
   , const Config& config
   , GFX::TextureCache& textureCache
   , GFX::ModelCache& modelCache
-) : modelRenderer {vuglContext, config, textureCache, modelCache}
+) : modelCache {modelCache}
+  , modelRenderer {vuglContext, config, textureCache, modelCache}
 {}
 
 void InstanceRenderer::beginResourceCounting() {
@@ -115,12 +116,50 @@ bool InstanceRenderer::prepareModelDrawData(
     return true;
   }
 
-  if (!modelRenderer.prepareModel(drawState.modelID, drawState.modelName)) {
+  auto pivotMatrices = getAnimationPivots(modelSpec);
+  if (!modelRenderer.prepareModel(drawState.modelID, drawState.modelName, std::move(pivotMatrices))) {
     WARN_ZH("BattlefieldRenderer", "Unable to find model {} for {}", drawState.modelName, base->name);
-    return false;
+    return true;
   }
 
   return true;
+}
+
+std::vector<glm::mat4> InstanceRenderer::getAnimationPivots(
+   const std::shared_ptr<const Objects::ModelDrawData>& modelSpec
+) {
+  auto& idleAnimations = modelSpec->defaultConditionState.idleAnimations;
+  if (idleAnimations.empty() || idleAnimations.front().skeleton.empty()) {
+    return {glm::mat4 {1.0f}};
+  }
+
+  auto path = fmt::format("art\\w3d\\{}.w3d", idleAnimations.front().skeleton);
+  auto& modelLoader = modelCache.getResourceLoader();
+  auto lookup = modelLoader.getFileStream(path, true);
+  if (!lookup) {
+    return {glm::mat4 {1.0f}};
+  }
+
+  auto stream = lookup->getStream();
+  auto w3d = W3DFile {stream};
+  auto w3dData = w3d.parse();
+  if (w3dData.pivots.empty()) {
+    return {glm::mat4 {1.0f}};
+  }
+
+  std::vector<glm::mat4> pivotMatrices {w3dData.pivots.size(), glm::mat4 {1.0f}};
+
+  std::optional<uint32_t> idx;
+  for (size_t i = 0; i < w3dData.pivots.size(); ++i) {
+    idx = {i};
+    do {
+      auto& p = w3dData.pivots[*idx];
+      pivotMatrices[i] = p.transformation * pivotMatrices[i];
+      idx = p.parentIdx;
+    } while (idx);
+  }
+
+  return pivotMatrices;
 }
 
 void InstanceRenderer::determineModel(
