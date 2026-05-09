@@ -132,14 +132,33 @@ void DescriptorSet::setPipelineBindPoint (VkPipelineBindPoint bindPoint) {
 
 void DescriptorSet::updateDevice () {
   uint32_t numUBOs = 0;
+  uint32_t numReservedUBOs = 0;
   uint32_t numDynamicUBOs = 0;
+  uint32_t numReservedDynamicUBOs = 0;
 
+  uint32_t numVariableDescriptors = 0;
+
+  size_t i = 0;
   for (auto& binding : bindings) {
     if (std::get<0>(binding) == DescriptorType::UBO) {
-      numUBOs += assignedUniformBuffers[std::get<1>(binding)].get().getNumOfDescriptors();
+      auto& ubo = assignedUniformBuffers[std::get<1>(binding)].get();
+      auto varOpt = ubo.getNumOfVariableDescriptors();
+
+      numUBOs += ubo.getNumOfDescriptors();
+
+      numReservedUBOs += varOpt.value_or(ubo.getNumOfDescriptors());
+      numVariableDescriptors += varOpt.value_or(0);
     } else if (std::get<0>(binding) == DescriptorType::DYNAMIC_UBO) {
-      numDynamicUBOs += assignedUniformBuffers[std::get<1>(binding)].get().getNumOfDescriptors();
+      auto& ubo = assignedUniformBuffers[std::get<1>(binding)].get();
+      auto varOpt = ubo.getNumOfVariableDescriptors();
+
+      numDynamicUBOs += ubo.getNumOfDescriptors();
+
+      numReservedDynamicUBOs += varOpt.value_or(ubo.getNumOfDescriptors());
+      numVariableDescriptors += varOpt.value_or(0);
     }
+
+    i += 1;
   }
 
   if (VK_NULL_HANDLE == vkDescriptorPool) {
@@ -156,14 +175,14 @@ void DescriptorSet::updateDevice () {
       poolSizes.resize(poolSizes.size() + 1);
       auto& vkDescPoolSize = poolSizes[poolSizes.size() - 1];
       vkDescPoolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-      vkDescPoolSize.descriptorCount = numSwapchainImages * numUBOs;
+      vkDescPoolSize.descriptorCount = numSwapchainImages * numReservedUBOs;
     }
 
     if (numDynamicUBOs > 0) {
       poolSizes.resize(poolSizes.size() + 1);
       auto& vkDescPoolSize = poolSizes[poolSizes.size() - 1];
       vkDescPoolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
-      vkDescPoolSize.descriptorCount = numSwapchainImages * numDynamicUBOs;
+      vkDescPoolSize.descriptorCount = numSwapchainImages * numReservedDynamicUBOs;
     }
 
     if (assignedSamplers.size() > 0) {
@@ -204,6 +223,15 @@ void DescriptorSet::updateDevice () {
       return;
     }
 
+    std::vector<uint32_t> variableDescriptorsPerDescriptorSet;
+    variableDescriptorsPerDescriptorSet.resize(numSwapchainImages);
+    std::fill(variableDescriptorsPerDescriptorSet.begin(), variableDescriptorsPerDescriptorSet.end(), numVariableDescriptors);
+
+    VkDescriptorSetVariableDescriptorCountAllocateInfo vkDynamicAllocations = {};
+    vkDynamicAllocations.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_VARIABLE_DESCRIPTOR_COUNT_ALLOCATE_INFO;
+    vkDynamicAllocations.descriptorSetCount = numSwapchainImages;
+    vkDynamicAllocations.pDescriptorCounts = variableDescriptorsPerDescriptorSet.data();
+
     std::vector<VkDescriptorSetLayout> vkDescSetLayouts {
         numSwapchainImages
       , vkDescriptorSetLayout
@@ -214,6 +242,7 @@ void DescriptorSet::updateDevice () {
     vkDescSetAllocInfo.descriptorPool = vkDescriptorPool;
     vkDescSetAllocInfo.descriptorSetCount = numSwapchainImages;
     vkDescSetAllocInfo.pSetLayouts = vkDescSetLayouts.data();
+    vkDescSetAllocInfo.pNext = &vkDynamicAllocations;
 
     vkDescriptorSets.resize(numSwapchainImages);
     this->vkLastResult =

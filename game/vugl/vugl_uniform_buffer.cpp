@@ -63,8 +63,16 @@ uint32_t UniformBuffer::getNumOfDescriptors () const {
   return numDescriptors;
 }
 
+std::optional<uint32_t> UniformBuffer::getNumOfVariableDescriptors () const {
+  return numVariableDescriptors;
+}
+
 VkDeviceSize UniformBuffer::getStrideSize () const {
   return strideSize;
+}
+
+void UniformBuffer::setVariableNumOfDescriptors (uint32_t num) {
+  this->numVariableDescriptors = {num};
 }
 
 void UniformBuffer::setStrideSize (VkDeviceSize size) {

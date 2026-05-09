@@ -4,6 +4,7 @@
 #define H_VUGL_UNIFORM_BUFFER
 
 #include <memory>
+#include <optional>
 #include <vector>
 
 #include <vulkan/vulkan.h>
@@ -21,6 +22,7 @@ class UniformBuffer {
     std::vector<VkBuffer> buffers;
     std::vector<VmaAllocation> bufferAllocations;
     uint32_t numDescriptors;
+    std::optional<uint32_t> numVariableDescriptors;
     VkDeviceSize strideSize;
 
   public:
@@ -42,8 +44,10 @@ class UniformBuffer {
 
     const std::vector<VkBuffer>& getBuffers () const;
     uint32_t getNumOfDescriptors () const;
+    std::optional<uint32_t> getNumOfVariableDescriptors () const;
     VkDeviceSize getStrideSize () const;
 
+    void setVariableNumOfDescriptors (uint32_t upperBound);
     void setStrideSize (VkDeviceSize size);
 
     template <typename T>
