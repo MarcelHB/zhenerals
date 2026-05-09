@@ -297,7 +297,7 @@ size_t W3DFile::parseNextChunk(W3DData& w3dData) {
           }
 
           read4()
-          if (buffer4 != 0xFFFFFFFF) {
+          if (buffer4 < w3dData.pivots.size()) {
             pivot.parentIdx = {buffer4};
           }
 
