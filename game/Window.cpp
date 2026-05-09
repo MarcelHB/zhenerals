@@ -87,6 +87,9 @@ bool Window::init(Config& config) {
   nextDeviceFeatures.pNext = &dynamicStateFeatures;
   nextDeviceFeatures.runtimeDescriptorArray = VK_TRUE;
   nextDeviceFeatures.shaderSampledImageArrayNonUniformIndexing = VK_TRUE;
+  nextDeviceFeatures.shaderUniformBufferArrayNonUniformIndexing = VK_TRUE;
+  nextDeviceFeatures.descriptorBindingVariableDescriptorCount = VK_TRUE;
+  nextDeviceFeatures.descriptorBindingPartiallyBound = VK_TRUE;
 
   CHECK_SDL(SDL_Vulkan_CreateSurface(sdlWindow, vuglContext->getInstance(), nullptr, &vkSurface));
   vuglContext->setSurface(
