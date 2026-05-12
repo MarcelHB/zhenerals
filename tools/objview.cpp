@@ -292,7 +292,7 @@ class ObjectViewer {
 
         if (updateState) {
           auto& nextState = getCurrentConditionState();
-          if (instanceRenderer->useConditionState(*instance, currentDrawDataIdx, nextState)) {
+          if (instanceRenderer->useConditionState(*instance, currentDrawDataIdx, nextState, currentStateIdx)) {
             updateMatrices = true;
           }
           updateUI = true;

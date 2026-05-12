@@ -97,6 +97,8 @@ bool InstanceRenderer::prepareModelDrawData(
   auto base = instance.getBase();
   auto modelSpec = static_pointer_cast<const Objects::ModelDrawData>(instanceDrawSpec);
 
+  modelRegistry.resize(modelSpec->conditionStates.size() + 1);
+
   // EVAL condition states
   // There are empty blocks around (ChinaAirfield)
   if (modelSpec->defaultConditionState.model.empty()
@@ -184,7 +186,7 @@ void InstanceRenderer::determineModel(
   // EVAL aliases
   // Look for what has the biggest intersection
   auto bestIt = modelDrawSpec->conditionStates.cend();
-  size_t numCommon = 0;
+  size_t numCommon = 0, i = 0, bestIdx = 0;
   for (auto it = modelDrawSpec->conditionStates.cbegin(); it != modelDrawSpec->conditionStates.cend(); ++it) {
     std::set<Objects::ModelCondition> intersection;
     std::set_intersection(
@@ -196,12 +198,16 @@ void InstanceRenderer::determineModel(
     if (intersection.size() > numCommon) {
       numCommon = intersection.size();
       bestIt = it;
+      bestIdx = i;
     }
+
+    i += 1;
   }
 
   if (bestIt != modelDrawSpec->conditionStates.cend()) {
     drawState.modelName = bestIt->model;
     drawState.applicableConditions = bestIt->conditions;
+    modelRegistry[bestIdx] = drawState.modelID;
     return;
   }
 
@@ -211,6 +217,7 @@ void InstanceRenderer::determineModel(
     return;
   }
 
+  modelRegistry[0] = drawState.modelID;
   drawState.modelName = modelDrawSpec->defaultConditionState.model;
 }
 
@@ -218,8 +225,9 @@ bool InstanceRenderer::useConditionState(
     const Objects::Instance& instance
   , size_t drawDataIndex
   , const Objects::ConditionState& state
+  , size_t stateIdx
 ) {
-  if (state.model.empty()) {
+  if (state.model.empty() || stateIdx >= modelRegistry.size()) {
     return false;
   }
 
@@ -235,8 +243,12 @@ bool InstanceRenderer::useConditionState(
     return true;
   }
 
-  // replace model
-  ds.modelID = nextModelID++;
+  if (stateIdx > 0 && modelRegistry[stateIdx] == 0) {
+    modelRegistry[stateIdx] = nextModelID++;
+  }
+
+  // replace current model (without animation bones)
+  ds.modelID = modelRegistry[stateIdx];
   ds.hidden = false;
   ds.modelName = state.model;
   ds.applicableConditions = state.conditions;

@@ -47,10 +47,12 @@ class InstanceRenderer {
       , const glm::vec3& sunlightNormal
     );
 
+    // when using this, prepareModel over default state should have been called once for now
     bool useConditionState(
         const Objects::Instance&
       , size_t drawDataIndex
       , const Objects::ConditionState&
+      , size_t stateIdx
     );
   private:
     struct InstanceData {
@@ -69,6 +71,7 @@ class InstanceRenderer {
     GFX::ModelCache& modelCache;
     ModelRenderer modelRenderer;
     std::unordered_map<uint64_t, InstanceData> drawData;
+    std::vector<uint64_t> modelRegistry;
     uint64_t nextModelID = 0;
 
     bool prepareModelDrawData(
