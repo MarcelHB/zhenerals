@@ -25,12 +25,6 @@ const std::vector<const char*> vkDeviceExtensionsList {
   , "VK_EXT_extended_dynamic_state"
 };
 
-const std::vector<const char*> vkInstanceLayersList {
-#if DEBUGGING
-  "VK_LAYER_KHRONOS_validation"
-#endif
-};
-
 Vugl::Context& Window::getVuglContext() {
   return *vuglContext.get();
 }
@@ -58,9 +52,14 @@ bool Window::init(Config& config) {
     vkInstanceExtensionsList[i] = extensionsList[i];
   }
 
+  std::vector<const char*> vkInstanceLayersList;
 #if DEBUGGING
   vkInstanceExtensionsList.resize(extCount + 1);
   vkInstanceExtensionsList[extCount] = VK_EXT_DEBUG_UTILS_EXTENSION_NAME;
+
+  if (SDL_GetEnvironmentVariable(SDL_GetEnvironment(), "DEBUG_VK") != nullptr) {
+    vkInstanceLayersList.push_back("VK_LAYER_KHRONOS_validation");
+  }
 #endif
 
   vuglContext = std::make_shared<Vugl::Context>(
