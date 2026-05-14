@@ -76,19 +76,21 @@ struct TextureBundle {
   Point position;
   Size size;
   bool stretchedX = false;
+  uint64_t frameIdxSet = 0;
 };
 
 using NineTextures = std::array<std::optional<TextureBundle>, 9>;
 
 struct ResourceBundle : public GFX::FrameDisposable {
-    NineTextures enabledTextures;
-    NineTextures highlightTextures;
+  NineTextures enabledTextures;
+  NineTextures highlightTextures;
 };
 
 struct TextHolderBundle : public GFX::FrameDisposable {
-    glm::mat4 matrix;
-    std::shared_ptr<Vugl::DescriptorSet> descriptorSet;
-    std::shared_ptr<Vugl::UniformBuffer> matrixBuffer;
+  glm::mat4 matrix;
+  std::shared_ptr<Vugl::DescriptorSet> descriptorSet;
+  std::shared_ptr<Vugl::UniformBuffer> matrixBuffer;
+  uint64_t frameIdxSet = 0;
 };
 
 struct TextCacheKey {

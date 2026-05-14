@@ -329,7 +329,10 @@ void RenderListFactory::createRectangularRenderList(
     return VK_SUCCESS;
   });
 
-  writePositionMatrices(renderComponent, textureBundle, frameIndex);
+  if ((textureBundle.frameIdxSet & (1 << frameIndex)) == 0) {
+    writePositionMatrices(renderComponent, textureBundle, frameIndex);
+    textureBundle.frameIdxSet |= (1 << frameIndex);
+  }
 
   if (vuglContext.isDebuggingAllowed()) {
     commandBuffer.endDebugLabel();
@@ -398,7 +401,13 @@ TextHolderBundle& RenderListFactory::findOrCreateTextHolderBundle(const Componen
     return textHolderResourceMap.emplace(component.getID(), TextHolderBundle {}).first->second;
   } else {
     resource->second.decreaseMiss();
-    return resource->second;
+    auto& bundle = resource->second;
+
+    if (component.needsRedraw()) {
+      bundle.frameIdxSet = 0;
+    }
+
+    return bundle;
   }
 }
 
@@ -540,7 +549,12 @@ TextureBundle& RenderListFactory::getButtonTexture(
     nineTextures->get()[locationIndex] = std::make_optional<TextureBundle>();
   }
 
-  return *nineTextures->get()[locationIndex];
+  auto& bundle = *nineTextures->get()[locationIndex];
+  if (button.needsRedraw()) {
+    bundle.frameIdxSet = 0;
+  }
+
+  return bundle;
 }
 
 void RenderListFactory::prepareTextHolderDescriptorSet(
@@ -611,7 +625,10 @@ void RenderListFactory::renderText(
     return;
   }
 
-  textHolderBundle.matrixBuffer->writeData(textHolderBundle.matrix, frameIndex);
+  if ((textHolderBundle.frameIdxSet & (1 << frameIndex)) == 0) {
+    textHolderBundle.matrixBuffer->writeData(textHolderBundle.matrix, frameIndex);
+    textHolderBundle.frameIdxSet |= (1 << frameIndex);
+  }
   commandBuffer.bindResource(*textHolderBundle.descriptorSet);
 
   TextCacheKey key {text, config.font.size, config.font.bold};
