@@ -120,8 +120,8 @@ class Context {
     Context& operator= (const Context&) = delete;
     Context& operator= (Context&&) = delete;
 
-    CommandBuffer createCommandBuffer (size_t frameIndex, bool secondary = false);
-    CommandBuffer createCommandBuffer (size_t frameIndex, Vugl::CommandPool&);
+    CommandBuffer createCommandBuffer (uint32_t frameIndex, bool secondary = false);
+    CommandBuffer createCommandBuffer (uint32_t frameIndex, Vugl::CommandPool&);
     CommandPool createCommandPool ();
     ComputePipeline createComputePipeline (const PipelineSetup&);
     ElementBuffer createElementBuffer (uint32_t binding);

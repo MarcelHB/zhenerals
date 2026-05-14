@@ -475,11 +475,11 @@ void Context::destroySwapchainResources () {
   this->vkSwapchain = VK_NULL_HANDLE;
 }
 
-CommandBuffer Context::createCommandBuffer (size_t frameIndex, bool secondary) {
+CommandBuffer Context::createCommandBuffer (uint32_t frameIndex, bool secondary) {
   return {vkDevice, primaryCommandPool->getVkCommandPool(), frameIndex, secondary};
 }
 
-CommandBuffer Context::createCommandBuffer (size_t frameIndex, Vugl::CommandPool& commandPool) {
+CommandBuffer Context::createCommandBuffer (uint32_t frameIndex, Vugl::CommandPool& commandPool) {
   return {vkDevice, commandPool.getVkCommandPool(), frameIndex, true};
 }
 

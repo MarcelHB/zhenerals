@@ -21,7 +21,7 @@ CommandBuffer::CommandBuffer (CommandBuffer && other)
 CommandBuffer::CommandBuffer (
     VkDevice vkDevice
   , VkCommandPool vkCommandPool
-  , size_t frameIndex
+  , uint32_t frameIndex
   , bool secondary
 )
   : vkDevice{vkDevice}

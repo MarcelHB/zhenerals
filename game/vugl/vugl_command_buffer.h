@@ -32,7 +32,7 @@ class CommandBuffer {
     VkCommandPool vkCommandPool;
     VkCommandBuffer vkCommandBuffer;
     State state;
-    size_t frameIndex;
+    uint32_t frameIndex;
     bool secondary;
     VkResult vkLastResult = VK_SUCCESS;
 
@@ -43,7 +43,7 @@ class CommandBuffer {
     CommandBuffer (
         VkDevice
       , VkCommandPool
-      , size_t frameIndex
+      , uint32_t frameIndex
       , bool secondary = false
     );
     CommandBuffer (CommandBuffer &&);
