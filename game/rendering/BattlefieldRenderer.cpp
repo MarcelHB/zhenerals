@@ -458,6 +458,7 @@ void BattlefieldRenderer::renderObjectInstance(
   , size_t frameIdx
 ) {
   TRACY(ZoneScoped);
+  TRACY(ZoneText(instance.getBase()->name.c_str(), instance.getBase()->name.size()));
 
   if (vuglContext.isDebuggingAllowed()) {
     auto label = fmt::format("{}: {}", instance.getID(), instance.getBase()->name);
