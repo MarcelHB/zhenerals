@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0
 
+#include "../MurmurHash.h"
 #include "TerrainINI.h"
 
 namespace ZH {
@@ -52,7 +53,9 @@ void TerrainINI::parseTerrain(Terrains& terrains) {
     token = consumeComment();
   }
 
-  terrains.emplace(std::move(key), std::move(terrain));
+  MurmurHash3_32 hasher;
+  hasher.feed(key);
+  terrains.emplace(hasher.getHash().value, std::move(terrain));
 }
 
 std::optional<TerrainType> TerrainINI::parseType() {

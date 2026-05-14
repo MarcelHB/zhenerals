@@ -527,6 +527,7 @@ ADD_UNIT_TEST(SoundEffectsINI
 )
 
 ADD_UNIT_TEST(TerrainINI
+  game/MurmurHash.cpp
   game/inis/INIFile.cpp
   game/inis/TerrainINI.cpp
   game/tests/Test_TerrainINI.cpp

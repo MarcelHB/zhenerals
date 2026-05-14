@@ -4,6 +4,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 #include "../Logging.h"
+#include "../MurmurHash.h"
 #include "../gfx/Frustum.h"
 #include "BattlefieldRenderer.h"
 
@@ -272,7 +273,10 @@ bool BattlefieldRenderer::prepareTerrainPipeline(
 
   terrainTextures.reserve(texturesIndex.size());
   for (auto& keyName : texturesIndex) {
-    auto terrainLookup = terrains.find(keyName);
+    MurmurHash3_32 hasher;
+    hasher.feed(keyName);
+
+    auto terrainLookup = terrains.find(hasher.getHash().value);
     if (terrainLookup == terrains.cend()) {
       WARN_ZH("BattlefieldRenderer", "Terrain not found");
       continue;

@@ -56,7 +56,7 @@ struct Terrain {
 
 class TerrainINI : public INIFile {
   public:
-    using Terrains = std::unordered_map<std::string, Terrain>;
+    using Terrains = std::unordered_map<uint32_t, Terrain>;
 
     TerrainINI(std::istream& instream);
     Terrains parse();
