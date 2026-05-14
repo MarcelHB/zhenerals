@@ -205,6 +205,7 @@ ADD_EXECUTABLE(zhen
   game/inis/INIFile.cpp
   game/inis/MappedImageINI.cpp
   game/inis/ObjectsINI.cpp
+  game/inis/RoadsBridgesINI.cpp
   game/inis/SoundEffectsINI.cpp
   game/inis/TerrainINI.cpp
   game/inis/WaterINI.cpp
@@ -509,6 +510,13 @@ ADD_UNIT_TEST(ResourceLoader
   game/formats/BIGFile.cpp
   game/ResourceLoader.cpp
   game/tests/Test_ResourceLoader.cpp
+)
+
+ADD_UNIT_TEST(RoadsBridgesINI
+  game/MurmurHash.cpp
+  game/inis/INIFile.cpp
+  game/inis/RoadsBridgesINI.cpp
+  game/tests/Test_RoadsBridgesINI.cpp
 )
 
 ADD_UNIT_TEST(SoundEffectsINI

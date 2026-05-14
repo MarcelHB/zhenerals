@@ -14,6 +14,7 @@
 #include "common.h"
 #include "Config.h"
 #include "EventDispatcher.h"
+#include "inis/RoadsBridgesINI.h"
 #include "inis/TerrainINI.h"
 #include "inis/WaterINI.h"
 #include "ObjectLoader.h"
@@ -77,6 +78,8 @@ class Game {
 
     TerrainINI::Terrains terrains;
     WaterINI::WaterSettings waterSettings;
+    RoadsBridgesINI::Bridges bridges;
+    RoadsBridgesINI::Roads roads;
 
     Window& window;
 

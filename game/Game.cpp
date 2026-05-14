@@ -130,6 +130,17 @@ bool Game::init() {
     }
   }
 
+  {
+    auto roadsBridgesStream = iniResourceLoader->getFileStream("data\\ini\\roads.ini");
+    if (roadsBridgesStream) {
+      auto stream = roadsBridgesStream->getStream();
+      RoadsBridgesINI roadsBridgesINI {stream};
+      auto result = roadsBridgesINI.parse();
+      bridges = std::move(result.bridges);
+      roads = std::move(result.roads);
+    }
+  }
+
   overlay = std::make_shared<GUI::Overlay>(config.resolution);
 
   mainMenu =
