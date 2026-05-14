@@ -347,6 +347,7 @@ class ObjectViewer {
         primary.executeSecondary(secondary);
         primary.closeRendering();
         frame.submitAndPresent(primary);
+        TRACY(FrameMark);
       }
     }
 };
