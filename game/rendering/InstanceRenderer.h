@@ -47,7 +47,7 @@ class InstanceRenderer {
       , const glm::vec3& sunlightNormal
     );
 
-    // when using this, prepareModel over default state should have been called once for now
+    // when using this, prepareInstance over default state should have been called once for now
     bool useConditionState(
         const Objects::Instance&
       , size_t drawDataIndex
