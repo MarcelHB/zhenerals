@@ -25,9 +25,7 @@ TextCacheKey::TextCacheKey(
 {
   MurmurHash3_32 hasher;
 
-  for (auto it = text.cbegin(); it != text.cend(); ++it) {
-    hasher.feed(*it);
-  }
+  hasher.feed(text);
   hasher.feed(size);
   hasher.feed(isBold);
 

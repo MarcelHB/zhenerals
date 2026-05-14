@@ -49,6 +49,26 @@ void MurmurHash3_32::feed(const std::string& value) {
   }
 }
 
+void MurmurHash3_32::feed(const std::u16string& value) {
+  const char16_t* c = value.c_str();
+  size_t b = value.size() / 2;
+
+  for (size_t i = 0; i < b; ++i) {
+    feed(*reinterpret_cast<const uint32_t*>(&c[i * 2]));
+  }
+
+  size_t r = value.size() % 2;
+  if (r != 0) {
+    uint32_t v = 0;
+
+    for (size_t i = 0; i < r; ++i) {
+      v |= c[b * 2 + i] << (i * 16);
+    }
+
+    feed(v);
+  }
+}
+
 MurmurHash MurmurHash3_32::getHash() const {
   uint32_t hash = state;
   hash ^= calls * 4;

@@ -26,6 +26,7 @@ public:
 
   void feed(uint32_t value);
   void feed(const std::string& value);
+  void feed(const std::u16string& value);
   MurmurHash getHash() const;
 
 private:
