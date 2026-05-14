@@ -4,6 +4,7 @@
 
 #include <gtest/gtest.h>
 
+#include "../MurmurHash.h"
 #include "../inis/SoundEffectsINI.h"
 
 namespace ZH {
@@ -13,8 +14,11 @@ TEST(SoundEffectsINI, parsing) {
   SoundEffectsINI unit {stream};
   auto effects = unit.parse();
 
+  MurmurHash3_32 hasher;
+  hasher.feed("Toot");
+
   ASSERT_EQ(2, effects.size());
-  auto lookup = effects.find("Toot");
+  auto lookup = effects.find(hasher.getHash().value);
   ASSERT_NE(effects.cend(), lookup);
 
   auto& effect1 = lookup->second;
@@ -55,7 +59,11 @@ TEST(SoundEffectsINI, parsing) {
     , effect1.types
   );
 
-  lookup = effects.find("Boop");
+
+  MurmurHash3_32 hasher2;
+  hasher2.feed("Boop");
+
+  lookup = effects.find(hasher2.getHash().value);
   ASSERT_NE(effects.cend(), lookup);
 
   auto& effect2 = lookup->second;

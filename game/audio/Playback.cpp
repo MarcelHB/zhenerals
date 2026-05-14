@@ -3,6 +3,7 @@
 #include "Playback.h"
 #include "../formats/AudioFile.h"
 #include "../Logging.h"
+#include "../MurmurHash.h"
 
 namespace ZH::Audio {
 
@@ -54,7 +55,10 @@ bool Playback::playSoundEffect(const std::string& iniKey) {
   TRACY(ZoneScoped);
   housekeeping();
 
-  auto iniLookup = soundEffects.find(iniKey);
+  MurmurHash3_32 hasher;
+  hasher.feed(iniKey);
+
+  auto iniLookup = soundEffects.find(hasher.getHash().value);
   if (iniLookup == soundEffects.cend()) {
     return false;
   }

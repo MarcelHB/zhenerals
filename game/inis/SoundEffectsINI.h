@@ -64,7 +64,7 @@ struct SoundEffect {
 
 class SoundEffectsINI : public INIFile {
   public:
-    using SoundEffects = std::unordered_map<std::string, SoundEffect>;
+    using SoundEffects = std::unordered_map<uint32_t, SoundEffect>;
 
     SoundEffectsINI(std::istream& instream);
     SoundEffects parse();

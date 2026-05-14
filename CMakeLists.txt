@@ -520,6 +520,7 @@ ADD_UNIT_TEST(RoadsBridgesINI
 )
 
 ADD_UNIT_TEST(SoundEffectsINI
+  game/MurmurHash.cpp
   game/inis/INIFile.cpp
   game/inis/SoundEffectsINI.cpp
   game/tests/Test_SoundEffectsINI.cpp

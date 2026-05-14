@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0
 
+#include "../MurmurHash.h"
 #include "SoundEffectsINI.h"
 
 namespace ZH {
@@ -133,7 +134,9 @@ bool SoundEffectsINI::parseSoundEffect(SoundEffects& effects) {
     token = consumeComment();
   }
 
-  effects.emplace(std::move(key), std::move(effect));
+  MurmurHash3_32 hasher;
+  hasher.feed(key);
+  effects.emplace(hasher.getHash().value, std::move(effect));
 
   return true;
 }
