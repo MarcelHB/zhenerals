@@ -24,7 +24,7 @@ struct ViewHelpers {
   ZH::LineRenderer::Lines axes;
 
   void preparePipeline(Vugl::RenderPass&);
-  void renderAxes(uint64_t frameIdx, Vugl::CommandBuffer&);
+  void renderAxes(uint32_t frameIdx, Vugl::CommandBuffer&);
   void setAxesMatrix(const glm::mat4&);
 };
 

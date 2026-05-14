@@ -275,7 +275,7 @@ bool InstanceRenderer::prepareTreeDrawData(
   return true;
 }
 
-bool InstanceRenderer::needsUpdate(const Objects::Instance& instance, size_t frameIdx) const {
+bool InstanceRenderer::needsUpdate(const Objects::Instance& instance, uint32_t frameIdx) const {
   auto lookup = drawData.find(instance.getID());
   if (lookup == drawData.cend()) {
     return false;
@@ -288,7 +288,7 @@ bool InstanceRenderer::needsUpdate(const Objects::Instance& instance, size_t fra
 
 void InstanceRenderer::updateInstance(
     const Objects::Instance& instance
-  , size_t frameIdx
+  , uint32_t frameIdx
   , const glm::mat4& mvp
   , const glm::vec3& cameraPos
   , const glm::mat4& normal

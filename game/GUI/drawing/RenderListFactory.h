@@ -76,7 +76,7 @@ struct TextureBundle {
   Point position;
   Size size;
   bool stretchedX = false;
-  uint64_t frameIdxSet = 0;
+  uint32_t frameIdxSet = 0;
 };
 
 using NineTextures = std::array<std::optional<TextureBundle>, 9>;
@@ -90,7 +90,7 @@ struct TextHolderBundle : public GFX::FrameDisposable {
   glm::mat4 matrix;
   std::shared_ptr<Vugl::DescriptorSet> descriptorSet;
   std::shared_ptr<Vugl::UniformBuffer> matrixBuffer;
-  uint64_t frameIdxSet = 0;
+  uint32_t frameIdxSet = 0;
 };
 
 struct TextCacheKey {
@@ -134,7 +134,7 @@ class RenderListFactory {
     );
     RenderListFactory(const RenderListFactory&) = delete;
 
-    void createRenderList(Vugl::CommandBuffer&, size_t, Vugl::RenderPass&);
+    void createRenderList(Vugl::CommandBuffer&, uint32_t, Vugl::RenderPass&);
   private:
     Vugl::Context& vuglContext;
     GFX::TextureCache& textureCache;
@@ -162,17 +162,17 @@ class RenderListFactory {
     void createRectangularRenderList(
         const Component&
       , Vugl::CommandBuffer&
-      , size_t
+      , uint32_t
       , const RenderComponent&
       , const std::optional<INIImage>& texture
       , TextureBundle& textureBundle
     );
 
-    void createRenderList(Component&, Vugl::CommandBuffer&, size_t, OptionalCRef<RenderComponent>);
-    void createChildrenRenderList(Component&, Vugl::CommandBuffer&, size_t, OptionalCRef<RenderComponent>);
-    void createButtonRenderList(Button&, Vugl::CommandBuffer&, size_t, OptionalCRef<RenderComponent>);
-    void createLabelRenderList(Label&, Vugl::CommandBuffer&, size_t, OptionalCRef<RenderComponent>);
-    void createWindowRenderList(Window&, Vugl::CommandBuffer&, size_t, OptionalCRef<RenderComponent>);
+    void createRenderList(Component&, Vugl::CommandBuffer&, uint32_t, OptionalCRef<RenderComponent>);
+    void createChildrenRenderList(Component&, Vugl::CommandBuffer&, uint32_t, OptionalCRef<RenderComponent>);
+    void createButtonRenderList(Button&, Vugl::CommandBuffer&, uint32_t, OptionalCRef<RenderComponent>);
+    void createLabelRenderList(Label&, Vugl::CommandBuffer&, uint32_t, OptionalCRef<RenderComponent>);
+    void createWindowRenderList(Window&, Vugl::CommandBuffer&, uint32_t, OptionalCRef<RenderComponent>);
 
     std::string getDebugString(const std::u16string&);
     TextureBundle& getButtonTexture(
@@ -188,7 +188,7 @@ class RenderListFactory {
     bool preparePipelines(Vugl::RenderPass&);
     void prepareTextHolderDescriptorSet(TextHolderBundle&, const std::u16string&, const TextRenderConfig& config);
 
-    void renderText(const std::u16string&, const TextRenderConfig& config, Vugl::CommandBuffer&, size_t);
+    void renderText(const std::u16string&, const TextRenderConfig& config, Vugl::CommandBuffer&, uint32_t);
     OptionalRef<TextCacheEntry> createTextElements(const std::u16string&, const TextRenderConfig& config);
 
     bool switchToFont(uint8_t size, bool bold);
@@ -197,7 +197,7 @@ class RenderListFactory {
     void writePositionMatrices(
         const RenderComponent&
       , const TextureBundle&
-      , size_t
+      , uint32_t
     );
 };
 

@@ -33,14 +33,14 @@ class InstanceRenderer {
 
     ModelRenderer::BoundingSphere getBoundingSphere(const Objects::Instance&) const;
 
-    bool needsUpdate(const Objects::Instance&, size_t frameIdx) const;
+    bool needsUpdate(const Objects::Instance&, uint32_t frameIdx) const;
     bool prepareInstance(const Objects::Instance&);
     bool preparePipeline(Vugl::RenderPass&);
     void resetFrames(const Objects::Instance&);
     bool renderInstance(const Objects::Instance&, Vugl::CommandBuffer&);
     void updateInstance(
         const Objects::Instance&
-      , size_t frameIdx
+      , uint32_t frameIdx
       , const glm::mat4& mvp
       , const glm::vec3& cameraPos
       , const glm::mat4& normal
@@ -65,7 +65,7 @@ class InstanceRenderer {
 
       ModelRenderer::BoundingSphere boundingSphere;
       std::vector<DrawState> currentDrawStates;
-      uint64_t frameIdxSet = 0;
+      uint32_t frameIdxSet = 0;
     };
 
     GFX::ModelCache& modelCache;

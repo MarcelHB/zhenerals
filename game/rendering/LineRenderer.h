@@ -16,14 +16,14 @@ class LineRenderer {
       friend LineRenderer;
       public:
         void setMatrix(const glm::mat4&);
-        void writeMatrix(size_t frameIdx);
+        void writeMatrix(uint32_t frameIdx);
 
       private:
         bool broken = false;
         std::shared_ptr<Vugl::ElementBuffer> linesAndColors;
         std::shared_ptr<Vugl::DescriptorSet> descriptor;
         std::shared_ptr<Vugl::UniformBuffer> buffer;
-        uint64_t frameIdxSet = 0;
+        uint32_t frameIdxSet = 0;
         alignas(16) glm::mat4 mvp;
     };
 

@@ -28,7 +28,7 @@ class BattlefieldRenderer {
     BattlefieldRenderer(const BattlefieldRenderer&) = delete;
 
     bool init(Vugl::RenderPass&);
-    void createRenderList(Vugl::CommandBuffer&, size_t, Vugl::RenderPass&);
+    void createRenderList(Vugl::CommandBuffer&, uint32_t, Vugl::RenderPass&);
   private:
     struct DrawCheck {
       std::shared_ptr<Objects::Instance> instance;
@@ -102,11 +102,11 @@ class BattlefieldRenderer {
     bool prepareWaterPipeline(Vugl::RenderPass&);
     bool prepareWaterVertices();
 
-    void renderObjectInstances(Vugl::CommandBuffer&, size_t frameIdx, bool);
-    void renderObjectInstance(Objects::Instance&, Vugl::CommandBuffer&, size_t frameIdx);
-    void renderPatches(Vugl::CommandBuffer&, size_t frameIdx, bool);
-    void renderTerrain(Vugl::CommandBuffer&, size_t frameIdx);
-    void renderWater(Vugl::CommandBuffer&, size_t frameIdx);
+    void renderObjectInstances(Vugl::CommandBuffer&, uint32_t frameIdx, bool);
+    void renderObjectInstance(Objects::Instance&, Vugl::CommandBuffer&, uint32_t frameIdx);
+    void renderPatches(Vugl::CommandBuffer&, uint32_t frameIdx, bool);
+    void renderTerrain(Vugl::CommandBuffer&, uint32_t frameIdx);
+    void renderWater(Vugl::CommandBuffer&, uint32_t frameIdx);
 };
 
 }

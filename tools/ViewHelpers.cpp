@@ -70,7 +70,7 @@ void ViewHelpers::setAxesMatrix(const glm::mat4& matrix) {
   axes.setMatrix(matrix);
 }
 
-void ViewHelpers::renderAxes(uint64_t frameIdx, Vugl::CommandBuffer& commandBuffer) {
+void ViewHelpers::renderAxes(uint32_t frameIdx, Vugl::CommandBuffer& commandBuffer) {
   axes.writeMatrix(frameIdx);
   lineRenderer->renderLines(axes, commandBuffer);
 }

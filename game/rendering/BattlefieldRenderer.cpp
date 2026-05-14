@@ -115,7 +115,7 @@ bool BattlefieldRenderer::init(Vugl::RenderPass& renderPass) {
   return true;
 }
 
-void BattlefieldRenderer::createRenderList(Vugl::CommandBuffer& commandBuffer, size_t frameIdx, Vugl::RenderPass& renderPass) {
+void BattlefieldRenderer::createRenderList(Vugl::CommandBuffer& commandBuffer, uint32_t frameIdx, Vugl::RenderPass& renderPass) {
   TRACY(ZoneScoped);
 
   auto newMatrices = battlefield.cameraHasMoved();
@@ -383,7 +383,7 @@ bool BattlefieldRenderer::prepareWaterVertices() {
 
 void BattlefieldRenderer::renderObjectInstances(
     Vugl::CommandBuffer& commandBuffer
-  , size_t frameIdx
+  , uint32_t frameIdx
   , bool newMatrices
 ) {
   TRACY(ZoneScoped);
@@ -455,7 +455,7 @@ void BattlefieldRenderer::renderObjectInstances(
 void BattlefieldRenderer::renderObjectInstance(
     Objects::Instance& instance
   , Vugl::CommandBuffer& commandBuffer
-  , size_t frameIdx
+  , uint32_t frameIdx
 ) {
   TRACY(ZoneScoped);
   TRACY(ZoneText(instance.getBase()->name.c_str(), instance.getBase()->name.size()));
@@ -504,7 +504,7 @@ void BattlefieldRenderer::renderObjectInstance(
   }
 }
 
-void BattlefieldRenderer::renderPatches(Vugl::CommandBuffer& commandBuffer, size_t frameIdx, bool newMatrices) {
+void BattlefieldRenderer::renderPatches(Vugl::CommandBuffer& commandBuffer, uint32_t frameIdx, bool newMatrices) {
   TRACY(ZoneScoped);
 
   if (vuglContext.isDebuggingAllowed()) {
@@ -623,7 +623,7 @@ void BattlefieldRenderer::renderPatches(Vugl::CommandBuffer& commandBuffer, size
   }
 }
 
-void BattlefieldRenderer::renderTerrain(Vugl::CommandBuffer& commandBuffer, size_t frameIdx) {
+void BattlefieldRenderer::renderTerrain(Vugl::CommandBuffer& commandBuffer, uint32_t frameIdx) {
   TRACY(ZoneScoped);
 
   if (vuglContext.isDebuggingAllowed()) {
@@ -656,7 +656,7 @@ void BattlefieldRenderer::renderTerrain(Vugl::CommandBuffer& commandBuffer, size
   }
 }
 
-void BattlefieldRenderer::renderWater(Vugl::CommandBuffer& commandBuffer, size_t frameIdx) {
+void BattlefieldRenderer::renderWater(Vugl::CommandBuffer& commandBuffer, uint32_t frameIdx) {
   TRACY(ZoneScoped);
 
   if (!hasWater) {

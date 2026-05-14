@@ -9,7 +9,7 @@ void LineRenderer::Lines::setMatrix(const glm::mat4& mvp) {
   this->mvp = mvp;
 }
 
-void LineRenderer::Lines::writeMatrix(size_t frameIdx) {
+void LineRenderer::Lines::writeMatrix(uint32_t frameIdx) {
   if ((frameIdxSet & (1 << frameIdx)) != 0) {
     return;
   }

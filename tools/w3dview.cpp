@@ -226,7 +226,7 @@ class Viewer {
 
       bool showNormals = false;
       bool showSphere = false;
-      uint64_t frameIdxSet = 0;
+      uint32_t frameIdxSet = 0;
 
       while (true) {
         while (auto eventOpt = window.getEvent()) {

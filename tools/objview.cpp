@@ -239,7 +239,7 @@ class ObjectViewer {
 
       viewHelpers.preparePipeline(renderPass);
 
-      uint64_t frameIdxSet = 0;
+      uint32_t frameIdxSet = 0;
 
       while (true) {
         while (auto eventOpt = window.getEvent()) {

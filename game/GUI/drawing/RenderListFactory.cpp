@@ -50,7 +50,7 @@ RenderListFactory::RenderListFactory(
 
 void RenderListFactory::createRenderList(
     Vugl::CommandBuffer& commandBuffer
-  , size_t frameIndex
+  , uint32_t frameIndex
   , Vugl::RenderPass& renderPass
 ) {
   TRACY(ZoneScoped);
@@ -103,7 +103,7 @@ void RenderListFactory::createRenderList(
 void RenderListFactory::createRenderList(
     Component& component
   , Vugl::CommandBuffer& commandBuffer
-  , size_t frameIndex
+  , uint32_t frameIndex
   , OptionalCRef<RenderComponent> parent
 ) {
   if (component.isHidden()) {
@@ -134,7 +134,7 @@ void RenderListFactory::createRenderList(
 void RenderListFactory::createButtonRenderList(
     Button& button
   , Vugl::CommandBuffer& commandBuffer
-  , size_t frameIndex
+  , uint32_t frameIndex
   , OptionalCRef<RenderComponent> parent
 ) {
   TRACY(ZoneScoped);
@@ -237,7 +237,7 @@ void RenderListFactory::createButtonRenderList(
 void RenderListFactory::createChildrenRenderList(
     Component& component
   , Vugl::CommandBuffer& commandBuffer
-  , size_t frameIndex
+  , uint32_t frameIndex
   , OptionalCRef<RenderComponent> parent
 ) {
   for (auto& child : component.getChildren()) {
@@ -248,7 +248,7 @@ void RenderListFactory::createChildrenRenderList(
 void RenderListFactory::createLabelRenderList(
     Label& label
   , Vugl::CommandBuffer& commandBuffer
-  , size_t frameIndex
+  , uint32_t frameIndex
   , OptionalCRef<RenderComponent> parent
 ) {
   if (label.getText().size() == 0) {
@@ -278,7 +278,7 @@ void RenderListFactory::createLabelRenderList(
 void RenderListFactory::createRectangularRenderList(
     const Component& component
   , Vugl::CommandBuffer& commandBuffer
-  , size_t frameIndex
+  , uint32_t frameIndex
   , const RenderComponent& renderComponent
   , const std::optional<INIImage>& texture
   , TextureBundle& textureBundle
@@ -340,7 +340,7 @@ void RenderListFactory::createRectangularRenderList(
 void RenderListFactory::createWindowRenderList(
     Window& window
   , Vugl::CommandBuffer& commandBuffer
-  , size_t frameIndex
+  , uint32_t frameIndex
   , OptionalCRef<RenderComponent> parent
 ) {
   TRACY(ZoneScoped);
@@ -608,7 +608,7 @@ void RenderListFactory::renderText(
     const std::u16string& text
   , const TextRenderConfig& config
   , Vugl::CommandBuffer& commandBuffer
-  , size_t frameIndex
+  , uint32_t frameIndex
 ) {
   TRACY(ZoneScoped);
   if (vuglContext.isDebuggingAllowed()) {
@@ -796,7 +796,7 @@ void RenderListFactory::switchToPipeline(Pipeline nextPipeline, Vugl::CommandBuf
 void RenderListFactory::writePositionMatrices(
     const RenderComponent& component
   , const TextureBundle& bundle
-  , size_t frameIndex
+  , uint32_t frameIndex
 ) {
   UIMatrices matrices;
 

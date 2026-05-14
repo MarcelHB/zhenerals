@@ -214,7 +214,7 @@ ModelRenderer::BoundingSphere ModelRenderer::getBoundingSphere(uint64_t id) cons
 
 void ModelRenderer::updateModel(
     uint64_t id
-  , size_t frameIdx
+  , uint32_t frameIdx
   , const glm::mat4& mvp
   , const glm::vec3& cameraPos
   , const glm::mat4& normal
