@@ -25,18 +25,38 @@ BattlefieldRenderer::BattlefieldRenderer(
   , Battlefield& battlefield
   , GFX::TextureCache& textureCache
   , GFX::ModelCache& modelCache
-  , const TerrainINI::Terrains& terrains
-  , const WaterINI::WaterSettings& waterSettings
+  , std::shared_ptr<ResourceLoader> iniResourceLoader
 ) : vuglContext(vuglContext)
   , textureCache(textureCache)
   , battlefield(battlefield)
   , instanceRenderer {vuglContext, config, textureCache, modelCache}
-  , terrains(terrains)
-  , waterSettings(waterSettings)
+  , iniResourceLoader {iniResourceLoader}
 {}
 
 bool BattlefieldRenderer::init(Vugl::RenderPass& renderPass) {
   TRACY(ZoneScoped);
+
+  {
+    auto terrainIniStream = iniResourceLoader->getFileStream("data\\ini\\terrain.ini");
+    if (terrainIniStream) {
+      auto stream = terrainIniStream->getStream();
+      TerrainINI terrainINI {stream};
+      terrains = terrainINI.parse();
+    } else {
+      return false;
+    }
+  }
+
+  {
+    auto waterIniStream = iniResourceLoader->getFileStream("data\\ini\\water.ini");
+    if (waterIniStream) {
+      auto stream = waterIniStream->getStream();
+      WaterINI waterINI {stream};
+      waterSettings = waterINI.parse();
+    } else {
+      return false;
+    }
+  }
 
   auto& size = battlefield.getMapGameSize();
 

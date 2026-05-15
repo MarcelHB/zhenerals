@@ -8,6 +8,7 @@
 #include "../Battlefield.h"
 #include "../gfx/TextureCache.h"
 #include "InstanceRenderer.h"
+#include "../inis/RoadsBridgesINI.h"
 #include "../inis/TerrainINI.h"
 #include "../inis/WaterINI.h"
 #include "../vugl/vugl_context.h"
@@ -22,8 +23,7 @@ class BattlefieldRenderer {
       , Battlefield&
       , GFX::TextureCache&
       , GFX::ModelCache&
-      , const TerrainINI::Terrains& terrains
-      , const WaterINI::WaterSettings& waterSettings
+      , std::shared_ptr<ResourceLoader> iniResourceLoader
     );
     BattlefieldRenderer(const BattlefieldRenderer&) = delete;
 
@@ -62,8 +62,13 @@ class BattlefieldRenderer {
     GFX::TextureCache& textureCache;
     Battlefield& battlefield;
     InstanceRenderer instanceRenderer;
-    const TerrainINI::Terrains& terrains;
-    const WaterINI::WaterSettings& waterSettings;
+    std::shared_ptr<ResourceLoader> iniResourceLoader;
+
+    TerrainINI::Terrains terrains;
+    WaterINI::WaterSettings waterSettings;
+    RoadsBridgesINI::Roads roads;
+    RoadsBridgesINI::Bridges bridges;
+
     glm::mat4 terrainScaleMatrix;
     glm::mat4 waterScaleMatrix;
 

@@ -15,8 +15,6 @@
 #include "Config.h"
 #include "EventDispatcher.h"
 #include "inis/RoadsBridgesINI.h"
-#include "inis/TerrainINI.h"
-#include "inis/WaterINI.h"
 #include "ObjectLoader.h"
 #include "objects/InstanceFactory.h"
 #include "ResourceLoader.h"
@@ -75,11 +73,6 @@ class Game {
     std::shared_ptr<GUI::Overlay> overlay;
     std::shared_ptr<GUI::Hosts::MainMenu> mainMenu;
     std::shared_ptr<GUI::Drawing::RenderListFactory> renderListFactory;
-
-    TerrainINI::Terrains terrains;
-    WaterINI::WaterSettings waterSettings;
-    RoadsBridgesINI::Bridges bridges;
-    RoadsBridgesINI::Roads roads;
 
     Window& window;
 

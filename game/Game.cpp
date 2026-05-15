@@ -112,35 +112,6 @@ bool Game::init() {
     WARN_ZH("Game", "Could not initialize sound library.");
   }
 
-  {
-    auto terrainIniStream = iniResourceLoader->getFileStream("data\\ini\\terrain.ini");
-    if (terrainIniStream) {
-      auto stream = terrainIniStream->getStream();
-      TerrainINI terrainINI {stream};
-      terrains = terrainINI.parse();
-    }
-  }
-
-  {
-    auto waterIniStream = iniResourceLoader->getFileStream("data\\ini\\water.ini");
-    if (waterIniStream) {
-      auto stream = waterIniStream->getStream();
-      WaterINI waterINI {stream};
-      waterSettings = waterINI.parse();
-    }
-  }
-
-  {
-    auto roadsBridgesStream = iniResourceLoader->getFileStream("data\\ini\\roads.ini");
-    if (roadsBridgesStream) {
-      auto stream = roadsBridgesStream->getStream();
-      RoadsBridgesINI roadsBridgesINI {stream};
-      auto result = roadsBridgesINI.parse();
-      bridges = std::move(result.bridges);
-      roads = std::move(result.roads);
-    }
-  }
-
   overlay = std::make_shared<GUI::Overlay>(config.resolution);
 
   mainMenu =
@@ -178,8 +149,7 @@ bool Game::init() {
       , *mainMenuMap
       , *textureCache
       , *modelCache
-      , terrains
-      , waterSettings
+      , iniResourceLoader
     );
 
   drawThread = std::thread(Game::draw, this);
