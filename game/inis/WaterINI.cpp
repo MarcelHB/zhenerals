@@ -56,13 +56,13 @@ void WaterINI::parseWaterSet(WaterSets& waterSets) {
     } else if (token == "TransparentDiffuseColor") {
       water.transparentDiffuseColor = parseRGBA();
     } else if (token == "WaterRepeatCount") {
-      water.waterRepeat = parseShort().value_or(1);
+      water.waterRepeat = parseShort().value_or(water.waterRepeat);
     } else if (token == "UScrollPerMS") {
-      water.uPerMs = parseFloat().value_or(0.0f);
+      water.uPerMs = parseFloat().value_or(water.uPerMs);
     } else if (token == "VScrollPerMS") {
-      water.vPerMs = parseFloat().value_or(0.0f);
+      water.vPerMs = parseFloat().value_or(water.vPerMs);
     } else if (token == "SkyTexelsPerUnit") {
-      water.skyTexelsPerUnit = parseFloat().value_or(1.0f);
+      water.skyTexelsPerUnit = parseFloat().value_or(water.skyTexelsPerUnit);
     }
 
     token = consumeComment();
@@ -94,9 +94,9 @@ void WaterINI::parseWaterTransparency(WaterTransparency& transparency) {
 
       transparency.standingWaterTexture = std::move(texture);
     } else if (token == "TransparentWaterMinOpacity") {
-      transparency.transparentWaterMinOpacity = parseFloat().value_or(1.0f);
+      transparency.transparentWaterMinOpacity = parseFloat().value_or(transparency.transparentWaterMinOpacity);
     } else if (token == "TransparentWaterDepth") {
-      transparency.transparentWaterDepth = parseFloat().value_or(1.0f);
+      transparency.transparentWaterDepth = parseFloat().value_or(transparency.transparentWaterDepth);
     } else if (token == "StandingWaterColor") {
       transparency.standingWaterColor = parseRGB();
     } else if (token == "AdditiveBlending") {
