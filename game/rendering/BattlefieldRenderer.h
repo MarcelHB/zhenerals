@@ -8,6 +8,7 @@
 #include "../Battlefield.h"
 #include "../gfx/TextureCache.h"
 #include "InstanceRenderer.h"
+#include "PatchRenderer.h"
 #include "../inis/RoadsBridgesINI.h"
 #include "../inis/TerrainINI.h"
 #include "../inis/WaterINI.h"
@@ -37,31 +38,12 @@ class BattlefieldRenderer {
       bool draw = true;
     };
 
-    struct ScorchUBData {
-      alignas(16) glm::mat4 mvp;
-      alignas(16) glm::mat4 uv;
-      alignas(16) glm::vec3 sunlight;
-    };
-
-    // TODO frame disposability
-    struct ScorchData {
-      glm::vec3 position;
-      float radius = 1.0f;
-      glm::mat4 uv;
-      std::shared_ptr<Vugl::DescriptorSet> descriptorSet;
-      std::shared_ptr<Vugl::UniformBuffer> uniformBuffer;
-    };
-
-    struct ScorchOrderData {
-      ScorchData *scorch = nullptr;
-      bool draw = true;
-      float dist = 0.0f;
-    };
-
     Vugl::Context& vuglContext;
+    const Config& config;
     GFX::TextureCache& textureCache;
     Battlefield& battlefield;
     InstanceRenderer instanceRenderer;
+    std::shared_ptr<PatchRenderer> patchRenderer;
     std::shared_ptr<ResourceLoader> iniResourceLoader;
 
     TerrainINI::Terrains terrains;
@@ -76,15 +58,6 @@ class BattlefieldRenderer {
 
     bool hasWater = false;
     std::shared_ptr<Vugl::Texture> cloudTexture;
-    glm::vec3 sunlightNormal;
-
-    std::shared_ptr<Vugl::Pipeline> patchPipeline;
-    std::shared_ptr<Vugl::ElementBuffer> patchVertices;
-
-    std::shared_ptr<Vugl::CombinedSampler> scorchTextureSampler;
-    std::unordered_map<uint64_t, ScorchData> scorchData;
-    uint64_t scorchFrameIdxSet = 0;
-    std::vector<ScorchOrderData> scorchOrderData;
 
     std::shared_ptr<Vugl::DescriptorSet> terrainDescriptorSet;
     std::shared_ptr<Vugl::Pipeline> terrainPipeline;
@@ -99,9 +72,6 @@ class BattlefieldRenderer {
     std::shared_ptr<Vugl::UniformBuffer> waterUniformBuffer;
     std::shared_ptr<Vugl::ElementBuffer> waterVertices;
 
-    bool preparePatches(Vugl::RenderPass&);
-    bool prepareScorches();
-    bool prepareScorchData(const Battlefield::ScorchData&);
     bool prepareTerrainPipeline(Vugl::RenderPass&, const std::vector<std::string>&);
     bool prepareTerrainVertices();
     bool prepareWaterPipeline(Vugl::RenderPass&);
@@ -109,7 +79,6 @@ class BattlefieldRenderer {
 
     void renderObjectInstances(Vugl::CommandBuffer&, uint32_t frameIdx, bool);
     void renderObjectInstance(Objects::Instance&, Vugl::CommandBuffer&, uint32_t frameIdx);
-    void renderPatches(Vugl::CommandBuffer&, uint32_t frameIdx, bool);
     void renderTerrain(Vugl::CommandBuffer&, uint32_t frameIdx);
     void renderWater(Vugl::CommandBuffer&, uint32_t frameIdx);
 };

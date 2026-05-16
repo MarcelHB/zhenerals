@@ -42,6 +42,7 @@ class Battlefield {
     const glm::vec2& getMapGameSize() const;
     std::list<std::shared_ptr<Objects::Instance>>& getObjectInstances();
     const std::list<ScorchData>& getScorches() const;
+    const glm::vec3 getSunlightNormal() const;
     float getWorldHeight(const glm::vec3&) const;
     glm::mat4 getWorldMatrix(const glm::vec3& pos, float radAngle) const;
 
@@ -61,6 +62,7 @@ class Battlefield {
     Objects::InstanceFactory& instanceFactory;
     GFX::Camera camera;
     bool newMatrices = true;
+    glm::vec3 sunlightNormal;
 
     std::list<std::shared_ptr<Objects::Instance>> instances;
     std::list<ScorchData> scorches;

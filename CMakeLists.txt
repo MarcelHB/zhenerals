@@ -224,6 +224,7 @@ ADD_EXECUTABLE(zhen
   game/rendering/BattlefieldRenderer.cpp
   game/rendering/InstanceRenderer.cpp
   game/rendering/ModelRenderer.cpp
+  game/rendering/PatchRenderer.cpp
   game/Script.cpp
   game/StringLoader.cpp
   game/Window.cpp

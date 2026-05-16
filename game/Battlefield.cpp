@@ -41,6 +41,22 @@ Battlefield::Battlefield(
       }
     , glm::vec3 { 0.0f, -1.0f, 0.0f }
   );
+
+  auto lightTarget =
+    glm::vec3 {
+        mapGameSize.x / 2.0f
+      , 0
+      , mapGameSize.y / 2.0f
+    };
+
+  auto lightPos =
+    glm::vec3 {
+        mapGameSize.x * 0.25f
+      , -1500.0f
+      , mapGameSize.y * 0.75f
+    };
+
+  sunlightNormal = glm::normalize(lightTarget - lightPos);
 }
 
 bool Battlefield::cameraHasMoved() const {
@@ -121,6 +137,10 @@ void Battlefield::loadScorches(MapBuilder& mapBuilder) {
 
     scorches.emplace_back(std::move(data));
   }
+}
+
+const glm::vec3 Battlefield::getSunlightNormal() const {
+  return sunlightNormal;
 }
 
 const std::list<Battlefield::ScorchData>& Battlefield::getScorches() const {
