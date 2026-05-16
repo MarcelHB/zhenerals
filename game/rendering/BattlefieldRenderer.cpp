@@ -148,7 +148,11 @@ void BattlefieldRenderer::createRenderList(Vugl::CommandBuffer& commandBuffer, u
   commandBuffer.beginRendering(renderPass, clearColors);
 
   renderTerrain(commandBuffer, frameIdx);
+
+  patchRenderer->beginResourceCounting();
   patchRenderer->renderPatches(commandBuffer, frameIdx, newMatrices);
+  patchRenderer->finishResourceCounting();
+
   renderObjectInstances(commandBuffer, frameIdx, newMatrices);
   // TODO this still needs better Z ordering
   renderWater(commandBuffer, frameIdx);
