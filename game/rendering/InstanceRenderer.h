@@ -66,18 +66,19 @@ class InstanceRenderer {
       ModelRenderer::BoundingSphere boundingSphere;
       std::vector<DrawState> currentDrawStates;
       uint32_t frameIdxSet = 0;
+      std::vector<std::vector<uint64_t>> modelRegistry;
     };
 
     GFX::ModelCache& modelCache;
     ModelRenderer modelRenderer;
     std::unordered_map<uint64_t, InstanceData> drawData;
-    std::vector<uint64_t> modelRegistry;
     uint64_t nextModelID = 0;
 
     bool prepareModelDrawData(
         const Objects::Instance&
       , const std::shared_ptr<const Objects::DrawData>&
       , InstanceData&
+      , size_t drawDataIdx
     );
     bool prepareTreeDrawData(
         const Objects::Instance&
@@ -85,7 +86,7 @@ class InstanceRenderer {
       , InstanceData&
     );
 
-    void determineModel(
+    std::optional<size_t> determineModel(
         const Objects::Instance&
       , const std::shared_ptr<const Objects::ModelDrawData>&
       , InstanceData::DrawState&

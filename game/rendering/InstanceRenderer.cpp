@@ -43,8 +43,10 @@ bool InstanceRenderer::prepareInstance(const Objects::Instance& instance) {
   }
 
   auto& newData = drawData[id];
+  newData.modelRegistry.resize(base->drawMetaData.size());
 
   bool success = true;
+  size_t i = 0;
   for (auto& drawMetaData : base->drawMetaData) {
     // Nothing to draw
     if (drawMetaData.type == Objects::DrawType::DEFAULT_DRAW) {
@@ -60,7 +62,7 @@ bool InstanceRenderer::prepareInstance(const Objects::Instance& instance) {
         || drawMetaData.type == Objects::DrawType::TANK_DRAW
         || drawMetaData.type == Objects::DrawType::TRUCK_DRAW
     ) {
-      success &= prepareModelDrawData(instance, drawMetaData.drawData, newData);
+      success &= prepareModelDrawData(instance, drawMetaData.drawData, newData, i);
     } else if (drawMetaData.type == Objects::DrawType::TREE_DRAW) {
       success &= prepareTreeDrawData(instance, drawMetaData.drawData, newData);
     } else {
@@ -71,6 +73,8 @@ bool InstanceRenderer::prepareInstance(const Objects::Instance& instance) {
       );
       success = false;
     }
+
+    i += 1;
   }
 
   // workaround until we know when to combine bounding spheres
@@ -93,11 +97,12 @@ bool InstanceRenderer::prepareModelDrawData(
     const Objects::Instance& instance
   , const std::shared_ptr<const Objects::DrawData>& instanceDrawSpec
   , InstanceData& instanceDrawState
+  , size_t drawDataIdx
 ) {
   auto base = instance.getBase();
   auto modelSpec = static_pointer_cast<const Objects::ModelDrawData>(instanceDrawSpec);
 
-  modelRegistry.resize(modelSpec->conditionStates.size() + 1);
+  instanceDrawState.modelRegistry[drawDataIdx].resize(modelSpec->conditionStates.size() + 1);
 
   // EVAL condition states
   // There are empty blocks around (ChinaAirfield)
@@ -113,9 +118,13 @@ bool InstanceRenderer::prepareModelDrawData(
 
   auto& drawState = instanceDrawState.currentDrawStates.emplace_back();
 
-  determineModel(instance, modelSpec, drawState);
+  auto stateIdxOpt = determineModel(instance, modelSpec, drawState);
   if (drawState.hidden) {
     return true;
+  }
+
+  if (stateIdxOpt) {
+    instanceDrawState.modelRegistry[drawDataIdx][*stateIdxOpt] = drawState.modelID;
   }
 
   auto pivotMatrices = getAnimationPivots(modelSpec);
@@ -164,7 +173,7 @@ std::vector<glm::mat4> InstanceRenderer::getAnimationPivots(
   return pivotMatrices;
 }
 
-void InstanceRenderer::determineModel(
+std::optional<size_t> InstanceRenderer::determineModel(
     const Objects::Instance& instance
   , const std::shared_ptr<const Objects::ModelDrawData>& modelDrawSpec
   , InstanceData::DrawState& drawState
@@ -180,7 +189,7 @@ void InstanceRenderer::determineModel(
   // No conditions without default state -> nothing r/n
   if (instanceConditions.empty() && modelDrawSpec->defaultConditionState.model.empty()) {
     drawState.hidden = true;
-    return;
+    return {};
   }
 
   // EVAL aliases
@@ -207,18 +216,17 @@ void InstanceRenderer::determineModel(
   if (bestIt != modelDrawSpec->conditionStates.cend()) {
     drawState.modelName = bestIt->model;
     drawState.applicableConditions = bestIt->conditions;
-    modelRegistry[bestIdx] = drawState.modelID;
-    return;
+    return {bestIdx};
   }
 
   // fallback
   if (modelDrawSpec->defaultConditionState.model.empty()) {
     drawState.hidden = true;
-    return;
+    return {};
   }
 
-  modelRegistry[0] = drawState.modelID;
   drawState.modelName = modelDrawSpec->defaultConditionState.model;
+  return {0};
 }
 
 bool InstanceRenderer::useConditionState(
@@ -227,7 +235,7 @@ bool InstanceRenderer::useConditionState(
   , const Objects::ConditionState& state
   , size_t stateIdx
 ) {
-  if (state.model.empty() || stateIdx >= modelRegistry.size()) {
+  if (state.model.empty()) {
     return false;
   }
 
@@ -241,6 +249,11 @@ bool InstanceRenderer::useConditionState(
   auto& ds = ddLookup->second.currentDrawStates[drawDataIndex];
   if (ds.applicableConditions == state.conditions) {
     return true;
+  }
+
+  auto& modelRegistry = ddLookup->second.modelRegistry[drawDataIndex];
+  if (stateIdx >= modelRegistry.size()) {
+    return false;
   }
 
   if (stateIdx > 0 && modelRegistry[stateIdx] == 0) {
