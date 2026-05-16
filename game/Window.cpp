@@ -66,6 +66,7 @@ bool Window::init(Config& config) {
       vkInstanceExtensionsList
     , vkInstanceLayersList
     , vkDeviceExtensionsList
+    , config.msaaSampling
   );
 
   VkSurfaceKHR vkSurface = VK_NULL_HANDLE;
