@@ -28,6 +28,8 @@ struct MapObject {
 
   bool light = false;
   bool waypoint = false;
+
+  uint32_t flags = 0;
 };
 
 struct TextureClass {

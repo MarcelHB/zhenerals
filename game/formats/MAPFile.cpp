@@ -576,7 +576,8 @@ size_t MAPFile::parseObject(MapBuilder& mapBuilder, const ChunkMetaData& metaDat
   readf()
   object.angle = bufferf;
 
-  read4() // flags
+  read4()
+  object.flags = buffer4;
 
   StringOpt stringOpt;
   readString()

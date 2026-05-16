@@ -22,6 +22,7 @@ std::shared_ptr<Instance> InstanceFactory::getInstance(const MapObject& mapObjec
   instance.id = Instance::nextID++;
 
   instance.health = mapObject.properties.getInt("objectInitialHealth").value_or(100);
+  instance.flags = BitField<Instance::InstanceFlag>(mapObject.flags);
 
   return std::make_shared<Instance>(std::move(instance));
 }

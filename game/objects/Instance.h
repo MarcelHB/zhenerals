@@ -16,6 +16,16 @@ class Instance {
   friend InstanceFactory;
 
   public:
+    enum class InstanceFlag : uint32_t {
+        ROAD_POINT1 = 0x2
+      , ROAD_POINT2 = 0x4
+      , ROAD_CORNER_ANGLED = 0x8
+      , BRIDGE_POINT1 = 0x10
+      , BRIDGE_POINT2 = 0x20
+      , ROAD_CORNER_TIGHT = 0x40
+      , ROAD_JOIN = 0x80
+    };
+
     float getAngle() const;
     std::shared_ptr<const ObjectBuilder> getBase() const;
     const std::set<Objects::ModelCondition>& getCurrentConditions() const;
@@ -38,6 +48,7 @@ class Instance {
     mutable std::set<Objects::ModelCondition> currentConditions;
 
     Health health = 100.0f;
+    BitField<InstanceFlag> flags;
 };
 
 }
