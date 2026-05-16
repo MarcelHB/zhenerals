@@ -161,7 +161,7 @@ bool ModelRenderer::prepareModel(
     if (!model->textures.empty()) {
       textureName = model->textures.back();
     }
-    auto sampler = textureCache.getTextureSampler(textureName);
+    auto sampler = textureCache.getTextureSampler(textureName, true);
     if (!sampler) {
       WARN_ZH("BattlefieldRenderer", "Failed to load model texture {}", textureName);
       return false;

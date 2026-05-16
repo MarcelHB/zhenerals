@@ -214,7 +214,7 @@ bool BattlefieldRenderer::prepareTerrainPipeline(
       continue;
     }
 
-    auto texture = terrainTextures.emplace_back(textureCache.getTexture(terrainLookup->second.textureName));
+    auto texture = terrainTextures.emplace_back(textureCache.getTexture(terrainLookup->second.textureName, true));
     if (!texture) {
       WARN_ZH("BattlefieldRenderer", "Terrain texture not found");
       continue;
@@ -223,7 +223,7 @@ bool BattlefieldRenderer::prepareTerrainPipeline(
     vuglContext.uploadResource(*texture);
   }
 
-  cloudTexture = textureCache.getTexture("tscloudmed.dds");
+  cloudTexture = textureCache.getTexture("tscloudmed.dds", true);
   if (!cloudTexture) {
     return false;
   }
@@ -288,7 +288,7 @@ bool BattlefieldRenderer::prepareWaterPipeline(Vugl::RenderPass& renderPass) {
   waterDescriptorSet->assignUniformBuffer(*waterUniformBuffer);
   waterDescriptorSet->assignSampler(*terrainTextureSampler);
 
-  waterTexture = textureCache.getTexture("twwater01.dds");
+  waterTexture = textureCache.getTexture("twwater01.dds", true);
   if (!waterTexture) {
     return false;
   }
