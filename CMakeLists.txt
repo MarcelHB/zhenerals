@@ -389,10 +389,12 @@ ADD_CUSTOM_TARGET(always_run
   DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/__header.h
 )
 
-ADD_CUSTOM_TARGET(always_run_tests
-  ALL
-  DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/__header_test.h
-)
+IF (BUILD_TESTING)
+  ADD_CUSTOM_TARGET(always_run_tests
+    ALL
+    DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/__header_test.h
+  )
+ENDIF()
 
 ADD_CUSTOM_COMMAND(
   OUTPUT
