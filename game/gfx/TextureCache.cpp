@@ -48,7 +48,7 @@ std::shared_ptr<Vugl::CombinedSampler> TextureCache::getFontTextureSampler(uint8
   return cachedSampler;
 }
 
-std::shared_ptr<Vugl::Texture> TextureCache::getTexture(const std::string& key) {
+std::shared_ptr<Vugl::Texture> TextureCache::getTexture(const std::string& key, bool mipMaps) {
   TRACY(ZoneScoped);
 
   auto hostTexture = textureLoader.getTexture(key);
@@ -59,10 +59,16 @@ std::shared_ptr<Vugl::Texture> TextureCache::getTexture(const std::string& key) 
   auto texture = vuglContext.createTexture();
   auto size = hostTexture->getSize();
 
+  uint32_t numMipMaps = 1;
+  if (mipMaps) {
+    numMipMaps = static_cast<uint32_t>(std::floor(std::log2(std::max(size.x, size.y)))) + 1;
+  }
+
   texture.createTexture(
       hostTexture->getData()
     , VkExtent2D {size.x, size.y}
     , mappedFormat(hostTexture->getFormat())
+    , numMipMaps
   );
 
   if (texture.getLastResult() != VK_SUCCESS) {
@@ -73,7 +79,7 @@ std::shared_ptr<Vugl::Texture> TextureCache::getTexture(const std::string& key) 
   return std::make_shared<Vugl::Texture>(std::move(texture));
 }
 
-std::shared_ptr<Vugl::CombinedSampler> TextureCache::getTextureSampler(const std::string& key) {
+std::shared_ptr<Vugl::CombinedSampler> TextureCache::getTextureSampler(const std::string& key , bool mipMaps) {
   TRACY(ZoneScoped);
 
   auto lookup = textureCache.get(key);
@@ -89,10 +95,16 @@ std::shared_ptr<Vugl::CombinedSampler> TextureCache::getTextureSampler(const std
   auto uploadSampler = vuglContext.createCombinedSampler();
   auto size = hostTexture->getSize();
 
+  uint32_t numMipMaps = 1;
+  if (mipMaps) {
+    numMipMaps = static_cast<uint32_t>(std::floor(std::log2(std::max(size.x, size.y)))) + 1;
+  }
+
   uploadSampler.createTexture(
       hostTexture->getData()
     , VkExtent2D {size.x, size.y}
     , mappedFormat(hostTexture->getFormat())
+    , numMipMaps
   );
 
   if (uploadSampler.getLastResult() != VK_SUCCESS) {

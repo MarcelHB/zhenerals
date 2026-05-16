@@ -28,8 +28,8 @@ class TextureCache {
 
     std::shared_ptr<Vugl::CombinedSampler> getFontTextureSampler(uint8_t, bool bold = false);
     // not cached right now, to be done by the user
-    std::shared_ptr<Vugl::Texture> getTexture(const std::string& key);
-    std::shared_ptr<Vugl::CombinedSampler> getTextureSampler(const std::string&);
+    std::shared_ptr<Vugl::Texture> getTexture(const std::string& key, bool mipMaps = false);
+    std::shared_ptr<Vugl::CombinedSampler> getTextureSampler(const std::string&, bool mipMaps = false);
 
   private:
     Cache<Vugl::CombinedSampler> textureCache;
