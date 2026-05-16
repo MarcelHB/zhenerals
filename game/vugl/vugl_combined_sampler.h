@@ -38,8 +38,9 @@ class CombinedSampler : public Sampler, public UploadableResource {
         const std::vector<T>& data
       , const VkExtent2D& extent
       , VkFormat format
+      , uint32_t mipMaps = 1
     ) {
-      texture.createTexture(data, extent, format);
+      texture.createTexture(data, extent, format, mipMaps);
       vkLastResult = texture.getLastResult();
     }
 

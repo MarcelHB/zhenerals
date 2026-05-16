@@ -54,6 +54,7 @@ class ResourceAllocator {
       , ImageType imageType
       , VkImage& vkImage
       , VmaAllocation& vmaAllocation
+      , uint32_t mipLevels = 1
     );
 
     void destroyVkBuffer (

@@ -33,7 +33,7 @@ Sampler::Sampler (VkDevice vkDevice)
   vkSamplerCreateInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
   vkSamplerCreateInfo.mipLodBias = 0.0f;
   vkSamplerCreateInfo.minLod = 0.0f;
-  vkSamplerCreateInfo.maxLod = 0.0f;
+  vkSamplerCreateInfo.maxLod = VK_LOD_CLAMP_NONE;
 
   createSampler(vkSamplerCreateInfo);
 }

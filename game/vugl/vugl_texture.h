@@ -26,6 +26,9 @@ class Texture : public UploadableResource {
     VkImage vkTexture;
     VmaAllocation vmaTextureAllocation;
     VkImageView vkTextureView;
+    uint32_t mipLevels = 1;
+
+    void generateMipMaps();
   public:
     Texture (Texture &&);
     Texture (VkDevice vkDevice, ResourceAllocator& allocator);
@@ -51,6 +54,7 @@ class Texture : public UploadableResource {
         const std::vector<T>& data
       , const VkExtent2D& extent
       , VkFormat vkFormat
+      , uint32_t mipLevels = 1
     ) {
       if (vkTexture != VK_NULL_HANDLE) {
         this->vkLastResult = VK_ERROR_UNKNOWN;
@@ -58,6 +62,7 @@ class Texture : public UploadableResource {
       }
 
       this->extent = extent;
+      this->mipLevels = mipLevels;
       VkDeviceSize vkTBSize = data.size();
 
       this->vkLastResult =
@@ -83,6 +88,7 @@ class Texture : public UploadableResource {
           , ImageType::TEXTURE
           , vkTexture
           , vmaTextureAllocation
+          , mipLevels
         );
 
       if (VK_SUCCESS != vkLastResult) {
@@ -96,7 +102,7 @@ class Texture : public UploadableResource {
       vkImageViewCreateInfo.format = vkFormat;
       vkImageViewCreateInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
       vkImageViewCreateInfo.subresourceRange.baseMipLevel = 0;
-      vkImageViewCreateInfo.subresourceRange.levelCount = 1;
+      vkImageViewCreateInfo.subresourceRange.levelCount = mipLevels;
       vkImageViewCreateInfo.subresourceRange.baseArrayLayer = 0;
       vkImageViewCreateInfo.subresourceRange.layerCount = 1;
 

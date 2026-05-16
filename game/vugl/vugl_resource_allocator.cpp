@@ -70,6 +70,7 @@ VkResult ResourceAllocator::createVkImage (
   , ImageType imageType
   , VkImage& vkImage
   , VmaAllocation& vmaAllocation
+  , uint32_t mipLevels
 ) {
   VkImageCreateInfo vkImageCreateInfo = {};
   vkImageCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
@@ -77,7 +78,7 @@ VkResult ResourceAllocator::createVkImage (
   vkImageCreateInfo.extent.width = extent.width;
   vkImageCreateInfo.extent.height = extent.height;
   vkImageCreateInfo.extent.depth = 1;
-  vkImageCreateInfo.mipLevels = 1;
+  vkImageCreateInfo.mipLevels = mipLevels;
   vkImageCreateInfo.arrayLayers = 1;
   vkImageCreateInfo.format = vkFormat;
   vkImageCreateInfo.tiling = vkImgTiling;
@@ -102,6 +103,10 @@ VkResult ResourceAllocator::createVkImage (
       vkImageCreateInfo.usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
       allocationCreateInfo.flags = VMA_ALLOCATION_CREATE_DEDICATED_MEMORY_BIT;
       break;
+  }
+
+  if (mipLevels > 1) {
+    vkImageCreateInfo.usage |= VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
   }
 
   return
