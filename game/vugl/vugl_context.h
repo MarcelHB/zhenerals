@@ -32,6 +32,14 @@
 
 namespace Vugl {
 
+enum class MSAASampling : uint8_t {
+    ONE = 1
+  , TWO = 2
+  , FOUR = 4
+  , EIGHT = 8
+  , SIXTEEN = 16
+};
+
 class Context {
   public:
     enum class State {
@@ -112,6 +120,7 @@ class Context {
         const std::vector<const char*>& vkInstanceExtensionsList
       , const std::vector<const char*>& vkInstanceLayersList
       , const std::vector<const char*>& vkDeviceExtensionsList
+      , MSAASampling msaaSampling = MSAASampling::SIXTEEN
     );
     ~Context ();
 

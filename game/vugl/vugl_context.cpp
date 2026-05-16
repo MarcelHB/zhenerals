@@ -28,6 +28,7 @@ Context::Context (
     const std::vector<const char*>& vkInstanceExtensionsList
   , const std::vector<const char*>& vkInstanceLayersList
   , const std::vector<const char*>& vkDeviceExtensionsList
+  , MSAASampling msaaSampling
 ) :
     state{State::NEW}
   , error{Error::NO_CTX_ERROR}
@@ -119,18 +120,15 @@ Context::Context (
     vkPhysicalDeviceProperties.limits.framebufferColorSampleCounts
     & vkPhysicalDeviceProperties.limits.framebufferDepthSampleCounts;
 
+  auto msaaLevel = static_cast<std::underlying_type_t<Vugl::MSAASampling>>(msaaSampling);
   this->vkSamplingFlag = VK_SAMPLE_COUNT_1_BIT;
-  if (msaaBits & VK_SAMPLE_COUNT_64_BIT) {
-    this->vkSamplingFlag = VK_SAMPLE_COUNT_64_BIT;
-  } else if (msaaBits & VK_SAMPLE_COUNT_32_BIT) {
-    this->vkSamplingFlag = VK_SAMPLE_COUNT_32_BIT;
-  } else if (msaaBits & VK_SAMPLE_COUNT_16_BIT) {
+  if ((msaaBits & VK_SAMPLE_COUNT_16_BIT) && (msaaLevel >= 16)) {
     this->vkSamplingFlag = VK_SAMPLE_COUNT_16_BIT;
-  } else if (msaaBits & VK_SAMPLE_COUNT_8_BIT) {
+  } else if ((msaaBits & VK_SAMPLE_COUNT_8_BIT) && (msaaLevel >= 8)) {
     this->vkSamplingFlag = VK_SAMPLE_COUNT_8_BIT;
-  } else if (msaaBits & VK_SAMPLE_COUNT_4_BIT) {
+  } else if ((msaaBits & VK_SAMPLE_COUNT_4_BIT) && (msaaLevel >= 4)) {
     this->vkSamplingFlag = VK_SAMPLE_COUNT_4_BIT;
-  } else if (msaaBits & VK_SAMPLE_COUNT_2_BIT) {
+  } else if ((msaaBits & VK_SAMPLE_COUNT_2_BIT) && (msaaLevel >= 2)) {
     this->vkSamplingFlag = VK_SAMPLE_COUNT_2_BIT;
   }
 
