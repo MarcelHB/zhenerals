@@ -1,4 +1,5 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 3.30)
+SET(CMAKE_POLICY_VERSION_MINIMUM 3.10)
 
 PROJECT(zhenerals)
 
@@ -16,6 +17,15 @@ PKG_CHECK_MODULES(LIBAV REQUIRED IMPORTED_TARGET
   libavutil
   libswresample
 )
+
+# MSYS2 ld seems to be, or was at some version, broken
+# as it didn't handle excessive template use well
+IF (WIN32)
+  FIND_PROGRAM(HAS_LLD lld)
+  IF (NOT HAS_LLD)
+    MESSAGE(FATAL_ERROR "You need to have lld installed.")
+  ENDIF()
+ENDIF()
 
 INCLUDE(FetchContent)
 
@@ -130,8 +140,13 @@ ENDIF()
 # preset for pedantic review
 # SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror -Wfatal-errors -Wextra -Wpedantic -Wno-gnu-zero-variadic-macro-arguments -Wno-nullability-extension -Wno-missing-field-initializers")
 
-# ld (on Windows) appears broken at some extent of template use
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fuse-ld=lld -Wno-nullability-completeness")
+IF (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-nullability-completeness")
+ENDIF()
+
+IF (WIN32)
+  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fuse-ld=lld")
+ENDIF()
 
 SET(vugl_sources
   game/vugl/vma_loader.cpp
