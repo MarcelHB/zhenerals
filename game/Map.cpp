@@ -539,9 +539,9 @@ float Map::getHeight(const glm::vec2& pos) {
   }
 }
 
-// fields
-//   01
-//   23
+// fields  corners
+//   01      23
+//   23      01
 std::pair<float, bool> getHeigthFromCorners(float f0, float f1, float f2, float f3, uint8_t corner) {
   // 01
   // 11
@@ -561,10 +561,10 @@ std::pair<float, bool> getHeigthFromCorners(float f0, float f1, float f2, float 
 
   // 00
   // 10
-  if (f1 - f0 < Map::CLIFF_SLOPE
-      && f2 - f0 < Map::CLIFF_SLOPE
-      && f3 - f0 > Map::CLIFF_SLOPE) {
-    return std::make_pair((f0 + f1 + f2) / 3.0f, corner == 3);
+  if (f2 - f0 > Map::CLIFF_SLOPE
+      && f2 - f1 > Map::CLIFF_SLOPE
+      && f2 - f3 > Map::CLIFF_SLOPE) {
+    return std::make_pair((f0 + f1 + f3) / 3.0f, corner == 2);
   }
 
   // 10
@@ -580,7 +580,7 @@ std::pair<float, bool> getHeigthFromCorners(float f0, float f1, float f2, float 
   if (f1 - f0 > Map::CLIFF_SLOPE
       && f1 - f2 > Map::CLIFF_SLOPE
       && f1 - f3 > Map::CLIFF_SLOPE) {
-    return std::make_pair(f1, corner == 0);
+    return std::make_pair(f1, corner == 1 || corner == 3);
   }
 
   // 00
@@ -596,7 +596,7 @@ std::pair<float, bool> getHeigthFromCorners(float f0, float f1, float f2, float 
   if (f0 - f1 > Map::CLIFF_SLOPE
       && f2 - f1 > Map::CLIFF_SLOPE
       && f3 - f1 > Map::CLIFF_SLOPE) {
-    return std::make_pair((f0 + f2 + f3) / 3.0f, corner == 0);
+    return std::make_pair((f0 + f2 + f3) / 3.0f, corner == 1 || corner == 2);
   }
 
   // 11
