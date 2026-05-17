@@ -242,17 +242,12 @@ void Game::draw(void *obj) {
 
     {
       auto lock = game->overlay->getLock();
-      #pragma omp parallel sections num_threads(2)
-      {
-        #pragma omp section
-        {
-          game->mapRenderer->createRenderList(battlefieldSecondary, frameIndex, renderPass);
-        }
-        #pragma omp section
-        {
-          game->renderListFactory->createRenderList(guiSecondary, frameIndex, renderPass);
-        }
-      }
+      // this can be done in parallel, but not well with OpenMP as
+      // parallel sections -> two sections spins two cores heavily, even when done
+      // and this can be only controlled from outside by setting `OMP_WAIT_POLICY`
+      game->mapRenderer->createRenderList(battlefieldSecondary, frameIndex, renderPass);
+      game->renderListFactory->createRenderList(guiSecondary, frameIndex, renderPass);
+
       game->overlay->frameDoneTick();
     }
 
