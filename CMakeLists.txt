@@ -32,15 +32,15 @@ INCLUDE(FetchContent)
 FetchContent_Declare(
   fmt
   GIT_REPOSITORY https://github.com/fmtlib/fmt
-  GIT_TAG        123913715afeb8a437e6388b4473fcc4753e1c9a
-) # 11.1.4
+  GIT_TAG        407c905e45ad75fc29bf0f9bb7c5c2fd3475976f
+) # 12.1.0
 FetchContent_MakeAvailable(fmt)
 
 FetchContent_Declare(
   glm
   GIT_REPOSITORY  https://github.com/g-truc/glm.git
-  GIT_TAG   bf71a834948186f4097caa076cd2663c69a10e1e
-) # 1.0.1
+  GIT_TAG         8d1fd52e5ab5590e2c81768ace50c72bae28f2ed
+) # 1.0.3
 
 FetchContent_MakeAvailable(glm)
 
@@ -70,10 +70,10 @@ IF (USE_TRACY)
   FETCHCONTENT_DECLARE(
     tracy
     GIT_REPOSITORY https://github.com/wolfpld/tracy.git
-    GIT_TAG v0.13.1
+    GIT_TAG        05cceee0df3b8d7c6fa87e9638af311dbabc63cb
     GIT_SHALLOW TRUE
     GIT_PROGRESS TRUE
-  )
+  ) # 0.13.1
   FETCHCONTENT_MAKEAVAILABLE(tracy)
 
   ADD_DEFINITIONS("-DUSE_TRACY")
@@ -139,6 +139,8 @@ ENDIF()
 
 # preset for pedantic review
 # SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror -Wfatal-errors -Wextra -Wpedantic -Wno-gnu-zero-variadic-macro-arguments -Wno-nullability-extension -Wno-missing-field-initializers")
+
+ADD_DEFINITIONS("-DGLM_ENABLE_EXPERIMENTAL")
 
 IF (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
   SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-nullability-completeness")

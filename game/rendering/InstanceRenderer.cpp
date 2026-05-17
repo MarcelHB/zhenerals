@@ -158,7 +158,7 @@ std::vector<glm::mat4> InstanceRenderer::getAnimationPivots(
     return {glm::mat4 {1.0f}};
   }
 
-  std::vector<glm::mat4> pivotMatrices {w3dData.pivots.size(), glm::mat4 {1.0f}};
+  std::vector<glm::mat4> pivotMatrices (w3dData.pivots.size(), glm::mat4 {1.0f});
 
   std::optional<uint32_t> idx;
   for (size_t i = 0; i < w3dData.pivots.size(); ++i) {
