@@ -355,27 +355,79 @@ void Map::tesselateHeightMap(
           );
         }
 
+        auto n1 = glm::vec3 {0.0f};
+        auto n2 = glm::vec3 {0.0f};
+
         if (flip) {
           flipStates[y * statesWidthBytes + (x >> 3)] |= (1 << (x & 0x7));
+
+          n1 = transformNormal(baseIdx + 2, baseIdx + 1, baseIdx);
+          n2 = transformNormal(baseIdx + 1, baseIdx + 2, baseIdx + 3);
+        } else {
+          n1 = transformNormal(baseIdx, baseIdx + 3, baseIdx + 1);
+          n2 = transformNormal(baseIdx + 3, baseIdx, baseIdx + 2);
+        }
+
+        auto& p0 = verticesAndNormals[baseIdx + 0];
+        auto& p1 = verticesAndNormals[baseIdx + 1];
+        auto& p2 = verticesAndNormals[baseIdx + 2];
+        auto& p3 = verticesAndNormals[baseIdx + 3];
+
+        auto up = glm::vec3 {0.0f, 1.0f, 0.0f};
+
+        // texture warping, some literal edge cases left open
+        // planar: warp into either direction, but still suboptimal in case of
+        // "wall on a ramp"
+        if (n1 == n2) {
+          auto stretch = 1.0f / std::max(0.01f, glm::dot(n1, up));
+
+          if (p2.position.y == p3.position.y) {
+            p2.uv = p0.uv + (p2.uv - p0.uv) * stretch;
+            p3.uv = p1.uv + (p3.uv - p1.uv) * stretch;
+          } else {
+            p1.uv = p0.uv + (p1.uv - p0.uv) * stretch;
+            p3.uv = p2.uv + (p3.uv - p2.uv) * stretch;
+          }
+        } else {
+          if (flip) {
+            auto halfWay = p2.position + (p1.position - p2.position) / 2.0f;
+            auto halfWayUV = p2.uv + (p1.uv - p2.uv) / 2.0f;
+
+            if (std::abs(halfWay.y - p0.position.y) > CLIFF_SLOPE) {
+              auto stretch = 1.0f / std::max(0.01f, glm::dot(n1, up));
+              p0.uv = halfWayUV + (p0.uv - halfWayUV) * stretch;
+            }
+
+            if (std::abs(halfWay.y - p3.position.y) > CLIFF_SLOPE) {
+              auto stretch = 1.0f / std::max(0.01f, glm::dot(n2, up));
+              p3.uv = halfWayUV + (p3.uv - halfWayUV) * stretch;
+            }
+          } else {
+            auto halfWay = p0.position + (p3.position - p0.position) / 2.0f;
+            auto halfWayUV = p0.uv + (p3.uv - p0.uv) / 2.0f;
+
+            if (std::abs(halfWay.y - p1.position.y) > CLIFF_SLOPE) {
+              auto stretch = 1.0f / std::max(0.01f, glm::dot(n1, up));
+              p1.uv = halfWayUV + (p1.uv - halfWayUV) * stretch;
+            }
+
+            if (std::abs(halfWay.y - p2.position.y) > CLIFF_SLOPE) {
+              auto stretch = 1.0f / std::max(0.01f, glm::dot(n2, up));
+              p2.uv = halfWayUV + (p2.uv - halfWayUV) * stretch;
+            }
+          }
         }
 
         size_t vertexIdx = (y * size.x + x) * 6;
         vertexIndices[vertexIdx] = baseIdx;
         vertexIndices[vertexIdx + 1] = baseIdx + 1;
 
-        glm::vec3 n1, n2;
         if (flip) {
           vertexIndices[vertexIdx + 2] = baseIdx + 2;
           vertexIndices[vertexIdx + 3] = baseIdx + 1;
-
-          n1 = transformNormal(baseIdx + 2, baseIdx + 1, baseIdx);
-          n2 = transformNormal(baseIdx + 1, baseIdx + 2, baseIdx + 3);
         } else {
           vertexIndices[vertexIdx + 2] = baseIdx + 3;
           vertexIndices[vertexIdx + 3] = baseIdx;
-
-          n1 = transformNormal(baseIdx, baseIdx + 3, baseIdx + 1);
-          n2 = transformNormal(baseIdx + 3, baseIdx, baseIdx + 2);
         }
         vertexIndices[vertexIdx + 4] = baseIdx + 3;
         vertexIndices[vertexIdx + 5] = baseIdx + 2;
