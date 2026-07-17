@@ -165,6 +165,7 @@ class Context {
       , const std::vector<const char*>& vkDeviceExtensionsList
       , const VkPhysicalDeviceFeatures& enabledFeatures
       , void *deviceFeaturesNext
+      , bool vSync = true
     );
 
     bool uploadResource (UploadableResource& resource);

@@ -141,6 +141,7 @@ void Context::setSurface (
   , const std::vector<const char*>& vkDeviceExtensionsList
   , const VkPhysicalDeviceFeatures& enabledFeatures
   , void *deviceFeaturesNext
+  , bool vSync
 ) {
   if (State::PHYSICAL_DEVICE_READY != this->state) {
     this->error = Error::INVALID_STATE;
@@ -259,7 +260,7 @@ void Context::setSurface (
     }
   }
 
-  this->vkPresentMode = VK_PRESENT_MODE_FIFO_KHR;
+  this->vkPresentMode = vSync ? VK_PRESENT_MODE_FIFO_KHR : VK_PRESENT_MODE_IMMEDIATE_KHR;
   this->createSwapchainResources();
 
   if (VK_SUCCESS != this->vkLastResult) {
