@@ -39,6 +39,7 @@ bool Window::init(Config& config) {
   SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_WIDTH_NUMBER, config.resolution.x);
   SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_HEIGHT_NUMBER, config.resolution.y);
   SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_VULKAN_BOOLEAN, true);
+  SDL_SetBooleanProperty(props, SDL_PROP_WINDOW_CREATE_FULLSCREEN_BOOLEAN, config.fullscreen ? 1 : 0);
   sdlWindow = SDL_CreateWindowWithProperties(props);
   SDL_DestroyProperties(props);
 
