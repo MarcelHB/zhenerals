@@ -101,6 +101,7 @@ bool Window::init(Config& config) {
     , vkDeviceExtensionsList
     , vkDeviceFeatures
     , &nextDeviceFeatures
+    , config.vSync
   );
 
   pVkCmdSetCullModeEXT = (PFN_vkCmdSetCullModeEXT)vkGetDeviceProcAddr(
