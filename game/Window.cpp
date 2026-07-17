@@ -69,6 +69,8 @@ bool Window::init(Config& config) {
     , config.msaaSampling
   );
 
+  Vugl::Sampler::setDefaultMaxAnisotropy(config.maxAnisotropy);
+
   VkSurfaceKHR vkSurface = VK_NULL_HANDLE;
   VkViewport viewport = {};
   viewport.width = config.resolution.x;

@@ -16,6 +16,7 @@ struct Config {
   Size resolution = {1600, 900};
   std::optional<uint16_t> refreshRate;
   Vugl::MSAASampling msaaSampling = Vugl::MSAASampling::EIGHT;
+  float maxAnisotropy = 4.0f;
 #if WIN32
   std::filesystem::path baseDir = "D:/Games/Steam/steamapps/common/Command & Conquer Generals - Zero Hour";
 #else
