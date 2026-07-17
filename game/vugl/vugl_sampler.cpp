@@ -4,6 +4,27 @@
 
 namespace Vugl {
 
+VkSamplerCreateInfo Sampler::defaultSamplerCreateInfo = {
+  .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
+  .pNext = nullptr,
+  .flags = 0,
+  .magFilter = VK_FILTER_LINEAR,
+  .minFilter = VK_FILTER_LINEAR,
+  .mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR,
+  .addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT,
+  .addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT,
+  .addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT,
+  .mipLodBias = 0.0f,
+  .anisotropyEnable = VK_TRUE,
+  .maxAnisotropy = 4.0f,
+  .compareEnable = VK_FALSE,
+  .compareOp = VK_COMPARE_OP_ALWAYS,
+  .minLod = 0.0f,
+  .maxLod = VK_LOD_CLAMP_NONE,
+  .borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK,
+  .unnormalizedCoordinates = VK_FALSE
+};
+
 Sampler::Sampler (Sampler && other)
   : vkDevice{other.vkDevice}
   , vkLastResult{other.vkLastResult}
@@ -17,25 +38,7 @@ Sampler::Sampler (VkDevice vkDevice)
   , vkLastResult{VK_SUCCESS}
   , vkSampler{VK_NULL_HANDLE}
 {
-  VkSamplerCreateInfo vkSamplerCreateInfo = {};
-  vkSamplerCreateInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
-  vkSamplerCreateInfo.magFilter = VK_FILTER_LINEAR;
-  vkSamplerCreateInfo.minFilter = VK_FILTER_LINEAR;
-  vkSamplerCreateInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-  vkSamplerCreateInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-  vkSamplerCreateInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-  vkSamplerCreateInfo.anisotropyEnable = VK_TRUE;
-  vkSamplerCreateInfo.maxAnisotropy = 4.0f;
-  vkSamplerCreateInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
-  vkSamplerCreateInfo.unnormalizedCoordinates = VK_FALSE;
-  vkSamplerCreateInfo.compareEnable = VK_FALSE;
-  vkSamplerCreateInfo.compareOp = VK_COMPARE_OP_ALWAYS;
-  vkSamplerCreateInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
-  vkSamplerCreateInfo.mipLodBias = 0.0f;
-  vkSamplerCreateInfo.minLod = 0.0f;
-  vkSamplerCreateInfo.maxLod = VK_LOD_CLAMP_NONE;
-
-  createSampler(vkSamplerCreateInfo);
+  createSampler(defaultSamplerCreateInfo);
 }
 
 Sampler::Sampler (VkDevice vkDevice, const VkSamplerCreateInfo& createInfo)
@@ -69,6 +72,14 @@ VkResult Sampler::getLastResult () const {
 
 VkSampler Sampler::getVkSampler () const {
   return vkSampler;
+}
+
+VkSamplerCreateInfo& Sampler::getDefaultSamplerCreateInfo() {
+  return defaultSamplerCreateInfo;
+}
+
+void Sampler::setDefaultMaxAnisotropy(float value) {
+  defaultSamplerCreateInfo.maxAnisotropy = value;
 }
 
 }

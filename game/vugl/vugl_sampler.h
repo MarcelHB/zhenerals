@@ -19,6 +19,8 @@ class Sampler {
     VkSampler vkSampler;
 
     void createSampler (const VkSamplerCreateInfo& createInfo);
+
+    static VkSamplerCreateInfo defaultSamplerCreateInfo;
   public:
     Sampler (const Sampler&) = delete;
     Sampler& operator= (const Sampler&) = delete;
@@ -33,6 +35,9 @@ class Sampler {
 
     VkResult getLastResult () const;
     VkSampler getVkSampler () const;
+
+    static VkSamplerCreateInfo& getDefaultSamplerCreateInfo();
+    static void setDefaultMaxAnisotropy(float);
 };
 
 }
