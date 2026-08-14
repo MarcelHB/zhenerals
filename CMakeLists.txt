@@ -141,6 +141,7 @@ ENDIF()
 # SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror -Wfatal-errors -Wextra -Wpedantic -Wno-gnu-zero-variadic-macro-arguments -Wno-nullability-extension -Wno-missing-field-initializers")
 
 ADD_DEFINITIONS("-DGLM_ENABLE_EXPERIMENTAL")
+SET(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 IF (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
   SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-nullability-completeness")
