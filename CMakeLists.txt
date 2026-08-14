@@ -32,8 +32,8 @@ INCLUDE(FetchContent)
 FetchContent_Declare(
   fmt
   GIT_REPOSITORY https://github.com/fmtlib/fmt
-  GIT_TAG        407c905e45ad75fc29bf0f9bb7c5c2fd3475976f
-) # 12.1.0
+  GIT_TAG        1be298e1bd68957e4cd352e1f676f00e07dcfb57
+) # 12.2.0
 FetchContent_MakeAvailable(fmt)
 
 FetchContent_Declare(
@@ -70,10 +70,10 @@ IF (USE_TRACY)
   FETCHCONTENT_DECLARE(
     tracy
     GIT_REPOSITORY https://github.com/wolfpld/tracy.git
-    GIT_TAG        05cceee0df3b8d7c6fa87e9638af311dbabc63cb
+    GIT_TAG        099df3de3dc37eca4712c06b8320fb9c53596edd
     GIT_SHALLOW TRUE
     GIT_PROGRESS TRUE
-  ) # 0.13.1
+  ) # 0.14.0
   FETCHCONTENT_MAKEAVAILABLE(tracy)
 
   ADD_DEFINITIONS("-DUSE_TRACY")
