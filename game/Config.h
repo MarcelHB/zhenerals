@@ -15,7 +15,7 @@ namespace ZH {
 struct Config {
   Size resolution = {1600, 900};
   bool fullscreen = false;
-  bool vSync = false;
+  bool vSync = true;
   std::optional<uint16_t> refreshRate;
   Vugl::MSAASampling msaaSampling = Vugl::MSAASampling::EIGHT;
   float maxAnisotropy = 4.0f;
