@@ -3,16 +3,16 @@
 #ifndef H_GAME_BATTLEFIELD_RENDERER
 #define H_GAME_BATTLEFIELD_RENDERER
 
-#include "../common.h"
-#include "../Config.h"
-#include "../Battlefield.h"
-#include "../gfx/TextureCache.h"
+#include "common.h"
+#include "Config.h"
+#include "Battlefield.h"
+#include "gfx/TextureCache.h"
 #include "InstanceRenderer.h"
 #include "PatchRenderer.h"
-#include "../inis/RoadsBridgesINI.h"
-#include "../inis/TerrainINI.h"
-#include "../inis/WaterINI.h"
-#include "../vugl/vugl_context.h"
+#include "inis/RoadsBridgesINI.h"
+#include "inis/TerrainINI.h"
+#include "inis/WaterINI.h"
+#include "vugl/vugl_context.h"
 
 namespace ZH {
 

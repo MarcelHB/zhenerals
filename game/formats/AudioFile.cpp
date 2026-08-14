@@ -6,8 +6,8 @@ extern "C" {
 #include <libswresample/swresample.h>
 }
 
-#include "../common.h"
-#include "../Logging.h"
+#include "common.h"
+#include "Logging.h"
 #include "AudioFile.h"
 
 constexpr size_t FORMAT_BUFFER_SIZE = 8192;

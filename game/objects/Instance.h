@@ -5,7 +5,7 @@
 
 #include <string>
 
-#include "../common.h"
+#include "common.h"
 #include "Object.h"
 
 namespace ZH::Objects {

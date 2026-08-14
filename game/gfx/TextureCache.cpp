@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0
 
-#include "../common.h"
-#include "../Logging.h"
+#include "common.h"
+#include "Logging.h"
 #include "HostTexture.h"
 #include "TextureCache.h"
 #include "TextureLoader.h"

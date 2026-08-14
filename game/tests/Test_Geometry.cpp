@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include "../Geometry.h"
+#include "Geometry.h"
 
 #include <glm/glm.hpp>
 

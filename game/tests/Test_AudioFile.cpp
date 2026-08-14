@@ -3,8 +3,8 @@
 
 #include <gtest/gtest.h>
 
-#include "../audio/Backend.h"
-#include "../formats/AudioFile.h"
+#include "audio/Backend.h"
+#include "formats/AudioFile.h"
 
 namespace ZH {
 

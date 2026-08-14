@@ -2,8 +2,8 @@
 
 #include <gtest/gtest.h>
 
-#include "../MurmurHash.h"
-#include "../inis/ObjectsINI.h"
+#include "MurmurHash.h"
+#include "inis/ObjectsINI.h"
 
 namespace ZH {
 

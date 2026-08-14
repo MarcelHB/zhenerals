@@ -8,13 +8,13 @@
 #include <unordered_map>
 #include <utility>
 
-#include "fmt/core.h"
+#include <fmt/core.h>
 
-#include "../game/Config.h"
-#include "../game/formats/Dict.h"
-#include "../game/InflatingStream.h"
-#include "../game/Logger.h"
-#include "../game/ResourceLoader.h"
+#include "Config.h"
+#include "formats/Dict.h"
+#include "InflatingStream.h"
+#include "Logger.h"
+#include "ResourceLoader.h"
 
 #define read1() \
   bytesRead = stream.read(reinterpret_cast<char*>(&buffer1), 1); \

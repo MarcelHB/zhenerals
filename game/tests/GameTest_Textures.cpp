@@ -2,9 +2,9 @@
 
 #include <gtest/gtest.h>
 
-#include "../Config.h"
-#include "../ResourceLoader.h"
-#include "../gfx/TextureLoader.h"
+#include "Config.h"
+#include "ResourceLoader.h"
+#include "gfx/TextureLoader.h"
 
 namespace ZH {
 

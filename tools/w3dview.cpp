@@ -5,11 +5,11 @@
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
 
-#include "../game/Config.h"
-#include "../game/gfx/Camera.h"
-#include "../game/Logger.h"
-#include "../game/rendering/ModelRenderer.h"
-#include "../game/Window.h"
+#include "Config.h"
+#include "gfx/Camera.h"
+#include "Logger.h"
+#include "rendering/ModelRenderer.h"
+#include "Window.h"
 #include "ViewHelpers.h"
 
 class Viewer {

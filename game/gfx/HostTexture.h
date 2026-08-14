@@ -5,8 +5,8 @@
 
 #include <vector>
 
-#include "../common.h"
-#include "../Dimensions.h"
+#include "common.h"
+#include "Dimensions.h"
 
 namespace ZH::GFX {
 

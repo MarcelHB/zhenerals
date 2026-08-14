@@ -3,12 +3,12 @@
 #ifndef H_RENDERING_MODEL
 #define H_RENDERING_MODEL
 
-#include "../common.h"
-#include "../Config.h"
-#include "../gfx/FrameDisposable.h"
-#include "../gfx/ModelCache.h"
-#include "../gfx/TextureCache.h"
-#include "../vugl/vugl_context.h"
+#include "common.h"
+#include "Config.h"
+#include "gfx/FrameDisposable.h"
+#include "gfx/ModelCache.h"
+#include "gfx/TextureCache.h"
+#include "vugl/vugl_context.h"
 
 namespace ZH {
 

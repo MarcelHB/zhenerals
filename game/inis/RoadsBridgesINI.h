@@ -7,7 +7,7 @@
 #include <list>
 #include <unordered_map>
 
-#include "../Color.h"
+#include "Color.h"
 #include "INIFile.h"
 
 namespace ZH {

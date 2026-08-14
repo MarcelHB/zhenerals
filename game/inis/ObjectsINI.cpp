@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: GPL-2.0
 
 #include "ObjectsINI.h"
-#include "../Logging.h"
-#include "../MurmurHash.h"
+#include "Logging.h"
+#include "MurmurHash.h"
 
 // Workarounds as linking to `(&)Objects::get...` stopped working at some binary sizes
 // needs some more investigation eventually

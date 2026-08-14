@@ -12,9 +12,9 @@
 
 #include <glm/glm.hpp>
 
-#include "../common.h"
+#include "common.h"
 #include "Attributes.h"
-#include "../Color.h"
+#include "Color.h"
 
 namespace ZH::Objects {
 

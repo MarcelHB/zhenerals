@@ -12,7 +12,7 @@
   #include <fcntl.h>
 #endif
 
-#include "../game/formats/BIGFile.h"
+#include "formats/BIGFile.h"
 
 static int printHelp() {
   std::cout

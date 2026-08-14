@@ -16,9 +16,9 @@
 #include <unordered_map>
 #include <vector>
 
-#include "../Color.h"
-#include "../common.h"
-#include "../Logging.h"
+#include "Color.h"
+#include "common.h"
+#include "Logging.h"
 
 namespace ZH {
 

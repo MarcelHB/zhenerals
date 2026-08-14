@@ -52,6 +52,7 @@ INCLUDE_DIRECTORIES(
   ${OPENAL_INCLUDE_DIR}
   ${SDL3_INCLUDE_DIR}
   ${Vulkan_INCLUDE_DIRS}
+  ${PROJECT_SOURCE_DIR}/game
 )
 
 OPTION(USE_TESTS "Enable building and running of tests" OFF)

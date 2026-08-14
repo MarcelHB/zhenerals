@@ -3,8 +3,8 @@
 #ifndef H_GFX_FONT_ATLAS
 #define H_GFX_FONT_ATLAS
 
-#include "../../common.h"
-#include "../HostTexture.h"
+#include "common.h"
+#include "gfx/HostTexture.h"
 
 namespace ZH::GFX::Font {
 

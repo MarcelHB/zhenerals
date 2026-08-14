@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 
-#include "../MurmurHash.h"
-#include "../inis/RoadsBridgesINI.h"
+#include "MurmurHash.h"
+#include "inis/RoadsBridgesINI.h"
 
 namespace ZH {
 

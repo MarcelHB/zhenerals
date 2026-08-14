@@ -8,10 +8,10 @@
 #include <queue>
 #include <unordered_map>
 
-#include "../common.h"
+#include "common.h"
 #include "Model.h"
-#include "../Cache.h"
-#include "../ResourceLoader.h"
+#include "Cache.h"
+#include "ResourceLoader.h"
 
 namespace ZH::GFX {
 

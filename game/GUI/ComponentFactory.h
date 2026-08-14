@@ -3,9 +3,9 @@
 #ifndef H_GUI_COMPONENT_FACTORY
 #define H_GUI_COMPONENT_FACTORY
 
-#include "../common.h"
-#include "../StringLoader.h"
-#include "../gfx/TextureLookup.h"
+#include "common.h"
+#include "StringLoader.h"
+#include "gfx/TextureLookup.h"
 #include "Component.h"
 #include "wnd/Layout.h"
 #include "wnd/Window.h"

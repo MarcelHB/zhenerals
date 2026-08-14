@@ -2,8 +2,8 @@
 
 #include <gtest/gtest.h>
 
-#include "../common.h"
-#include "../gfx/font/FontManager.h"
+#include "common.h"
+#include "gfx/font/FontManager.h"
 
 namespace ZH {
 

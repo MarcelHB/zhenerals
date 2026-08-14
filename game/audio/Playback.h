@@ -8,10 +8,10 @@
 #include <map>
 #include <queue>
 
-#include "../common.h"
-#include "../ResourceLoader.h"
+#include "common.h"
+#include "ResourceLoader.h"
 #include "Backend.h"
-#include "../inis/SoundEffectsINI.h"
+#include "inis/SoundEffectsINI.h"
 
 namespace ZH::Audio {
 

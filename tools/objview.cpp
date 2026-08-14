@@ -4,16 +4,16 @@
 
 #include <fmt/xchar.h>
 
-#include "../game/Config.h"
-#include "../game/gfx/Camera.h"
-#include "../game/GUI/Component.h"
-#include "../game/GUI/drawing/RenderListFactory.h"
-#include "../game/Logger.h"
-#include "../game/Map.h"
-#include "../game/ObjectLoader.h"
-#include "../game/objects/InstanceFactory.h"
-#include "../game/rendering/InstanceRenderer.h"
-#include "../game/Window.h"
+#include "Config.h"
+#include "gfx/Camera.h"
+#include "GUI/Component.h"
+#include "GUI/drawing/RenderListFactory.h"
+#include "Logger.h"
+#include "Map.h"
+#include "ObjectLoader.h"
+#include "objects/InstanceFactory.h"
+#include "rendering/InstanceRenderer.h"
+#include "Window.h"
 #include "ViewHelpers.h"
 
 std::u16string fromASCIIString(const std::string& input) {

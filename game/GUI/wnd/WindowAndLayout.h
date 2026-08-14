@@ -5,7 +5,7 @@
 
 #include <memory>
 
-#include "../../common.h"
+#include "common.h"
 #include "Layout.h"
 #include "Window.h"
 

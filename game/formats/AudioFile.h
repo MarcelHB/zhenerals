@@ -6,8 +6,8 @@
 #include <istream>
 #include <memory>
 
-#include "../common.h"
-#include "../audio/SoundData.h"
+#include "common.h"
+#include "audio/SoundData.h"
 
 namespace ZH {
 

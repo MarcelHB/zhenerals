@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include "../MurmurHash.h"
+#include "MurmurHash.h"
 
 namespace ZH {
 

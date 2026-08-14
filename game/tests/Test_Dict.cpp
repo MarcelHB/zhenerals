@@ -3,8 +3,8 @@
 
 #include <gtest/gtest.h>
 
-#include "../InflatingStream.h"
-#include "../formats/Dict.h"
+#include "InflatingStream.h"
+#include "formats/Dict.h"
 
 namespace ZH {
 

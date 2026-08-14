@@ -3,9 +3,9 @@
 #ifndef H_GUI_HOSTS_EVENT_DEFAULTS
 #define H_GUI_HOSTS_EVENT_DEFAULTS
 
-#include "../../common.h"
-#include "../../EventDispatcher.h"
-#include "../Button.h"
+#include "common.h"
+#include "EventDispatcher.h"
+#include "GUI/Button.h"
 
 namespace ZH::GUI::Hosts {
 

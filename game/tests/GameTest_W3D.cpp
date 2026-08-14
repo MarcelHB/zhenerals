@@ -2,10 +2,10 @@
 
 #include <gtest/gtest.h>
 
-#include "../Config.h"
-#include "../ResourceLoader.h"
-#include "../formats/W3DFile.h"
-#include "../gfx/Model.h"
+#include "Config.h"
+#include "ResourceLoader.h"
+#include "formats/W3DFile.h"
+#include "gfx/Model.h"
 
 namespace ZH {
 

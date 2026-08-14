@@ -4,8 +4,8 @@
 
 #include <gtest/gtest.h>
 
-#include "../Map.h"
-#include "../inis/WaterINI.h"
+#include "Map.h"
+#include "inis/WaterINI.h"
 
 namespace ZH {
 

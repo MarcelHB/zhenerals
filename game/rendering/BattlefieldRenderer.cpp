@@ -3,9 +3,9 @@
 #define GLM_FORCE_RADIANS
 #include <glm/gtc/matrix_transform.hpp>
 
-#include "../Logging.h"
-#include "../MurmurHash.h"
-#include "../gfx/Frustum.h"
+#include "Logging.h"
+#include "MurmurHash.h"
+#include "gfx/Frustum.h"
 #include "BattlefieldRenderer.h"
 
 namespace ZH {

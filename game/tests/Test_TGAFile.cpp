@@ -2,7 +2,7 @@
 
 #include <gtest/gtest.h>
 
-#include "../formats/TGAFile.h"
+#include "formats/TGAFile.h"
 
 namespace ZH {
 

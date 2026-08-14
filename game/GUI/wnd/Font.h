@@ -5,7 +5,7 @@
 
 #include <cstdint>
 
-#include "../../common.h"
+#include "common.h"
 
 namespace ZH::GUI::WND {
 

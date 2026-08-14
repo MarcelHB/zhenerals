@@ -6,7 +6,7 @@
 #include <cstdint>
 #include <vector>
 
-#include "../common.h"
+#include "common.h"
 
 namespace ZH::Audio {
 

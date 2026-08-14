@@ -3,9 +3,9 @@
 
 #include <gtest/gtest.h>
 
-#include "../Config.h"
-#include "../ResourceLoader.h"
-#include "../BattlefieldFactory.h"
+#include "Config.h"
+#include "ResourceLoader.h"
+#include "BattlefieldFactory.h"
 
 namespace ZH {
 

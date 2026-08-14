@@ -7,8 +7,8 @@
 #include <memory>
 #include <utility>
 
-#include "../common.h"
-#include "../gfx/HostTexture.h"
+#include "common.h"
+#include "gfx/HostTexture.h"
 
 namespace ZH {
 

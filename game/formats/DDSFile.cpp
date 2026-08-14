@@ -2,8 +2,8 @@
 
 #include <array>
 
-#include "../common.h"
-#include "../Logging.h"
+#include "common.h"
+#include "Logging.h"
 #include "DDSFile.h"
 
 namespace ZH {

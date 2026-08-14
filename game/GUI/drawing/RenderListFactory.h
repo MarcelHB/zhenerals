@@ -7,17 +7,17 @@
 
 #include <glm/glm.hpp>
 
-#include "../../common.h"
-#include "../../Color.h"
-#include "../Component.h"
-#include "../Button.h"
-#include "../Label.h"
-#include "../Window.h"
-#include "../../gfx/FrameDisposable.h"
-#include "../../gfx/TextureCache.h"
-#include "../../gfx/font/FontManager.h"
-#include "../../MurmurHash.h"
-#include "../../vugl/vugl_context.h"
+#include "common.h"
+#include "Color.h"
+#include "GUI/Component.h"
+#include "GUI/Button.h"
+#include "GUI/Label.h"
+#include "GUI/Window.h"
+#include "gfx/FrameDisposable.h"
+#include "gfx/TextureCache.h"
+#include "gfx/font/FontManager.h"
+#include "MurmurHash.h"
+#include "vugl/vugl_context.h"
 
 namespace ZH::GUI::Drawing {
 

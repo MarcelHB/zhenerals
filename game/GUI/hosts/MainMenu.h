@@ -3,10 +3,10 @@
 #ifndef H_GUI_HOSTS_MAIN_MENU
 #define H_GUI_HOSTS_MAIN_MENU
 
-#include "../../common.h"
-#include "../ComponentFactory.h"
-#include "../../EventDispatcher.h"
-#include "../../WindowFactory.h"
+#include "common.h"
+#include "GUI/ComponentFactory.h"
+#include "EventDispatcher.h"
+#include "WindowFactory.h"
 
 namespace ZH::GUI::Hosts {
 

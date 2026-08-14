@@ -2,7 +2,7 @@
 
 #include <gtest/gtest.h>
 
-#include "../MemoryViewStream.h"
+#include "MemoryViewStream.h"
 
 namespace ZH {
 

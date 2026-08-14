@@ -6,9 +6,9 @@
 #include <functional>
 #include <list>
 
-#include "../common.h"
-#include "../Dimensions.h"
-#include "../inis/MappedImageINI.h"
+#include "common.h"
+#include "Dimensions.h"
+#include "inis/MappedImageINI.h"
 #include "wnd/Window.h"
 
 namespace ZH::GUI {

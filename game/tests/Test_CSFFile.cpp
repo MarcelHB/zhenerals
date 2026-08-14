@@ -2,7 +2,7 @@
 
 #include <gtest/gtest.h>
 
-#include "../formats/CSFFile.h"
+#include "formats/CSFFile.h"
 
 namespace ZH {
 

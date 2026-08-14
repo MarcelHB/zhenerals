@@ -8,9 +8,9 @@
 #include <queue>
 #include <vector>
 
-#include "../common.h"
-#include "../Cache.h"
-#include "../vugl/vugl_context.h"
+#include "common.h"
+#include "Cache.h"
+#include "vugl/vugl_context.h"
 #include "HostTexture.h"
 #include "TextureCache.h"
 #include "TextureLoader.h"

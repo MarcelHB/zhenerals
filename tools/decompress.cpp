@@ -10,7 +10,7 @@
   #include <fcntl.h>
 #endif
 
-#include "../game/InflatingStream.h"
+#include "InflatingStream.h"
 
 static int printHelp() {
   std::cout

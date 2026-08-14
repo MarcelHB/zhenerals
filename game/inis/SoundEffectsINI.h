@@ -7,9 +7,8 @@
 #include <utility>
 #include <vector>
 
-#include "../common.h"
+#include "common.h"
 #include "INIFile.h"
-#include "../common.h"
 
 namespace ZH {
 

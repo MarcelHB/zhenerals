@@ -2,7 +2,7 @@
 
 #include <gtest/gtest.h>
 
-#include "../formats/DDSFile.h"
+#include "formats/DDSFile.h"
 
 namespace ZH {
 

@@ -6,7 +6,7 @@
 #include <memory>
 #include <vector>
 
-#include "../../common.h"
+#include "common.h"
 #include "DrawData.h"
 #include "Font.h"
 #include "ScreenRect.h"

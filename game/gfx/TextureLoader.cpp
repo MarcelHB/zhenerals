@@ -2,10 +2,10 @@
 
 #include <vector>
 
-#include "../common.h"
-#include "../Logging.h"
-#include "../formats/DDSFile.h"
-#include "../formats/TGAFile.h"
+#include "common.h"
+#include "Logging.h"
+#include "formats/DDSFile.h"
+#include "formats/TGAFile.h"
 #include "TextureLoader.h"
 
 namespace ZH::GFX {

@@ -7,8 +7,8 @@
 
 #include <SDL3/SDL.h>
 
-#include "../common.h"
-#include "../Battlefield.h"
+#include "common.h"
+#include "Battlefield.h"
 #include "Component.h"
 
 namespace ZH::GUI {

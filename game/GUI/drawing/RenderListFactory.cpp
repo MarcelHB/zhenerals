@@ -4,10 +4,7 @@
 
 #include <glm/gtc/matrix_transform.hpp>
 
-#include "../../Logging.h"
-#include "../Button.h"
-#include "../Label.h"
-#include "../Window.h"
+#include "Logging.h"
 #include "RenderListFactory.h"
 
 #define IMAGE_INDEX(imageIndex) \

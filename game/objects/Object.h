@@ -10,8 +10,8 @@
 #include <set>
 #include <unordered_map>
 
-#include "../common.h"
-#include "../Color.h"
+#include "common.h"
+#include "Color.h"
 #include "Drawing.h"
 #include "Modules.h"
 

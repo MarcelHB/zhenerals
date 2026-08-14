@@ -6,7 +6,7 @@
 #include <memory>
 #include <string>
 
-#include "../ResourceLoader.h"
+#include "ResourceLoader.h"
 #include "HostTexture.h"
 
 namespace ZH::GFX {

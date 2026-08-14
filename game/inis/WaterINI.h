@@ -5,9 +5,9 @@
 
 #include <unordered_map>
 
-#include "../common.h"
-#include "../Color.h"
-#include "../Map.h"
+#include "common.h"
+#include "Color.h"
+#include "Map.h"
 
 namespace ZH {
 

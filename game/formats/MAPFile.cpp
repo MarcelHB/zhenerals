@@ -2,7 +2,7 @@
 
 #include <vector>
 
-#include "../Logging.h"
+#include "Logging.h"
 #include "MAPFile.h"
 
 namespace ZH {

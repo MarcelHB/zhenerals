@@ -12,7 +12,7 @@
 #include <iostream>
 #endif
 
-#include "fmt/std.h"
+#include <fmt/std.h>
 
 #include "common.h"
 

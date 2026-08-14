@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0
 
-#include "../Logging.h"
+#include "Logging.h"
 #include "ComponentFactory.h"
 #include "Button.h"
 #include "Label.h"

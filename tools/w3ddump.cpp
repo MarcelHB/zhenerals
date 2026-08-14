@@ -4,11 +4,11 @@
 #include <iostream>
 #include <string>
 
-#include "fmt/core.h"
+#include <fmt/core.h>
 
-#include "../game/Config.h"
-#include "../game/Logger.h"
-#include "../game/ResourceLoader.h"
+#include "Config.h"
+#include "Logger.h"
+#include "ResourceLoader.h"
 
 #define read4() \
   stream.read(reinterpret_cast<char*>(&buffer4), 4); \

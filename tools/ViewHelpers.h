@@ -3,13 +3,13 @@
 #ifndef H_TOOLS_VIEW_HELPERS
 #define H_TOOLS_VIEW_HELPERS
 
-#include "../game/Config.h"
-#include "../game/gfx/font/FontManager.h"
-#include "../game/gfx/ModelCache.h"
-#include "../game/gfx/TextureCache.h"
-#include "../game/gfx/TextureLoader.h"
-#include "../game/rendering/LineRenderer.h"
-#include "../game/ResourceLoader.h"
+#include "Config.h"
+#include "gfx/font/FontManager.h"
+#include "gfx/ModelCache.h"
+#include "gfx/TextureCache.h"
+#include "gfx/TextureLoader.h"
+#include "rendering/LineRenderer.h"
+#include "ResourceLoader.h"
 
 
 struct ViewHelpers {

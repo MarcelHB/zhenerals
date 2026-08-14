@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0
 
-#include "fmt/core.h"
+#include <fmt/core.h>
 
 #include "BattlefieldFactory.h"
 #include "formats/MAPFile.h"

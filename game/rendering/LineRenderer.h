@@ -5,8 +5,8 @@
 
 #include <vector>
 
-#include "../Color.h"
-#include "../vugl/vugl_context.h"
+#include "Color.h"
+#include "vugl/vugl_context.h"
 
 namespace ZH {
 

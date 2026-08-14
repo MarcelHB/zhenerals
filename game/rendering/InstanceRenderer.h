@@ -6,12 +6,12 @@
 #include <set>
 #include <unordered_map>
 
-#include "../common.h"
-#include "../Config.h"
-#include "../gfx/TextureCache.h"
+#include "common.h"
+#include "Config.h"
+#include "gfx/TextureCache.h"
 #include "ModelRenderer.h"
-#include "../objects/Instance.h"
-#include "../vugl/vugl_context.h"
+#include "objects/Instance.h"
+#include "vugl/vugl_context.h"
 
 namespace ZH {
 

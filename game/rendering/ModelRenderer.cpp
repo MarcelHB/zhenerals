@@ -3,7 +3,7 @@
 #include <algorithm>
 #include <cassert>
 
-#include "../gfx/VkExt.h"
+#include "gfx/VkExt.h"
 #include "ModelRenderer.h"
 
 namespace ZH {

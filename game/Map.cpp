@@ -6,7 +6,7 @@
 
 #include <glm/gtc/matrix_transform.hpp>
 
-#include "fmt/core.h"
+#include <fmt/core.h>
 
 #include "common.h"
 #include "Geometry.h"

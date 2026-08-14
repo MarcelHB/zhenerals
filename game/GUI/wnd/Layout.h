@@ -3,7 +3,7 @@
 #ifndef H_GUI_WND_LAYOUT
 #define H_GUI_WND_LAYOUT
 
-#include "../../common.h"
+#include "common.h"
 
 namespace ZH::GUI::WND {
 

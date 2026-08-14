@@ -4,8 +4,8 @@
 
 #include <gtest/gtest.h>
 
-#include "../MurmurHash.h"
-#include "../inis/TerrainINI.h"
+#include "MurmurHash.h"
+#include "inis/TerrainINI.h"
 
 namespace ZH {
 

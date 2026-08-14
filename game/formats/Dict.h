@@ -8,8 +8,8 @@
 #include <utility>
 #include <variant>
 
-#include "../common.h"
-#include "../InflatingStream.h"
+#include "common.h"
+#include "InflatingStream.h"
 
 namespace ZH {
 

@@ -5,9 +5,9 @@
 
 #include <unordered_map>
 
-#include "../common.h"
+#include "common.h"
 #include "INIFile.h"
-#include "../objects/Object.h"
+#include "objects/Object.h"
 
 namespace ZH {
 

@@ -1,10 +1,10 @@
 #include <algorithm>
 #include <gtest/gtest.h>
 
-#include "../Config.h"
-#include "../MurmurHash.h"
-#include "../ResourceLoader.h"
-#include "../inis/ObjectsINI.h"
+#include "Config.h"
+#include "MurmurHash.h"
+#include "ResourceLoader.h"
+#include "inis/ObjectsINI.h"
 
 namespace ZH {
 

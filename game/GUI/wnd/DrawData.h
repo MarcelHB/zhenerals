@@ -5,8 +5,8 @@
 
 #include <array>
 
-#include "../../common.h"
-#include "../../Color.h"
+#include "common.h"
+#include "Color.h"
 
 namespace ZH::GUI::WND {
 

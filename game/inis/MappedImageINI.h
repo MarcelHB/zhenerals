@@ -6,8 +6,8 @@
 #include <optional>
 #include <unordered_map>
 
-#include "../common.h"
-#include "../Dimensions.h"
+#include "common.h"
+#include "Dimensions.h"
 #include "INIFile.h"
 
 namespace ZH {

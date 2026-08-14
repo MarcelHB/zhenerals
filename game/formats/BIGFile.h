@@ -8,7 +8,7 @@
 #include <string>
 #include <unordered_map>
 
-#include "../common.h"
+#include "common.h"
 
 namespace ZH {
 

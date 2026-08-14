@@ -3,12 +3,12 @@
 #ifndef H_GAME_PATCH_RENDERER
 #define H_GAME_PATCH_RENDERER
 
-#include "../Battlefield.h"
-#include "../Config.h"
-#include "../gfx/FrameDisposable.h"
-#include "../gfx/TextureCache.h"
-#include "../inis/RoadsBridgesINI.h"
-#include "../vugl/vugl_context.h"
+#include "Battlefield.h"
+#include "Config.h"
+#include "gfx/FrameDisposable.h"
+#include "gfx/TextureCache.h"
+#include "inis/RoadsBridgesINI.h"
+#include "vugl/vugl_context.h"
 
 namespace ZH {
 

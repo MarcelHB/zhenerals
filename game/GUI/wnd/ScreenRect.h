@@ -3,8 +3,8 @@
 #ifndef H_GUI_WND_SCREEN_RECT
 #define H_GUI_WND_SCREEN_RECT
 
-#include "../../common.h"
-#include "../../Dimensions.h"
+#include "common.h"
+#include "Dimensions.h"
 
 namespace ZH::GUI::WND {
 

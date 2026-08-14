@@ -4,8 +4,8 @@
 
 #include <gtest/gtest.h>
 
-#include "../MurmurHash.h"
-#include "../inis/SoundEffectsINI.h"
+#include "MurmurHash.h"
+#include "inis/SoundEffectsINI.h"
 
 namespace ZH {
 

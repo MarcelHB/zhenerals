@@ -7,7 +7,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/ext/quaternion_float.hpp>
 
-#include "../common.h"
+#include "common.h"
 #include "W3DFile.h"
 
 namespace ZH {

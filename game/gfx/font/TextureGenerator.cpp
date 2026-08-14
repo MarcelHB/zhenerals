@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0
 
-#include "../../Logging.h"
+#include "Logging.h"
 #include "TextureGenerator.h"
 
 const static size_t BUFFER_DIMENSION = 256;

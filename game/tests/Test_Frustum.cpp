@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include "../gfx/Frustum.h"
+#include "gfx/Frustum.h"
 
 #include <glm/gtx/rotate_vector.hpp>
 

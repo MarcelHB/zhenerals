@@ -3,7 +3,7 @@
 #define GLM_FORCE_RADIANS
 #include <glm/gtc/matrix_transform.hpp>
 
-#include "../gfx/Frustum.h"
+#include "gfx/Frustum.h"
 #include "PatchRenderer.h"
 
 namespace ZH {
