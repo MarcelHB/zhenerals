@@ -345,6 +345,12 @@ void BattlefieldRenderer::renderObjectInstances(
 
   // TODO instance movement, check for new/deleted instances
   if (newMatrices) {
+    glm::mat4 axisFlip {1.0f};
+    axisFlip[1][1] = 0.0f;
+    axisFlip[1][2] = 1.0f;
+    axisFlip[2][1] = 1.0f;
+    axisFlip[2][2] = 0.0f;
+
     auto& camera = battlefield.getCamera();
     auto& camMatrix = camera.getCameraMatrix();
     drawChecks.clear();
@@ -363,7 +369,7 @@ void BattlefieldRenderer::renderObjectInstances(
 
       // bounding sphere to world
       auto& sphere = drawCheck.sphere;
-      drawCheck.sphere.position = glm::vec3 {modelMatrix * glm::vec4 {sphere.position, 1.0f}};
+      drawCheck.sphere.position = glm::vec3 {modelMatrix * axisFlip * glm::vec4 {sphere.position, 1.0f}};
       drawCheck.draw = frustrum.isSphereInside(sphere.position, sphere.radius);
       drawCheck.dist = glm::length(camera.getPosition() - sphere.position);
     }
