@@ -47,8 +47,7 @@ Model Model::fromW3D(const W3DModel& w3d) {
 
   model.boundingBoxFrom = w3d.boundingBoxFrom;
   model.boundingBoxTo = w3d.boundingBoxTo;
-  model.boundingSphere = w3d.boundingSphere;
-  model.boundingSphereRadius = w3d.boundingSphereRadius;
+  model.boundingSphere = Sphere { glm::vec3 { w3d.boundingSphere }, w3d.boundingSphereRadius };
 
   if (w3d.flags & 0x2000) {
     model.backfaceCulling = false;

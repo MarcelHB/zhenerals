@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <cassert>
 
+#include "Geometry.h"
 #include "gfx/VkExt.h"
 #include "ModelRenderer.h"
 
@@ -114,6 +115,25 @@ bool ModelRenderer::prepareModel(
 
   createPivotBuffer(renderData, std::move(pivotMatrices));
 
+  auto boundingSphere = (*models)[0]->boundingSphere;
+
+  if (models->size() > 1) {
+    std::vector<Sphere> spheres;
+    spheres.reserve(models->size());
+
+    uint32_t i = 0;
+    for (auto& model : *models) {
+      Sphere sphere = model->boundingSphere;
+      sphere.position =
+        glm::vec3 {model->transformation * glm::vec4 {sphere.position, 1.0f}};
+      spheres.push_back(sphere);
+    }
+
+    boundingSphere = getSphereFromSpheres(spheres.cbegin(), spheres.cend());
+  }
+
+  renderData.boundingSphere = boundingSphere;
+
   uint32_t i = 0;
   for (auto& model : *models) {
     MurmurHash3_32 hasher;
@@ -141,16 +161,9 @@ bool ModelRenderer::prepareModel(
       vertexData.emplace(std::make_pair(key, std::move(modelVertices)));
     }
 
-    // Assume the biggest radius is the one to use for everything
-    if (model->boundingSphereRadius > renderData.boundingSphere.radius) {
-      renderData.boundingSphere.radius = model->boundingSphereRadius;
-      renderData.boundingSphere.position =
-        glm::vec3 {renderData.transformations[i] * glm::vec4 {model->boundingSphere, 1.0f}};
-    }
-
     renderData.boundingSpheres[i] = {
-        glm::vec3 {renderData.transformations[i] * glm::vec4 {model->boundingSphere, 1.0f}}
-      , model->boundingSphereRadius
+        glm::vec3 {renderData.transformations[i] * glm::vec4 {model->boundingSphere.position, 1.0f}}
+      , model->boundingSphere.radius
     };
 
     i += 1;

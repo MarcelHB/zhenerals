@@ -9,6 +9,7 @@
 #include <glm/glm.hpp>
 
 #include "common.h"
+#include "Geometry.h"
 #include "formats/W3DFile.h"
 
 namespace ZH {
@@ -30,8 +31,7 @@ struct Model {
 
   glm::vec3 boundingBoxFrom;
   glm::vec3 boundingBoxTo;
-  glm::vec3 boundingSphere;
-  float boundingSphereRadius = 1.0f;
+  Sphere boundingSphere;
 
   bool backfaceCulling = true;
 
