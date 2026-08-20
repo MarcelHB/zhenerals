@@ -3,6 +3,7 @@
 #ifndef H_GAME_GEOMETRY
 #define H_GAME_GEOMETRY
 
+#include <iterator>
 #include <vector>
 
 #include <glm/gtc/matrix_transform.hpp>
@@ -120,6 +121,81 @@ std::vector<uint8_t> getPointsInPolygon(
 }
 // returns height (y) of `pos` between these vertices
 float interpolateVertexTriangle(const glm::vec3& v1, const glm::vec3& v2, const glm::vec3& v3, const glm::vec2& pos);
+
+// returns a sphere covering all spheres internally, supposedly minimal?
+template<std::input_iterator It> requires std::convertible_to<std::iter_value_t<It>, Sphere>
+Sphere getSphereFromSpheres(It start, It end) {
+  Sphere sphere;
+  // min/max positions for X, Y, Z
+  std::array<glm::vec3, 6> extremePositions;
+
+  std::array<glm::vec3, 3> units;
+  units[0] = glm::vec3 { 1.0f, 0.0f, 0.0f };
+  units[1] = glm::vec3 { 0.0f, 1.0f, 0.0f };
+  units[2] = glm::vec3 { 0.0f, 0.0f, 1.0f };
+
+  bool first = true;
+
+  auto current = start;
+  while (current != end) {
+    auto minX = (current->position - current->radius * units[0]);
+    auto maxX = (current->position + current->radius * units[0]);
+    auto minY = (current->position - current->radius * units[1]);
+    auto maxY = (current->position + current->radius * units[1]);
+    auto minZ = (current->position - current->radius * units[2]);
+    auto maxZ = (current->position + current->radius * units[2]);
+
+    if (first) {
+      extremePositions[0] = minX;
+      extremePositions[1] = maxX;
+      extremePositions[2] = minY;
+      extremePositions[3] = maxX;
+      extremePositions[4] = minZ;
+      extremePositions[5] = maxZ;
+
+      first = false;
+      current++;
+      continue;
+    }
+
+    if (minX.x < extremePositions[0].x) {
+      extremePositions[0] = minX;
+    }
+    if (maxX.x > extremePositions[1].x) {
+      extremePositions[1] = maxX;
+    }
+    if (minY.y < extremePositions[2].y) {
+      extremePositions[2] = minY;
+    }
+    if (maxY.y > extremePositions[3].y) {
+      extremePositions[3] = maxY;
+    }
+    if (minZ.z < extremePositions[4].z) {
+      extremePositions[4] = minZ;
+    }
+    if (maxZ.z > extremePositions[5].z) {
+      extremePositions[5] = maxZ;
+    }
+
+    current++;
+  }
+
+  sphere.position = {
+      extremePositions[0].x + (extremePositions[1].x - extremePositions[0].x) / 2.0f
+    , extremePositions[2].y + (extremePositions[3].y - extremePositions[2].y) / 2.0f
+    , extremePositions[4].z + (extremePositions[5].z - extremePositions[4].z) / 2.0f
+  };
+  sphere.radius =
+    std::max(
+        glm::length(extremePositions[1] - sphere.position)
+      , std::max(
+            glm::length(extremePositions[3] - sphere.position)
+          , glm::length(extremePositions[5] - sphere.position)
+        )
+    );
+
+  return sphere;
+}
 
 }
 

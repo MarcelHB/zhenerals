@@ -39,4 +39,25 @@ TEST(Geometry, getPointsInPolygon) {
   EXPECT_EQ(0, result[15]);
 }
 
+TEST(Geometry, getSpheresFromSpheres) {
+  std::vector<Sphere> spheresXAxis = {{
+      { {-5.0f, 0.0f, 0.0f}, 1.0f }
+    , { { 5.0f, 0.0f, 0.0f}, 1.0f }
+  }};
+
+  auto sphere = getSphereFromSpheres(spheresXAxis.cbegin(), spheresXAxis.cend());
+  EXPECT_EQ(6, sphere.radius);
+  EXPECT_EQ((glm::vec3 { 0.0f, 0.0f, 0.0f }), sphere.position);
+
+  std::vector<Sphere> spheresT = {{
+      { {-5.0f, 0.0f, 0.0f}, 1.0f }
+    , { { 5.0f, 0.0f, 0.0f}, 1.0f }
+    , { { 0.0f, 8.0f, 0.0f}, 1.0f }
+  }};
+
+  sphere = getSphereFromSpheres(spheresT.cbegin(), spheresT.cend());
+  EXPECT_FLOAT_EQ(std::sqrt(52), sphere.radius);
+  EXPECT_EQ((glm::vec3 { 0.0f, 4.0f, 0.0f }), sphere.position);
+}
+
 }
