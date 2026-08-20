@@ -23,7 +23,7 @@ void InstanceRenderer::finishResourceCounting() {
   modelRenderer.beginResourceCounting();
 }
 
-ModelRenderer::BoundingSphere InstanceRenderer::getBoundingSphere(const Objects::Instance& instance) const {
+Sphere InstanceRenderer::getBoundingSphere(const Objects::Instance& instance) const {
   auto lookup = drawData.find(instance.getID());
   if (lookup == drawData.cend()) {
     return {};

@@ -203,7 +203,7 @@ void ModelRenderer::bindPipeline(Vugl::CommandBuffer& commandBuffer) {
   commandBuffer.bindResource(*pipeline);
 }
 
-ModelRenderer::BoundingSphere ModelRenderer::getBoundingSphere(uint64_t id) const {
+Sphere ModelRenderer::getBoundingSphere(uint64_t id) const {
   auto lookup = renderDataMap.find(id);
   if (lookup == renderDataMap.cend()) {
     return {};

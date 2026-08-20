@@ -33,7 +33,7 @@ class BattlefieldRenderer {
   private:
     struct DrawCheck {
       std::shared_ptr<Objects::Instance> instance;
-      ModelRenderer::BoundingSphere sphere;
+      Sphere sphere;
       float dist = 0.0f;
       bool draw = true;
     };

@@ -31,7 +31,7 @@ class InstanceRenderer {
     void finishResourceCounting();
     void bindPipeline(Vugl::CommandBuffer&);
 
-    ModelRenderer::BoundingSphere getBoundingSphere(const Objects::Instance&) const;
+    Sphere getBoundingSphere(const Objects::Instance&) const;
 
     bool needsUpdate(const Objects::Instance&, uint32_t frameIdx) const;
     bool prepareInstance(const Objects::Instance&);
@@ -63,7 +63,7 @@ class InstanceRenderer {
         std::set<Objects::ModelCondition> applicableConditions;
       };
 
-      ModelRenderer::BoundingSphere boundingSphere;
+      Sphere boundingSphere;
       std::vector<DrawState> currentDrawStates;
       uint32_t frameIdxSet = 0;
       std::vector<std::vector<uint64_t>> modelRegistry;

@@ -183,6 +183,7 @@ ADD_EXECUTABLE(zhen
   game/common.cpp
   game/EventDispatcher.cpp
   game/Game.cpp
+  game/Geometry.cpp
   game/formats/AudioFile.cpp
   game/formats/BIGFile.cpp
   game/formats/CSFFile.cpp
@@ -583,6 +584,7 @@ ADD_UNIT_TEST(WNDFile
 ADD_GAME_TEST(MAPFile
   game/Battlefield.cpp
   game/BattlefieldFactory.cpp
+  game/Geometry.cpp
   game/gfx/Camera.cpp
   game/gfx/HostTexture.cpp
   game/gfx/Model.cpp

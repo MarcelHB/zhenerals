@@ -5,6 +5,7 @@
 
 #include "common.h"
 #include "Config.h"
+#include "Geometry.h"
 #include "gfx/FrameDisposable.h"
 #include "gfx/ModelCache.h"
 #include "gfx/TextureCache.h"
@@ -14,14 +15,6 @@ namespace ZH {
 
 class ModelRenderer {
   public:
-    struct BoundingSphere {
-      BoundingSphere() = default;
-      BoundingSphere(glm::vec3 && pos, float r) : position(std::move(pos)), radius(r) {}
-
-      glm::vec3 position {0.0f};
-      float radius = 0.0f;
-    };
-
     ModelRenderer(
         Vugl::Context&
       , const Config& config
@@ -40,7 +33,7 @@ class ModelRenderer {
     );
 
     void bindPipeline(Vugl::CommandBuffer&);
-    BoundingSphere getBoundingSphere(uint64_t id) const;
+    Sphere getBoundingSphere(uint64_t id) const;
 
     void updateModel(
         uint64_t id
@@ -75,8 +68,8 @@ class ModelRenderer {
       size_t numModels = 1;
       std::vector<OrderPair> drawOrder;
       std::vector<bool> backfaceCulling;
-      std::vector<BoundingSphere> boundingSpheres;
-      BoundingSphere boundingSphere;
+      std::vector<Sphere> boundingSpheres;
+      Sphere boundingSphere;
     };
 
     Vugl::Context& vuglContext;
