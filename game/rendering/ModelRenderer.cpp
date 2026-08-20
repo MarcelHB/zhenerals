@@ -112,10 +112,9 @@ bool ModelRenderer::prepareModel(
   renderData.drawOrder.resize(models->size());
   renderData.backfaceCulling.resize(models->size());
   renderData.boundingSpheres.resize(models->size());
+  renderData.boundingSphere = (*models)[0]->boundingSphere;
 
   createPivotBuffer(renderData, std::move(pivotMatrices));
-
-  auto boundingSphere = (*models)[0]->boundingSphere;
 
   if (models->size() > 1) {
     std::vector<Sphere> spheres;
@@ -129,10 +128,8 @@ bool ModelRenderer::prepareModel(
       spheres.push_back(sphere);
     }
 
-    boundingSphere = getSphereFromSpheres(spheres.cbegin(), spheres.cend());
+    renderData.boundingSphere = getSphereFromSpheres(spheres.cbegin(), spheres.cend());
   }
-
-  renderData.boundingSphere = boundingSphere;
 
   uint32_t i = 0;
   for (auto& model : *models) {
