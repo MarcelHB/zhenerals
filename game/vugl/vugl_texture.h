@@ -27,6 +27,7 @@ class Texture : public UploadableResource {
     VmaAllocation vmaTextureAllocation;
     VkImageView vkTextureView;
     uint32_t mipLevels = 1;
+    bool uploaded;
 
     void generateMipMaps();
   public:

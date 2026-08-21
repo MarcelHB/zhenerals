@@ -15,6 +15,7 @@ Texture::Texture (Texture && other)
   , vmaTextureAllocation{other.vmaTextureAllocation}
   , vkTextureView{other.vkTextureView}
   , mipLevels{other.mipLevels}
+  , uploaded{other.uploaded}
 {
   other.vkStagingBuffer = VK_NULL_HANDLE;
   other.vmaStagingBufferAllocation = VK_NULL_HANDLE;
@@ -34,6 +35,7 @@ Texture::Texture (VkDevice vkDevice, ResourceAllocator& allocator)
   , vmaTextureAllocation{VK_NULL_HANDLE}
   , vkTextureView{VK_NULL_HANDLE}
   , mipLevels{1}
+  , uploaded{false}
 {}
 
 Texture::~Texture () {
@@ -79,6 +81,10 @@ VkImageView Texture::getVkImageView () const {
 }
 
 VkResult Texture::recordUploadCommands (VkCommandBuffer vkCommandBuffer) {
+  if (uploaded) {
+    return VK_SUCCESS;
+  }
+
   VkPipelineStageFlags vkSrcStageFlags;
   VkPipelineStageFlags vkDstStageFlags;
 
@@ -272,6 +278,8 @@ VkResult Texture::recordUploadCommands (VkCommandBuffer vkCommandBuffer) {
     , 1
     , &vkMipMapBarrier
   );
+
+  this->uploaded = true;
 
   return VK_SUCCESS;
 }
