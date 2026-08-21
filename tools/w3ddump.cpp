@@ -311,6 +311,7 @@ Result parseChunk(std::istream& stream, uint16_t depth, State& state) {
       break;
     case 0x49:
       dump(depth, "Chunk 0x{:x}: (Texture IDs)", chunkType);
+      dump(d1, "# IDs: {}", chunkSize / sizeof(uint32_t));
       skip = true;
       break;
     case 0x4A:
