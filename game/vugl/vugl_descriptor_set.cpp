@@ -126,6 +126,10 @@ VkResult DescriptorSet::recordBindCommands (VkCommandBuffer vkCommandBuffer, uin
   return VK_SUCCESS;
 }
 
+void DescriptorSet::setMinTexturePoolCapacity (uint32_t min) {
+  this->minTexturePoolCapacity = min;
+}
+
 void DescriptorSet::setPipelineBindPoint (VkPipelineBindPoint bindPoint) {
   this->vkPipelineBindPoint = bindPoint;
 }
@@ -196,7 +200,11 @@ void DescriptorSet::updateDevice () {
       poolSizes.resize(poolSizes.size() + 1);
       auto& vkDescPoolSize = poolSizes[poolSizes.size() - 1];
       vkDescPoolSize.type = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
-      vkDescPoolSize.descriptorCount = numSwapchainImages * assignedTextures.size();
+      vkDescPoolSize.descriptorCount =
+        numSwapchainImages * std::max(
+            minTexturePoolCapacity
+          , static_cast<uint32_t>(assignedTextures.size())
+        );
     }
 
     if (assignedStorageImages.size() > 0) {

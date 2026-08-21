@@ -50,6 +50,7 @@ class DescriptorSet : public BindableResource {
     std::vector<BindingInfo> bindings;
     std::unordered_map<uint32_t, std::vector<std::reference_wrapper<const Texture>>> textureGrouping;
 
+    uint32_t minTexturePoolCapacity = 0;
   public:
     DescriptorSet (const DescriptorSet&) = delete;
     DescriptorSet& operator= (const DescriptorSet&) = delete;
@@ -73,6 +74,8 @@ class DescriptorSet : public BindableResource {
     VkResult getLastResult () const;
     VkDescriptorSet getVkDescriptorSet (size_t index) const;
     VkResult recordBindCommands (VkCommandBuffer vkCommandBuffer, uint32_t i) override;
+    // use when assigning less textures than what the layout expects
+    void setMinTexturePoolCapacity (uint32_t);
     void setPipelineBindPoint (VkPipelineBindPoint bindPoint);
     void updateDevice ();
 };
