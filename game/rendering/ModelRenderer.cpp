@@ -9,6 +9,8 @@
 
 namespace ZH {
 
+constexpr uint32_t NUM_ALLOWED_TEXTURES = 24;
+
 ModelRenderer::ModelRenderer(
     Vugl::Context& vuglContext
   , const Config& config
@@ -51,18 +53,20 @@ bool ModelRenderer::preparePipeline(Vugl::RenderPass& renderPass) {
   pipelineSetup.addDynamicState(VK_DYNAMIC_STATE_CULL_MODE);
 
   pipelineSetup.reserveUniformBuffer(VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT);
-  pipelineSetup.reserveCombinedSampler(VK_SHADER_STAGE_FRAGMENT_BIT);
+  pipelineSetup.reserveSampler(VK_SHADER_STAGE_FRAGMENT_BIT);
+  pipelineSetup.reserveTexture(VK_SHADER_STAGE_FRAGMENT_BIT, NUM_ALLOWED_TEXTURES);
   pipelineSetup.reserveUniformBuffer(VK_SHADER_STAGE_VERTEX_BIT);
-  pipelineSetup.vkDescriptorSetLayoutBindings[2].descriptorCount = MAX_PIVOT_MATRICES;
+  pipelineSetup.vkDescriptorSetLayoutBindings[3].descriptorCount = MAX_PIVOT_MATRICES;
 
   VkDescriptorBindingFlags vkDynamicDescriptorCountsFlags[] = {
       0
+    , 0
     , 0
     , VK_DESCRIPTOR_BINDING_VARIABLE_DESCRIPTOR_COUNT_BIT_EXT
   };
   VkDescriptorSetLayoutBindingFlagsCreateInfo vkDynamicDescriptorCounts = {};
   vkDynamicDescriptorCounts.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_BINDING_FLAGS_CREATE_INFO;
-  vkDynamicDescriptorCounts.bindingCount = 3;
+  vkDynamicDescriptorCounts.bindingCount = 4;
   vkDynamicDescriptorCounts.pBindingFlags = vkDynamicDescriptorCountsFlags;
 
   pipelineSetup.vkDescriptorSetLayoutCreateInfo.pNext = &vkDynamicDescriptorCounts;
@@ -75,6 +79,8 @@ bool ModelRenderer::preparePipeline(Vugl::RenderPass& renderPass) {
 
   pipeline =
     std::make_shared<Vugl::Pipeline>(vuglContext.createPipeline(pipelineSetup, renderPass.getVkRenderPass()));
+  textureSampler =
+    std::make_shared<Vugl::Sampler>(vuglContext.createSampler());
 
   if (pipeline->getLastResult() != VK_SUCCESS) {
     return false;
@@ -166,23 +172,37 @@ bool ModelRenderer::prepareModel(
 
     i += 1;
 
-    // EVAL per-triangle texture
-    // EVAL somethings without textures
-    std::string textureName {"cbsandbw.dds"};
-    if (!model->textures.empty()) {
-      textureName = model->textures.back();
-    }
-    auto sampler = textureCache.getTextureSampler(textureName, true);
-    if (!sampler) {
-      WARN_ZH("BattlefieldRenderer", "Failed to load model texture {}", textureName);
-      return false;
-    }
-
     descriptorSet.assignUniformBuffer(uniformBuffer);
-    descriptorSet.assignCombinedSampler(*sampler);
-    descriptorSet.assignUniformBuffer(*renderData.pivotBuffer);
-    vuglContext.uploadResource(*sampler);
+    descriptorSet.assignSampler(*textureSampler);
+    descriptorSet.setMinTexturePoolCapacity(NUM_ALLOWED_TEXTURES);
+    renderData.textures.reserve(model->textures.empty() ? 1 : model->textures.size());
 
+    // EVAL some things without textures, use placeholder for now
+    if (model->textures.empty()) {
+      std::string textureName {"cbsandbw.dds"};
+      auto texture = renderData.textures.emplace_back(textureCache.getTexture(textureName, true));
+      descriptorSet.assignTexture(*texture, 2);
+      vuglContext.uploadResource(*texture);
+    } else {
+      size_t j = 0;
+      for (auto& textureName : model->textures) {
+        auto texture = renderData.textures.emplace_back(textureCache.getTexture(textureName, true));
+        if (!texture) {
+          WARN_ZH("BattlefieldRenderer", "Model texture {} not found", textureName);
+          continue;
+        }
+        descriptorSet.assignTexture(*texture, 2);
+        vuglContext.uploadResource(*texture);
+
+        j += 1;
+        if (j >= NUM_ALLOWED_TEXTURES) {
+          WARN_ZH("BattlefieldRenderer", "Model {} expects more textures than currently supported.", modelName);
+          break;
+        }
+      }
+    }
+
+    descriptorSet.assignUniformBuffer(*renderData.pivotBuffer);
     descriptorSet.updateDevice();
   }
 

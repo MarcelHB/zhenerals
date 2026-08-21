@@ -64,6 +64,7 @@ class ModelRenderer {
       std::vector<Vugl::UniformBuffer> uniformBuffers;
       std::vector<ShaderData> shaderData;
       std::vector<PivotData> pivotData;
+      std::vector<std::shared_ptr<Vugl::Texture>> textures;
       uint32_t vertexKey = 0;
       size_t numModels = 1;
       std::vector<OrderPair> drawOrder;
@@ -79,6 +80,7 @@ class ModelRenderer {
     GFX::TextureCache& textureCache;
     std::unordered_map<uint64_t, RenderData> renderDataMap;
     std::unordered_map<uint32_t, std::shared_ptr<Vugl::ElementBuffer>> vertexData;
+    std::shared_ptr<Vugl::Sampler> textureSampler;
 
     void createPivotBuffer(RenderData&, std::vector<glm::mat4>&&);
 };

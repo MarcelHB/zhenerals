@@ -14,7 +14,7 @@ layout(binding = 0) uniform Scene {
   uint pivotEnabler;
 } scene;
 
-layout(binding = 2) uniform Pivot {
+layout(binding = 3) uniform Pivot {
   mat4 matrix;
 } pivotMatrices[];
 
