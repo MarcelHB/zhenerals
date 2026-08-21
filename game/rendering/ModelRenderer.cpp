@@ -61,7 +61,7 @@ bool ModelRenderer::preparePipeline(Vugl::RenderPass& renderPass) {
   VkDescriptorBindingFlags vkDynamicDescriptorCountsFlags[] = {
       0
     , 0
-    , 0
+    , VK_DESCRIPTOR_BINDING_PARTIALLY_BOUND_BIT
     , VK_DESCRIPTOR_BINDING_VARIABLE_DESCRIPTOR_COUNT_BIT_EXT
   };
   VkDescriptorSetLayoutBindingFlagsCreateInfo vkDynamicDescriptorCounts = {};
