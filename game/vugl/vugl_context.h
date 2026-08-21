@@ -137,6 +137,7 @@ class Context {
     Pipeline createPipeline (const PipelineSetup&, VkRenderPass renderPass);
     RenderPass createRenderPass (const RenderPassSetup&);
     CombinedSampler createCombinedSampler ();
+    CombinedSampler createCombinedSampler (std::shared_ptr<Vugl::Texture>&);
     CombinedSampler createCombinedSampler (const VkSamplerCreateInfo&);
     Sampler createSampler ();
     Sampler createSampler (const VkSamplerCreateInfo&);

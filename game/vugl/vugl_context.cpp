@@ -522,6 +522,10 @@ CombinedSampler Context::createCombinedSampler () {
   return CombinedSampler{vkDevice, resourceAllocator};
 }
 
+CombinedSampler Context::createCombinedSampler (std::shared_ptr<Vugl::Texture>& texture) {
+  return {vkDevice, texture};
+}
+
 CombinedSampler Context::createCombinedSampler (const VkSamplerCreateInfo& createInfo) {
   return {vkDevice, createInfo, resourceAllocator};
 }

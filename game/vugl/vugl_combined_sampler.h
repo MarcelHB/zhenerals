@@ -10,8 +10,7 @@ namespace Vugl {
 
 class CombinedSampler : public Sampler, public UploadableResource {
   private:
-    Vugl::Texture texture;
-    VkExtent2D extent;
+    std::shared_ptr<Vugl::Texture> texture;
 
   public:
     CombinedSampler (const CombinedSampler&) = delete;
@@ -20,10 +19,10 @@ class CombinedSampler : public Sampler, public UploadableResource {
 
     CombinedSampler (CombinedSampler &&);
     CombinedSampler (VkDevice vkDevice, ResourceAllocator& allocator);
+    CombinedSampler (VkDevice vkDevice, std::shared_ptr<Vugl::Texture>&);
     CombinedSampler (VkDevice vkDevice, const VkSamplerCreateInfo& createInfo, ResourceAllocator& allocator);
-    ~CombinedSampler();
+    CombinedSampler (VkDevice vkDevice, const VkSamplerCreateInfo& createInfo, std::shared_ptr<Vugl::Texture>&);
 
-    void destroy ();
     void deleteGPUData () override;
     void deleteHostData () override;
 
@@ -40,14 +39,14 @@ class CombinedSampler : public Sampler, public UploadableResource {
       , VkFormat format
       , uint32_t mipMaps = 1
     ) {
-      texture.createTexture(data, extent, format, mipMaps);
-      vkLastResult = texture.getLastResult();
+      texture->createTexture(data, extent, format, mipMaps);
+      vkLastResult = texture->getLastResult();
     }
 
     template<typename T>
     void updateTexture (const std::vector<T>& data) {
-      texture.updateTexture<T>(data);
-      vkLastResult = texture.getLastResult();
+      texture->updateTexture<T>(data);
+      vkLastResult = texture->getLastResult();
     }
 };
 

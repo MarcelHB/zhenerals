@@ -9,52 +9,55 @@ CombinedSampler::CombinedSampler (CombinedSampler && other)
   , texture{std::move(other.texture)}
 {
   other.vkSampler = VK_NULL_HANDLE;
+  other.texture.reset();
 }
 
 CombinedSampler::CombinedSampler (VkDevice vkDevice, ResourceAllocator& allocator)
   : Sampler(vkDevice)
-  , texture{vkDevice, allocator}
+{
+  this->texture = std::make_shared<Vugl::Texture>(vkDevice, allocator);
+}
+
+CombinedSampler::CombinedSampler (VkDevice vkDevice, std::shared_ptr<Vugl::Texture>& texture)
+  : Sampler(vkDevice)
+  , texture{texture}
 {
 }
 
 CombinedSampler::CombinedSampler (VkDevice vkDevice, const VkSamplerCreateInfo& createInfo, ResourceAllocator& allocator)
   : Sampler(vkDevice, createInfo)
-  , texture{vkDevice, allocator}
+{
+  createSampler(createInfo);
+  this->texture = std::make_shared<Vugl::Texture>(vkDevice, allocator);
+}
+
+CombinedSampler::CombinedSampler (VkDevice vkDevice, const VkSamplerCreateInfo& createInfo, std::shared_ptr<Vugl::Texture>& texture)
+  : Sampler(vkDevice, createInfo)
+  , texture{texture}
 {
   createSampler(createInfo);
 }
 
-CombinedSampler::~CombinedSampler () {
-  destroy();
-}
-
-void CombinedSampler::destroy() {
-  deleteGPUData();
-  deleteHostData();
-}
-
 void CombinedSampler::deleteGPUData () {
-  texture.deleteGPUData();
 }
 
 void CombinedSampler::deleteHostData () {
-  texture.deleteHostData();
 }
 
 VkExtent2D CombinedSampler::getExtent () const {
-  return texture.getExtent();
+  return texture->getExtent();
 }
 
 VkImage CombinedSampler::getVkImage () const {
-  return texture.getVkImage();
+  return texture->getVkImage();
 }
 
 VkImageView CombinedSampler::getVkImageView () const {
-  return texture.getVkImageView();
+  return texture->getVkImageView();
 }
 
 VkResult CombinedSampler::recordUploadCommands (VkCommandBuffer vkCommandBuffer) {
-  return texture.recordUploadCommands(vkCommandBuffer);
+  return texture->recordUploadCommands(vkCommandBuffer);
 }
 
 }
