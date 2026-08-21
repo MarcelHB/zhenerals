@@ -17,6 +17,9 @@ Model Model::fromW3D(const W3DModel& w3d) {
   auto& materialPass = w3d.materialPasses.back();
   bool hasUVs = !materialPass.uv.empty();
 
+  bool hasTextures = !materialPass.textureIndices.empty();
+  bool oneTexture = materialPass.textureIndices.size() == 1;
+
   for (size_t i = 0; i < w3d.vertices.size(); ++i) {
     auto& vertexData = model.vertexData[i];
     vertexData.position = w3d.vertices[i];
@@ -32,6 +35,11 @@ Model Model::fromW3D(const W3DModel& w3d) {
     if (hasPivots) {
       vertexData.pivotIdx = w3d.pivotIdxs[i];
     }
+
+    // per triangle
+    if (hasTextures) {
+      vertexData.textureIdx = materialPass.textureIndices[oneTexture ? 0 : (i / 3)];
+    }
   }
 
   model.vertexIndices.resize(w3d.triangles.size() * 3);
@@ -42,7 +50,6 @@ Model Model::fromW3D(const W3DModel& w3d) {
   }
 
   model.textures = w3d.textures;
-  model.textureIndices = materialPass.textureIndices;
   model.transformation = w3d.transformation;
 
   model.boundingBoxFrom = w3d.boundingBoxFrom;

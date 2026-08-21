@@ -21,12 +21,12 @@ struct Model {
     glm::vec2 uv;
     // EVAL wasteful but alignment requirements in shader
     uint32_t pivotIdx = 0;
+    uint32_t textureIdx = 0;
   };
 
   std::vector<VertexData> vertexData;
   std::vector<uint32_t> vertexIndices;
   std::vector<std::string> textures;
-  std::vector<uint32_t> textureIndices;
   glm::mat4 transformation {1.0f};
 
   glm::vec3 boundingBoxFrom;
