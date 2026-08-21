@@ -203,7 +203,6 @@ bool BattlefieldRenderer::prepareTerrainPipeline(
   terrainDescriptorSet->assignUniformBuffer(*terrainUniformBuffer);
   terrainDescriptorSet->assignSampler(*terrainTextureSampler);
 
-  terrainTextures.reserve(texturesIndex.size());
   for (auto& keyName : texturesIndex) {
     MurmurHash3_32 hasher;
     hasher.feed(keyName);
@@ -214,7 +213,7 @@ bool BattlefieldRenderer::prepareTerrainPipeline(
       continue;
     }
 
-    auto texture = terrainTextures.emplace_back(textureCache.getTexture(terrainLookup->second.textureName, true));
+    auto texture = textureCache.getTexture(terrainLookup->second.textureName, true);
     if (!texture) {
       WARN_ZH("BattlefieldRenderer", "Terrain texture not found");
       continue;
@@ -288,7 +287,7 @@ bool BattlefieldRenderer::prepareWaterPipeline(Vugl::RenderPass& renderPass) {
   waterDescriptorSet->assignUniformBuffer(*waterUniformBuffer);
   waterDescriptorSet->assignSampler(*terrainTextureSampler);
 
-  waterTexture = textureCache.getTexture("twwater01.dds", true);
+  auto waterTexture = textureCache.getTexture("twwater01.dds", true);
   if (!waterTexture) {
     return false;
   }

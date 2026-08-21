@@ -27,18 +27,18 @@ class TextureCache {
     );
 
     std::shared_ptr<Vugl::CombinedSampler> getFontTextureSampler(uint8_t, bool bold = false);
-    // not cached right now, to be done by the user
     std::shared_ptr<Vugl::Texture> getTexture(const std::string& key, bool mipMaps = false);
     std::shared_ptr<Vugl::CombinedSampler> getTextureSampler(const std::string&, bool mipMaps = false);
 
   private:
-    Cache<Vugl::CombinedSampler> textureCache;
+    Cache<Vugl::Texture> textureCache;
+    Cache<Vugl::CombinedSampler> samplerCache;
     std::unordered_map<Font::FontKey, std::shared_ptr<Vugl::CombinedSampler>> fontTextures;
     Vugl::Context& vuglContext;
     TextureLoader& textureLoader;
     Font::FontManager& fontManager;
 
-    VkFormat mappedFormat(HostTexture::Format format);
+    VkFormat mappedFormat(HostTexture::Format);
 };
 
 }

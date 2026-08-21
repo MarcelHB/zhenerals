@@ -51,6 +51,11 @@ std::shared_ptr<Vugl::CombinedSampler> TextureCache::getFontTextureSampler(uint8
 std::shared_ptr<Vugl::Texture> TextureCache::getTexture(const std::string& key, bool mipMaps) {
   TRACY(ZoneScoped);
 
+  auto textureLookup = textureCache.get(key);
+  if (textureLookup) {
+    return textureLookup;
+  }
+
   auto hostTexture = textureLoader.getTexture(key);
   if (!hostTexture) {
     return {};
@@ -71,50 +76,30 @@ std::shared_ptr<Vugl::Texture> TextureCache::getTexture(const std::string& key, 
     , numMipMaps
   );
 
-  if (texture.getLastResult() != VK_SUCCESS) {
-    WARN_ZH("TextureCache", "Failed to create Vk texture: {}", key);
-    return {};
-  }
+  auto cachedTexture =
+    std::make_shared<Vugl::Texture>(std::move(texture));
+  textureCache.put(key, cachedTexture);
 
-  return std::make_shared<Vugl::Texture>(std::move(texture));
+  return cachedTexture;
 }
 
 std::shared_ptr<Vugl::CombinedSampler> TextureCache::getTextureSampler(const std::string& key , bool mipMaps) {
   TRACY(ZoneScoped);
 
-  auto lookup = textureCache.get(key);
-  if (lookup) {
-    return lookup;
+  auto samplerLookup = samplerCache.get(key);
+  if (samplerLookup) {
+    return samplerLookup;
   }
 
-  auto hostTexture = textureLoader.getTexture(key);
-  if (!hostTexture) {
+  auto texture = getTexture(key, mipMaps);
+  if (!texture) {
     return {};
   }
 
-  auto uploadSampler = vuglContext.createCombinedSampler();
-  auto size = hostTexture->getSize();
-
-  uint32_t numMipMaps = 1;
-  if (mipMaps) {
-    numMipMaps = static_cast<uint32_t>(std::floor(std::log2(std::max(size.x, size.y)))) + 1;
-  }
-
-  uploadSampler.createTexture(
-      hostTexture->getData()
-    , VkExtent2D {size.x, size.y}
-    , mappedFormat(hostTexture->getFormat())
-    , numMipMaps
-  );
-
-  if (uploadSampler.getLastResult() != VK_SUCCESS) {
-    WARN_ZH("TextureCache", "Failed to create Vk texture: {}", key);
-    return {};
-  }
-
+  auto uploadSampler = vuglContext.createCombinedSampler(texture);
   auto cachedSampler =
     std::make_shared<Vugl::CombinedSampler>(std::move(uploadSampler));
-  textureCache.put(key, cachedSampler);
+  samplerCache.put(key, cachedSampler);
 
   return cachedSampler;
 }

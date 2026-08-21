@@ -64,11 +64,9 @@ class BattlefieldRenderer {
     std::shared_ptr<Vugl::UniformBuffer> terrainUniformBuffer;
     std::shared_ptr<Vugl::ElementBuffer> terrainVertices;
     std::shared_ptr<Vugl::Sampler> terrainTextureSampler;
-    std::vector<std::shared_ptr<Vugl::Texture>> terrainTextures;
 
     std::shared_ptr<Vugl::DescriptorSet> waterDescriptorSet;
     std::shared_ptr<Vugl::Pipeline> waterPipeline;
-    std::shared_ptr<Vugl::Texture> waterTexture;
     std::shared_ptr<Vugl::UniformBuffer> waterUniformBuffer;
     std::shared_ptr<Vugl::ElementBuffer> waterVertices;
 

@@ -180,13 +180,13 @@ bool ModelRenderer::prepareModel(
     // EVAL some things without textures, use placeholder for now
     if (model->textures.empty()) {
       std::string textureName {"cbsandbw.dds"};
-      auto texture = renderData.textures.emplace_back(textureCache.getTexture(textureName, true));
+      auto texture = textureCache.getTexture(textureName, true);
       descriptorSet.assignTexture(*texture, 2);
       vuglContext.uploadResource(*texture);
     } else {
       size_t j = 0;
       for (auto& textureName : model->textures) {
-        auto texture = renderData.textures.emplace_back(textureCache.getTexture(textureName, true));
+        auto texture = textureCache.getTexture(textureName, true);
         if (!texture) {
           WARN_ZH("BattlefieldRenderer", "Model texture {} not found", textureName);
           continue;
