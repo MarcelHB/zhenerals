@@ -10,6 +10,7 @@
 
 #include "common.h"
 #include "Dimensions.h"
+#include "ThreadPool.h"
 
 namespace ZH {
 
@@ -93,11 +94,14 @@ std::vector<uint8_t> getPointsInPolygon(
   }
 
   // scan line
-#pragma omp parallel num_threads(2)
-  {
+  ThreadPool pool {2};
+  pool.kickAll([&](uint16_t i) {
     TRACY(ZoneScoped);
-#pragma omp for
     for (size_t y = 0; y < size.y; ++y) {
+      if (y % 2 != i) {
+        continue;
+      }
+
       uint8_t lastValue = 0;
       size_t startX = 0;
 
@@ -115,7 +119,9 @@ std::vector<uint8_t> getPointsInPolygon(
         lastValue = value;
       }
     }
-  }
+  });
+  pool.waitOnTasks();
+  pool.join();
 
   return field;
 }

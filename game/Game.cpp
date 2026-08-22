@@ -2,6 +2,7 @@
 
 #include "Game.h"
 #include "Logging.h"
+#include "ThreadPool.h"
 
 namespace ZH {
 
@@ -228,6 +229,8 @@ void Game::draw(void *obj) {
     commandBuffers.emplace_back(vuglContext.createCommandBuffer(i, guiCommandPool));
   }
 
+  ThreadPool uiThreadPool {1};
+
   while (true) {
     auto& frame = vuglContext.getNextFrame();
     auto frameIndex = frame.getImageIndex();
@@ -242,16 +245,18 @@ void Game::draw(void *obj) {
 
     {
       auto lock = game->overlay->getLock();
-      // this can be done in parallel, but not well with OpenMP as
-      // parallel sections -> two sections spins two cores heavily, even when done
-      // and this can be only controlled from outside by setting `OMP_WAIT_POLICY`
+      uiThreadPool.kickAll([&](uint16_t) {
+        game->renderListFactory->createRenderList(guiSecondary, frameIndex, renderPass);
+      });
+
       game->mapRenderer->createRenderList(battlefieldSecondary, frameIndex, renderPass);
-      game->renderListFactory->createRenderList(guiSecondary, frameIndex, renderPass);
+      uiThreadPool.waitOnTasks();
 
       game->overlay->frameDoneTick();
     }
 
     if (game->terminate) {
+      uiThreadPool.join();
       break;
     }
 

@@ -15,7 +15,6 @@
 
 namespace ZH {
 
-// TODO make opening of BIG files thread-safe, and then cleanup outer `#pragma omp` around this
 class ResourceLoader {
   public:
     enum class State {

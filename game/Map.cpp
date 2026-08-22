@@ -2,7 +2,6 @@
 
 #include <algorithm>
 #include <fstream>
-#include <omp.h>
 
 #include <glm/gtc/matrix_transform.hpp>
 
@@ -13,6 +12,7 @@
 #include "Logging.h"
 #include "Map.h"
 #include "formats/TGAFile.h"
+#include "ThreadPool.h"
 
 namespace ZH {
 
@@ -282,11 +282,13 @@ void Map::tesselateHeightMap(
       );
   };
 
-#pragma omp parallel num_threads(4)
-  {
+  ThreadPool pool {4};
+  pool.kickAll([&, this](uint16_t i) {
     TRACY(ZoneScoped);
-#pragma omp for
     for (size_t y = 0; y < size.y; ++y) {
+      if (y % 4 != i) {
+        continue;
+      }
       for (size_t x = 0; x < size.x; ++x) {
         uint16_t tileTextureIndex = tileIndex[y * size.x + x];
 
@@ -446,7 +448,9 @@ void Map::tesselateHeightMap(
         }
       }
     }
-  }
+  });
+  pool.waitOnTasks();
+  pool.join();
 
   auto tooSheered = [](const glm::vec3& a, const glm::vec3& b) -> bool {
     return std::acos(glm::dot(a, b)) > glm::radians(45.0f);

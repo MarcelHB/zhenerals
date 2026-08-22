@@ -1,10 +1,11 @@
 // SPDX-License-Identifier: GPL-2.0
 
-#include <omp.h>
+#include <mutex>
 
 #include "common.h"
 #include "MurmurHash.h"
 #include "ObjectLoader.h"
+#include "ThreadPool.h"
 
 namespace ZH {
 
@@ -27,14 +28,18 @@ bool ObjectLoader::init() {
     , "data\\ini\\object\\techbuildings.ini"
   };
 
-#pragma omp parallel num_threads(4)
-  {
+  ThreadPool pool {4};
+  std::mutex mutex;
+
+  pool.kickAll([&, this](uint16_t j) {
     TRACY(ZoneScoped);
-#pragma omp for
     for (size_t i = 0; i < keys.size(); ++i) {
+      if (i % 4 != j) {
+        continue;
+      }
       std::optional<ResourceLoader::MemoryStream> fs;
-#pragma omp critical
       {
+        std::unique_lock<std::mutex> lock {mutex};
         fs = iniLoader.getFileStream(keys[i]);
       }
       if (!fs) {
@@ -46,12 +51,14 @@ bool ObjectLoader::init() {
 
       auto partialIndex = iniFile.parse();
 
-#pragma omp critical
       {
+        std::unique_lock<std::mutex> lock {mutex};
         index.merge(partialIndex);
       }
     }
-  }
+  });
+  pool.waitOnTasks();
+  pool.join();
 
   return true;
 }
