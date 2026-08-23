@@ -150,8 +150,15 @@ INSTANTIATE_TEST_SUITE_P(
       , "factionunit.ini"
       // , "gc_chem_glabuildings.ini" // OK, needs chemicalgeneral
       , "gc_chem_glasystem.ini"
+      , "gc_slth_glasystem.ini"
+      , "glaair.ini"
       , "glainfantry.ini"
+      , "glamiscunit.ini"
+      , "hulk.ini"
+      , "lasergeneral.ini"
       , "natureprop.ini"
+      , "natureunit.ini"
+      , "specialpowerobjects.ini"
       , "system.ini"
       , "techbuildings.ini"
     )

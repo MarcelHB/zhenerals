@@ -1372,6 +1372,7 @@ static INIApplierMap<Objects::HeightDie> HeightDieKVMap = {
 };
 
 static INIApplierMap<Objects::HelixContain> HelixContainKVMap = {
+  { "ShouldDrawPips", [](Objects::HelixContain& hc, INIFile& f) { hc.drawPips = f.parseBool(); return true; } }
 };
 
 static INIApplierMap<Objects::HiveStructureBody> HiveStructureBodyKVMap = {
@@ -1828,6 +1829,21 @@ static INIApplierMap<Objects::MissileAI> MissileAIKVMap = {
       auto opt = f.parseInteger();
       md.fuelLifetimeMs = opt.value_or(md.fuelLifetimeMs);
       return opt.has_value();
+    }
+  },
+  { "GarrisonHitKillCount", [](Objects::MissileAI& md, INIFile& f) {
+      auto opt = f.parseInteger();
+      md.garrisonKillCount = opt.value_or(md.garrisonKillCount);
+      return opt.has_value();
+    }
+  },
+  { "GarrisonHitKillForbiddenKindOf", [](Objects::MissileAI& md, INIFile& f) {
+      return f.parseEnumSet<Objects::Attribute>(md.garrisonKillExclusion, CALL(Objects::getAttribute));
+    }
+  },
+  { "GarrisonHitKillFX", [](Objects::MissileAI& md, INIFile& f) { md.garrisonKillEffect = f.parseString(); return !md.garrisonKillEffect.empty(); } },
+  { "GarrisonHitKillRequiredKindOf", [](Objects::MissileAI& md, INIFile& f) {
+      return f.parseEnumSet<Objects::Attribute>(md.garrisonKillInclusion, CALL(Objects::getAttribute));
     }
   },
   { "IgnitionDelay", [](Objects::MissileAI& md, INIFile& f) {
@@ -3125,6 +3141,7 @@ static INIApplierMap<Objects::ObjectBuilder> ObjectDataKVMap = {
   { "SoundAmbientRubble", [](Objects::ObjectBuilder& b, INIFile& f) { return parseSound(b, f, Objects::Noise::SOUND_AMBIENT_RUBBLE); } },
   { "SoundEnter", [](Objects::ObjectBuilder& b, INIFile& f) { return parseSound(b, f, Objects::Noise::SOUND_ENTER); } },
   { "SoundExit", [](Objects::ObjectBuilder& b, INIFile& f) { return parseSound(b, f, Objects::Noise::SOUND_EXIT); } },
+  { "SoundFallingFromPlane", [](Objects::ObjectBuilder& b, INIFile& f) { return parseSound(b, f, Objects::Noise::SOUND_FALLING_FROM_PLANE); } },
   { "SoundMoveLoop", [](Objects::ObjectBuilder& b, INIFile& f) { return parseSound(b, f, Objects::Noise::SOUND_MOVE_LOOP); } },
   { "SoundMoveStart", [](Objects::ObjectBuilder& b, INIFile& f) { return parseSound(b, f, Objects::Noise::SOUND_MOVE_START); } },
   { "SoundMoveStartDamaged", [](Objects::ObjectBuilder& b, INIFile& f) { return parseSound(b, f, Objects::Noise::SOUND_MOVE_START_DAMAGED); } },
