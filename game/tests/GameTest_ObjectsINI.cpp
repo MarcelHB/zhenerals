@@ -102,7 +102,10 @@ protected:
 
 public:
   void SetUp() override {
-    stream = *w3dLoader->getFileStream(GetParam());
+    std::string path {"data\\ini\\object\\"};
+    path.append(GetParam());
+
+    stream = *w3dLoader->getFileStream(path);
     streamView = std::move(stream.getStream());
     unit = new ObjectsINI {streamView};
   }
@@ -132,29 +135,23 @@ INSTANTIATE_TEST_SUITE_P(
     ObjectsINIInstances
   , ParamObjectsINITest
   , testing::Values(
-        "data\\ini\\object\\airforcegeneral.ini"
-      , "data\\ini\\object\\americainfantry.ini"
-      , "data\\ini\\object\\americavehicle.ini"
-      , "data\\ini\\object\\chinaair.ini"
-      , "data\\ini\\object\\chinavehicle.ini"
-      , "data\\ini\\object\\civilianbuilding.ini"
-      , "data\\ini\\object\\civilianprop.ini"
-      , "data\\ini\\object\\civilianunit.ini"
-      , "data\\ini\\object\\factionbuilding.ini"
-      , "data\\ini\\object\\glainfantry.ini"
-      , "data\\ini\\object\\natureprop.ini"
-      , "data\\ini\\object\\system.ini"
-      , "data\\ini\\object\\techbuildings.ini"
+        "airforcegeneral.ini"
+      , "americainfantry.ini"
+      , "americavehicle.ini"
+      , "chinaair.ini"
+      , "chinavehicle.ini"
+      , "civilianbuilding.ini"
+      , "civilianprop.ini"
+      , "civilianunit.ini"
+      , "factionbuilding.ini"
+      , "glainfantry.ini"
+      , "natureprop.ini"
+      , "system.ini"
+      , "techbuildings.ini"
     )
   , [](const testing::TestParamInfo<ParamObjectsINITest::ParamType>& info) {
       std::string name {info.param};
-      auto pos = name.find("\\");
-      while (std::string::npos != pos) {
-        name[pos] = '_';
-        pos = name.find("\\");
-      }
-
-      pos = name.find(".");
+      auto pos = name.find('.');
       name[pos] = '_';
 
       return name;
