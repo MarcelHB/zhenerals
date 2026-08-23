@@ -413,6 +413,29 @@ std::string INIFile::parseLooseValue() {
   return getTokenInLine();
 }
 
+// If we encounter missing `=` between key and values
+std::vector<std::string> INIFile::parseLooseStringList() {
+  advanceStream();
+
+  std::vector<std::string> values;
+
+  auto token = getTokenInLine();
+  if (token != "=") {
+    values.emplace_back(std::move(token));
+  }
+
+  advanceStreamInLine();
+  token = getTokenInLine();
+
+  while (!token.empty()) {
+    values.emplace_back(std::move(token));
+    advanceStreamInLine();
+    token = getTokenInLine();
+  }
+
+  return values;
+}
+
 std::vector<std::string> INIFile::parseStringList() {
   if (!advanceStreamOverAssignment()) {
     return {};

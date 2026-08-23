@@ -73,6 +73,7 @@ class INIFile {
     Color parseRGBA();
     std::string parseString();
     std::string parseLooseValue();
+    std::vector<std::string> parseLooseStringList();
     std::vector<std::string> parseStringList();
 
     template<typename T>
