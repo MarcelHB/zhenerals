@@ -762,7 +762,7 @@ struct HeightDie : public Module {
   bool downwardsOnly = false;
   float destroyParticlesAt = 0.0f;
   bool toGroundOnDeath = true;
-  uint32_t initialDelay = 0;
+  Duration initialDelayMs = 0;
 };
 
 struct Hijacker : public Module {
@@ -1227,11 +1227,16 @@ struct SpecialPowerUpdate : public Module {
   float abilityStartRange = 1.0f;
   bool approachRequiresLOS = true;
   std::string captureEffect;
+  std::string disableEffectParticles;
+  Duration effectDurationMs = 1000;
+  Money effectValue = 1;
   float fleeRange = 100.0f;
   bool loseStealth = true;
   uint16_t maxSpecialObjects = 1;
   bool needToFaceTarget = true;
+  std::string packSound;
   Duration packTimeMs = 1000;
+  std::string preparationSoundLoop;
   Duration preparationTimeMs = 0;
   bool persistenceRequiresRecharge = true;
   Duration persistentPreparationTimeMs = 0;
@@ -1246,6 +1251,7 @@ struct SpecialPowerUpdate : public Module {
   std::string unpackSound;
   Duration unpackTimeMs = 1000;
   Duration unstealthTimeMs = 1000;
+  std::string triggerSound;
   bool validateSpecialObject = false;
   uint32_t xpAward = 0;
 };

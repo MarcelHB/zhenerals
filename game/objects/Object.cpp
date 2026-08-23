@@ -1268,7 +1268,7 @@ std::optional<Status> getStatus(const std::string_view& value) {
     return {Status::MASKED};
   } else if (value == "IS_ATTACKING") {
     return {Status::IS_ATTACKING};
-  } else if (value == "IS_USING_ABILITY") {
+  } else if (value == "USING_ABILITY") {
     return {Status::IS_USING_ABILITY};
   } else if (value == "IS_AIMING_WEAPON") {
     return {Status::IS_AIMING_WEAPON};

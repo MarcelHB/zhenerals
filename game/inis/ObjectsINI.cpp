@@ -1354,6 +1354,14 @@ static INIApplierMap<Objects::HeightDie> HeightDieKVMap = {
       return opt.has_value();
     }
   },
+  { "InitialDelay", [](Objects::HeightDie& hd, INIFile& f) {
+      auto opt = f.parseInteger();
+      hd.initialDelayMs = opt.value_or(hd.initialDelayMs);
+      return opt.has_value();
+    }
+  },
+  { "OnlyWhenMovingDown", [](Objects::HeightDie& hd, INIFile& f) { hd.downwardsOnly = f.parseBool(); return true; } },
+  { "SnapToGroundOnDeath", [](Objects::HeightDie& hd, INIFile& f) { hd.toGroundOnDeath = f.parseBool(); return true; } },
   { "TargetHeight", [](Objects::HeightDie& hd, INIFile& f) {
       auto opt = f.parseFloat();
       hd.targetHeight = opt.value_or(hd.targetHeight);
@@ -1828,6 +1836,7 @@ static INIApplierMap<Objects::MissileAI> MissileAIKVMap = {
       return opt.has_value();
     }
   },
+  { "IgnitionFX", [](Objects::MissileAI& md, INIFile& f) { md.ignitionEffect = f.parseString(); return !md.ignitionEffect.empty(); } },
   { "InitialVelocity", [](Objects::MissileAI& md, INIFile& f) {
       auto opt = f.parseFloat();
       md.initialVelocity = opt.value_or(md.initialVelocity);
@@ -1867,7 +1876,8 @@ static INIApplierMap<Objects::MissileLauncherBuilding> MissileLauncherBuildingKV
 
 static INIApplierMap<Objects::ModelDrawData> ModelDrawDataKVMap = {
   { "AliasConditionState", [](Objects::ModelDrawData& dd, INIFile& f) {
-      auto states = f.parseStringList();
+      // chemicalgeneral.ini is broken
+      auto states = f.parseLooseStringList();
       if (states.empty()) {
         return false;
       }
@@ -2159,6 +2169,7 @@ static INIApplierMap<Objects::Physics> PhysicsDataKVMap = {
       }
   },
   { "AllowBouncing", [](Objects::Physics& p, INIFile& f) { p.bouncing = f.parseBool(); return true; } },
+  { "AllowCollideForce", [](Objects::Physics& p, INIFile& f) { p.collisionForce = f.parseBool(); return true; } },
   { "CenterOfMassOffset", [](Objects::Physics& p, INIFile& f) {
       auto opt = f.parseFloat();
       p.massCenterOffset = opt.value_or(p.massCenterOffset);
@@ -2627,13 +2638,18 @@ static INIApplierMap<Objects::ObjectBuilder> UnitSpecificSoundsKV = {
   { "TurretMoveLoop", [](Objects::ObjectBuilder& b, INIFile& f) { return parseSound(b, f, Objects::Noise::SOUND_TURRET_MOVE_LOOP); } },
   { "Undeploy", [](Objects::ObjectBuilder& b, INIFile& f) { return parseSound(b, f, Objects::Noise::SOUND_UNDEPLOY); } },
   { "UnderConstruction", [](Objects::ObjectBuilder& b, INIFile& f) { return parseSound(b, f, Objects::Noise::SOUND_UNDER_CONSTRUCTION); } },
+  { "UnitCashPing", [](Objects::ObjectBuilder& b, INIFile& f) { return parseSound(b, f, Objects::Noise::SOUND_UNIT_CASH_PING); } },
+  { "UnitPack", [](Objects::ObjectBuilder& b, INIFile& f) { return parseSound(b, f, Objects::Noise::SOUND_UNIT_PACK); } },
+  { "UnitUnpack", [](Objects::ObjectBuilder& b, INIFile& f) { return parseSound(b, f, Objects::Noise::SOUND_UNIT_UNPACK); } },
   { "VoiceBombard", [](Objects::ObjectBuilder& b, INIFile& f) { return parseSound(b, f, Objects::Noise::VOICE_BOMBARD); } },
   { "VoiceBuildResponse", [](Objects::ObjectBuilder& b, INIFile& f) { return parseSound(b, f, Objects::Noise::VOICE_BUILD_RESPONSE); } },
+  { "VoiceCaptureBuildingComplete", [](Objects::ObjectBuilder& b, INIFile& f) { return parseSound(b, f, Objects::Noise::VOICE_CAPTURE_BUILDING_COMPLETE); } },
   { "VoiceCreate", [](Objects::ObjectBuilder& b, INIFile& f) { return parseSound(b, f, Objects::Noise::VOICE_CREATE); } },
   { "VoiceClearBuilding", [](Objects::ObjectBuilder& b, INIFile& f) { return parseSound(b, f, Objects::Noise::VOICE_CLEAR_BUILDING); } },
   { "VoiceCombatDrop", [](Objects::ObjectBuilder& b, INIFile& f) { return parseSound(b, f, Objects::Noise::VOICE_COMBAT_DROP); } },
   { "VoiceCreate", [](Objects::ObjectBuilder& b, INIFile& f) { return parseSound(b, f, Objects::Noise::VOICE_CREATE); } },
   { "VoiceCrush", [](Objects::ObjectBuilder& b, INIFile& f) { return parseSound(b, f, Objects::Noise::VOICE_CRUSH); } },
+  { "VoiceDisableVehicleComplete", [](Objects::ObjectBuilder& b, INIFile& f) { return parseSound(b, f, Objects::Noise::VOICE_DISABLE_VEHICLE_COMPLETE); } },
   { "VoiceDisarm", [](Objects::ObjectBuilder& b, INIFile& f) { return parseSound(b, f, Objects::Noise::VOICE_DISARM); } },
   { "VoiceEject", [](Objects::ObjectBuilder& b, INIFile& f) { return parseSound(b, f, Objects::Noise::VOICE_EJECT); } },
   { "VoiceEnter", [](Objects::ObjectBuilder& b, INIFile& f) { return parseSound(b, f, Objects::Noise::VOICE_ENTER); } },
@@ -2642,6 +2658,7 @@ static INIApplierMap<Objects::ObjectBuilder> UnitSpecificSoundsKV = {
   { "VoiceFireRocketPods", [](Objects::ObjectBuilder& b, INIFile& f) { return parseSound(b, f, Objects::Noise::VOICE_FIRE_ROCKET_PODS); } },
   { "VoiceGarrison", [](Objects::ObjectBuilder& b, INIFile& f) { return parseSound(b, f, Objects::Noise::VOICE_GARRISON); } },
   { "VoiceGetHealed", [](Objects::ObjectBuilder& b, INIFile& f) { return parseSound(b, f, Objects::Noise::VOICE_GET_HEALED); } },
+  { "VoiceHackInternet", [](Objects::ObjectBuilder& b, INIFile& f) { return parseSound(b, f, Objects::Noise::VOICE_HACK_INTERNET); } },
   { "VoiceLowFuel", [](Objects::ObjectBuilder& b, INIFile& f) { return parseSound(b, f, Objects::Noise::VOICE_LOW_FUEL); } },
   { "VoiceMelee", [](Objects::ObjectBuilder& b, INIFile& f) { return parseSound(b, f, Objects::Noise::VOICE_MELEE); } },
   { "VoiceMoveUpgraded", [](Objects::ObjectBuilder& b, INIFile& f) { return parseSound(b, f, Objects::Noise::VOICE_MOVE_UPGRADED); } },
@@ -2652,6 +2669,7 @@ static INIApplierMap<Objects::ObjectBuilder> UnitSpecificSoundsKV = {
   { "VoiceSalvage", [](Objects::ObjectBuilder& b, INIFile& f) { return parseSound(b, f, Objects::Noise::VOICE_SALVAGE); } },
   { "VoiceSecondaryWeaponMode", [](Objects::ObjectBuilder& b, INIFile& f) { return parseSound(b, f, Objects::Noise::VOICE_SECONDARY_WEAPON_MODE); } },
   { "VoiceSnipePilot", [](Objects::ObjectBuilder& b, INIFile& f) { return parseSound(b, f, Objects::Noise::VOICE_SNIPE_PILOT); } },
+  { "VoiceStealCashComplete", [](Objects::ObjectBuilder& b, INIFile& f) { return parseSound(b, f, Objects::Noise::VOICE_STEAL_CASH_COMPLETE); } },
   { "VoiceSubdue", [](Objects::ObjectBuilder& b, INIFile& f) { return parseSound(b, f, Objects::Noise::VOICE_SUBDUE); } },
   { "VoiceSupply", [](Objects::ObjectBuilder& b, INIFile& f) { return parseSound(b, f, Objects::Noise::VOICE_SUPPLY); } },
   { "VoiceUnload", [](Objects::ObjectBuilder& b, INIFile& f) { return parseSound(b, f, Objects::Noise::VOICE_UNLOAD); } },
@@ -2703,6 +2721,7 @@ static INIApplierMap<T> UpgradeKVMap = {
       return true;
     }
   },
+  { "RequiresAllTriggers", [](T& upg, INIFile& f) { upg.needAllTriggers = f.parseBool(); return true; } },
   { "TriggeredBy", [](T& upg, INIFile& f) {
       auto string = f.parseString();
       if (string.empty()) {
@@ -2856,6 +2875,7 @@ static INIApplierMap<Objects::ObjectBuilder> ObjectDataKVMap = {
   },
   { "Behavior", [](Objects::ObjectBuilder& b, INIFile& f) { return reinterpret_cast<ObjectsINI&>(f).parseBehavior(b); } },
   { "Body", [](Objects::ObjectBuilder& b, INIFile& f) { return reinterpret_cast<ObjectsINI&>(f).parseBody(b); } },
+  { "Buildable", [](Objects::ObjectBuilder& b, INIFile& f) { b.buildable = f.parseBool(); return true; } },
   { "BuildCost", [](Objects::ObjectBuilder& b, INIFile& f) {
       auto opt = f.parseShort();
       b.buildCost = opt.value_or(b.buildCost);
@@ -3146,6 +3166,7 @@ static INIApplierMap<Objects::ObjectBuilder> ObjectDataKVMap = {
   { "VoiceFear", [](Objects::ObjectBuilder& b, INIFile& f) { return parseSound(b, f, Objects::Noise::VOICE_FEAR); } },
   { "VoiceGarrison", [](Objects::ObjectBuilder& b, INIFile& f) { return parseSound(b, f, Objects::Noise::VOICE_GARRISON); } },
   { "VoiceGuard", [](Objects::ObjectBuilder& b, INIFile& f) { return parseSound(b, f, Objects::Noise::VOICE_GUARD); } },
+  { "VoiceGroupSelect", [](Objects::ObjectBuilder& b, INIFile& f) { return parseSound(b, f, Objects::Noise::VOICE_GROUP_SELECT); } },
   { "VoiceMove", [](Objects::ObjectBuilder& b, INIFile& f) { return parseSound(b, f, Objects::Noise::VOICE_MOVE); } },
   { "VoiceSelect", [](Objects::ObjectBuilder& b, INIFile& f) { return parseSound(b, f, Objects::Noise::VOICE_SELECT); } },
   { "VoiceTaskComplete", [](Objects::ObjectBuilder& b, INIFile& f) { return parseSound(b, f, Objects::Noise::VOICE_TASK_COMPLETE); } },
@@ -3474,6 +3495,12 @@ static INIApplierMap<Objects::SlowDeath> SlowDeathKVMap = {
       return value.has_value();
     }
   },
+  { "ModifierBonusPerOverkillPercent", [](Objects::SlowDeath& sd, INIFile& f) {
+      auto opt = f.parsePercent();
+      sd.modBonusPerOverkill = opt.value_or(sd.modBonusPerOverkill);
+      return opt.has_value();
+    }
+  },
   { "OCL", [](Objects::SlowDeath& sd, INIFile& f) {
       auto opt = parseSlowDeathCreationList(f);
       if (opt) {
@@ -3544,6 +3571,19 @@ static INIApplierMap<Objects::SpecialPowerUpdate> SpecialPowerUpdateKVMap = {
     }
   },
   { "DoCaptureFX", [](Objects::SpecialPowerUpdate& sd, INIFile& f) { sd.captureEffect = f.parseString(); return !sd.captureEffect.empty(); } },
+  { "DisableFXParticleSystem", [](Objects::SpecialPowerUpdate& sd, INIFile& f) { sd.disableEffectParticles = f.parseString(); return !sd.disableEffectParticles.empty(); } },
+  { "EffectDuration", [](Objects::SpecialPowerUpdate& sd, INIFile& f) {
+      auto value = f.parseInteger();
+      sd.effectDurationMs = value.value_or(sd.effectDurationMs);
+      return value.has_value();
+    }
+  },
+  { "EffectValue", [](Objects::SpecialPowerUpdate& sd, INIFile& f) {
+      auto value = f.parseInteger();
+      sd.effectValue = value.value_or(sd.effectValue);
+      return value.has_value();
+    }
+  },
   { "FleeRangeAfterCompletion", [](Objects::SpecialPowerUpdate& sd, INIFile& f) {
       auto value = f.parseFloat();
       sd.fleeRange = value.value_or(sd.fleeRange);
@@ -3565,6 +3605,7 @@ static INIApplierMap<Objects::SpecialPowerUpdate> SpecialPowerUpdateKVMap = {
       return value.has_value();
     }
   },
+  { "PackSound", [](Objects::SpecialPowerUpdate& sd, INIFile& f) { sd.packSound = f.parseString(); return !sd.packSound.empty(); } },
   { "PersistenceRequiresRecharge", [](Objects::SpecialPowerUpdate& sd, INIFile& f) { sd.persistenceRequiresRecharge = f.parseBool(); return true; } },
   { "PersistentPrepTime", [](Objects::SpecialPowerUpdate& sd, INIFile& f) {
       auto value = f.parseInteger();
@@ -3578,6 +3619,7 @@ static INIApplierMap<Objects::SpecialPowerUpdate> SpecialPowerUpdateKVMap = {
       return value.has_value();
     }
   },
+  { "PrepSoundLoop", [](Objects::SpecialPowerUpdate& sd, INIFile& f) { sd.preparationSoundLoop = f.parseString(); return !sd.preparationSoundLoop.empty(); } },
   { "PreTriggerUnstealthTime", [](Objects::SpecialPowerUpdate& sd, INIFile& f) {
       auto value = f.parseInteger();
       sd.unstealthTimeMs = value.value_or(sd.unstealthTimeMs);
@@ -3596,6 +3638,7 @@ static INIApplierMap<Objects::SpecialPowerUpdate> SpecialPowerUpdateKVMap = {
       return value.has_value();
     }
   },
+  { "TriggerSound", [](Objects::SpecialPowerUpdate& sd, INIFile& f) { sd.triggerSound = f.parseString(); return !sd.triggerSound.empty(); } },
   { "UniqueSpecialObjectTargets", [](Objects::SpecialPowerUpdate& sd, INIFile& f) { sd.specialObjectUniquePerTarget = f.parseBool(); return true; } },
   { "UnpackSound", [](Objects::SpecialPowerUpdate& sd, INIFile& f) { sd.unpackSound = f.parseString(); return !sd.unpackSound.empty(); } },
   { "UnpackTime", [](Objects::SpecialPowerUpdate& sd, INIFile& f) {

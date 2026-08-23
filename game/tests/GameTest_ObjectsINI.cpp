@@ -136,14 +136,20 @@ INSTANTIATE_TEST_SUITE_P(
   , ParamObjectsINITest
   , testing::Values(
         "airforcegeneral.ini"
+      , "americacineunit.ini"
       , "americainfantry.ini"
       , "americavehicle.ini"
       , "chinaair.ini"
+      , "chinacineunit.ini"
       , "chinavehicle.ini"
+      , "chinamiscunit.ini"
       , "civilianbuilding.ini"
       , "civilianprop.ini"
       , "civilianunit.ini"
       , "factionbuilding.ini"
+      , "factionunit.ini"
+      // , "gc_chem_glabuildings.ini" // OK, needs chemicalgeneral
+      , "gc_chem_glasystem.ini"
       , "glainfantry.ini"
       , "natureprop.ini"
       , "system.ini"
