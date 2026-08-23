@@ -908,6 +908,8 @@ std::optional<ModuleType> getModuleType(const std::string_view& value) {
     return {ModuleType::FIRE_SPREAD};
   } else if (value == "FireWeaponCollide") {
     return {ModuleType::FIRE_WEAPON_COLLISION};
+  } else if (value == "FireWeaponPower") {
+    return {ModuleType::FIRE_WEAPON_POWER};
   } else if (value == "FireWeaponUpdate") {
     return {ModuleType::FIRE_WEAPON};
   } else if (value == "FireWeaponWhenDamagedBehavior") {

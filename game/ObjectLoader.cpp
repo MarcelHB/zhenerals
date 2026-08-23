@@ -18,6 +18,7 @@ bool ObjectLoader::init() {
   std::vector<std::string> keys = {
       "data\\ini\\object\\americacineunit.ini"
     , "data\\ini\\object\\americainfantry.ini"
+    , "data\\ini\\object\\americamiscunit.ini"
     , "data\\ini\\object\\americavehicle.ini"
     , "data\\ini\\object\\chinaair.ini"
     , "data\\ini\\object\\chinacineunit.ini"

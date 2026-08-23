@@ -138,6 +138,7 @@ INSTANTIATE_TEST_SUITE_P(
         "airforcegeneral.ini"
       , "americacineunit.ini"
       , "americainfantry.ini"
+      , "americamiscunit.ini"
       , "americavehicle.ini"
       , "chinaair.ini"
       , "chinacineunit.ini"

@@ -176,6 +176,7 @@ static INIApplierMap<Objects::Turret> AITurretKVMap = {
 };
 
 static INIApplierMap<Objects::AI> AIKVMap = {
+  { "AltTurret", [](Objects::AI& aid, INIFile& f) { return f.parseAttributeBlock(aid.turret2, AITurretKVMap); } },
   { "AutoAcquireEnemiesWhenIdle", [](Objects::AI& aid, INIFile& f) {
       return f.parseEnumSet<Objects::AutoAcquireEnemyMode>(aid.acquireEnemiesWhenIdle, CALL(Objects::getAutoAcquireEnemyMode));
     }
@@ -187,7 +188,8 @@ static INIApplierMap<Objects::AI> AIKVMap = {
       return opt.has_value();
     }
   },
-  { "Turret", [](Objects::AI& aid, INIFile& f) { return f.parseAttributeBlock(aid.turret1, AITurretKVMap); } }
+  { "Turret", [](Objects::AI& aid, INIFile& f) { return f.parseAttributeBlock(aid.turret1, AITurretKVMap); } },
+  { "TurretsLinked", [](Objects::AI& aid, INIFile& f) { aid.turretsLinked = f.parseBool(); return true; } },
 };
 
 static INIApplierMap<Objects::ArmorSet> ArmorSetKVMap = {
@@ -547,6 +549,9 @@ static std::optional<Objects::Animation> parseAnimation(INIFile& f) {
 };
 
 static INIApplierMap<Objects::ConditionState> ConditionStateKVMap = {
+  { "AltTurret", [](Objects::ConditionState& cs, INIFile& f) { cs.turret2.name = f.parseString(); return !cs.turret2.name.empty(); } },
+  { "AltTurretPitch", [](Objects::ConditionState& cs, INIFile& f) { cs.turret2.pitchName = f.parseString(); return !cs.turret2.pitchName.empty(); }
+  },
   { "Animation", [](Objects::ConditionState& cs, INIFile& f) {
       auto opt = parseAnimation(f);
       if (!opt) {
@@ -1223,6 +1228,15 @@ static INIApplierMap<Objects::FireWeapon> FireWeaponKVMap = {
     }
   },
   { "Weapon", [](Objects::FireWeapon& fw, INIFile& f) { fw.weapon = f.parseString(); return !fw.weapon.empty(); } },
+};
+
+static INIApplierMap<Objects::FireWeaponPower> FireWeaponPowerKVMap = {
+  { "MaxShotsToFire", [](Objects::FireWeaponPower& fw, INIFile& f) {
+      auto opt = f.parseInteger();
+      fw.maxShots = opt.value_or(fw.maxShots);
+      return opt.has_value();
+    }
+  },
 };
 
 static INIApplierMap<Objects::Flammable> FlammableDataKVMap = {
@@ -4519,6 +4533,12 @@ bool ObjectsINI::parseBehavior(Objects::ObjectBuilder& builder) {
       return parseSubtypedAttributeBlock<Objects::FireWeapon>(std::move(behavior.moduleData), FireWeaponKVMap);
     case Objects::ModuleType::FIRE_WEAPON_COLLISION:
       return parseSubtypedAttributeBlock<Objects::FireWeaponCollision>(std::move(behavior.moduleData), FireWeaponCollisionDataKVMap);
+    case Objects::ModuleType::FIRE_WEAPON_POWER:
+      return parseSubtypedAttributeBlocks<Objects::FireWeaponPower>(
+          std::move(behavior.moduleData)
+        , FireWeaponPowerKVMap
+        , SpecialPowerKVMap
+      );
     case Objects::ModuleType::FIRE_WEAPON_WHEN_DAMAGED:
       return parseSubtypedAttributeBlock<Objects::FireWeaponWhenDamaged>(std::move(behavior.moduleData), FireWeaponWhenDamagedKVMap);
     case Objects::ModuleType::FIRE_WEAPON_WHEN_DEAD:
