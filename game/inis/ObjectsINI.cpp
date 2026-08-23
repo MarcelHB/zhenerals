@@ -965,6 +965,58 @@ static INIApplierMap<Objects::DozerAI> DozerAIKVMap = {
   }
 };
 
+static INIApplierMap<Objects::DynamicGeometryInfo> DynamicGeometryInfoKVMap = {
+  { "FinalHeight", [](Objects::DynamicGeometryInfo& dg, INIFile& f) {
+      auto value = f.parseFloat();
+      dg.finalHeight = value.value_or(dg.finalHeight);
+      return value.has_value();
+    }
+  },
+  { "FinalMajorRadius", [](Objects::DynamicGeometryInfo& dg, INIFile& f) {
+      auto value = f.parseFloat();
+      dg.finalMajorRadius = value.value_or(dg.finalMajorRadius);
+      return value.has_value();
+    }
+  },
+  { "FinalMinorRadius", [](Objects::DynamicGeometryInfo& dg, INIFile& f) {
+      auto value = f.parseFloat();
+      dg.finalMinorRadius = value.value_or(dg.finalMinorRadius);
+      return value.has_value();
+    }
+  },
+  { "InitialDelay", [](Objects::DynamicGeometryInfo& dg, INIFile& f) {
+      auto value = f.parseInteger();
+      dg.initialDelayMs = value.value_or(dg.initialDelayMs);
+      return value.has_value();
+    }
+  },
+  { "InitialHeight", [](Objects::DynamicGeometryInfo& dg, INIFile& f) {
+      auto value = f.parseFloat();
+      dg.initialHeight = value.value_or(dg.initialHeight);
+      return value.has_value();
+    }
+  },
+  { "InitialMajorRadius", [](Objects::DynamicGeometryInfo& dg, INIFile& f) {
+      auto value = f.parseFloat();
+      dg.initialMajorRadius = value.value_or(dg.initialMajorRadius);
+      return value.has_value();
+    }
+  },
+  { "InitialMinorRadius", [](Objects::DynamicGeometryInfo& dg, INIFile& f) {
+      auto value = f.parseFloat();
+      dg.initialMinorRadius = value.value_or(dg.initialMinorRadius);
+      return value.has_value();
+    }
+  },
+  { "ReverseAtTransitionTime", [](Objects::DynamicGeometryInfo& dg, INIFile& f) { dg.reverseAtTransitionTime = f.parseBool(); return true; } },
+  { "TransitionTime", [](Objects::DynamicGeometryInfo& dg, INIFile& f) {
+      auto value = f.parseInteger();
+      dg.transitionTimeMs = value.value_or(dg.transitionTimeMs);
+      return value.has_value();
+    }
+  },
+};
+
 // TODO
 static INIApplierMap<Objects::DynamicShroudClearingRange> DynamicShroudClearingRangeKVMap = {
   { "GridDecalTemplate", [](Objects::DynamicShroudClearingRange& dr, INIFile& f) {
@@ -987,6 +1039,63 @@ static INIApplierMap<Objects::EjectPilotDie> EjectPilotDieKVMap = {
   }
 };
 
+static INIApplierMap<Objects::EMP> EMPKVMap = {
+  { "DoesNotAffectMyOwnBuildings", [](Objects::EMP& emp, INIFile& f) { emp.notAffectingSelf = f.parseBool(); return true; } },
+  { "DisableFXParticleSystem", [](Objects::EMP& emp, INIFile& f) {
+      emp.disableEffectParticles = f.parseString();
+      return !emp.disableEffectParticles.empty();
+    }
+  },
+  { "DisabledDuration", [](Objects::EMP& emp, INIFile& f) {
+      auto opt = f.parseInteger();
+      emp.disabledDurationMs = opt.value_or(emp.disabledDurationMs);
+      return opt.has_value();
+    }
+  },
+  { "DoesNotAffect", [](Objects::EMP& emp, INIFile& f) {
+      return f.parseEnumSet<Objects::WeaponAffection>(emp.unaffectedParties, CALL(Objects::getWeaponAffection));
+    }
+  },
+  { "EffectRadius", [](Objects::EMP& emp, INIFile& f) {
+      auto opt = f.parseFloat();
+      emp.effectRadius = opt.value_or(emp.effectRadius);
+      return opt.has_value();
+    }
+  },
+  { "EndColor", [](Objects::EMP& emp, INIFile& f) { emp.endColor = f.parseRGB(); return true; } },
+  { "Lifetime", [](Objects::EMP& emp, INIFile& f) {
+      auto opt = f.parseInteger();
+      emp.lifetimeMs = opt.value_or(emp.lifetimeMs);
+      return opt.has_value();
+    }
+  },
+  { "StartColor", [](Objects::EMP& emp, INIFile& f) { emp.startColor = f.parseRGB(); return true; } },
+  { "StartFadeTime", [](Objects::EMP& emp, INIFile& f) {
+      auto opt = f.parseInteger();
+      emp.startFadeAfterMs = opt.value_or(emp.startFadeAfterMs);
+      return opt.has_value();
+    }
+  },
+  { "StartScale", [](Objects::EMP& emp, INIFile& f) {
+      auto opt = f.parseFloat();
+      emp.startScale = opt.value_or(emp.startScale);
+      return opt.has_value();
+    }
+  },
+  { "TargetScaleMax", [](Objects::EMP& emp, INIFile& f) {
+      auto opt = f.parseFloat();
+      emp.maxTargetScale = opt.value_or(emp.maxTargetScale);
+      return opt.has_value();
+    }
+  },
+  { "TargetScaleMin", [](Objects::EMP& emp, INIFile& f) {
+      auto opt = f.parseFloat();
+      emp.minTargetScale = opt.value_or(emp.minTargetScale);
+      return opt.has_value();
+    }
+  },
+};
+
 static INIApplierMap<Objects::ExperienceScalarUpgrade> ExperienceScalarUpgradeKVMap = {
   { "AddXPScalar", [](Objects::ExperienceScalarUpgrade& xu, INIFile& f) {
       auto opt = f.parseFloat();
@@ -994,6 +1103,53 @@ static INIApplierMap<Objects::ExperienceScalarUpgrade> ExperienceScalarUpgradeKV
       return opt.has_value();
     }
   }
+};
+
+static INIApplierMap<Objects::FirestormDynamicGeometryInfo> FirestormDynamicGeometryInfoKVMap = {
+  { "DamageAmount", [](Objects::FirestormDynamicGeometryInfo& fdg, INIFile& f) {
+      auto opt = f.parseFloat();
+      fdg.damage = opt.value_or(fdg.damage);
+      return opt.has_value();
+    }
+  },
+  { "DelayBetweenDamageFrames", [](Objects::FirestormDynamicGeometryInfo& fdg, INIFile& f) {
+      auto opt = f.parseInteger();
+      fdg.delayBetweenFramesMs = opt.value_or(fdg.delayBetweenFramesMs);
+      return opt.has_value();
+    }
+  },
+  { "FXList", [](Objects::FirestormDynamicGeometryInfo& fdg, INIFile& f) { fdg.effect = f.parseString(); return !fdg.effect.empty(); } },
+  { "ParticleOffsetZ", [](Objects::FirestormDynamicGeometryInfo& fdg, INIFile& f) {
+      auto opt = f.parseFloat();
+      fdg.particleHeightOffset = opt.value_or(fdg.particleHeightOffset);
+      return opt.has_value();
+    }
+  },
+  { "ParticleSystem1", [](Objects::FirestormDynamicGeometryInfo& fdg, INIFile& f) {
+      auto opt = f.parseString();
+      if (!opt.empty()) {
+        fdg.particles.emplace_back(std::move(opt));
+        return true;
+      }
+      return false;
+    }
+  },
+  { "ParticleSystem2", [](Objects::FirestormDynamicGeometryInfo& fdg, INIFile& f) {
+      auto opt = f.parseString();
+      if (!opt.empty()) {
+        fdg.particles.emplace_back(std::move(opt));
+        return true;
+      }
+      return false;
+    }
+  },
+  // ... games only ship up to 2, engine supports up to 16
+  { "ScorchSize", [](Objects::FirestormDynamicGeometryInfo& fdg, INIFile& f) {
+      auto opt = f.parseFloat();
+      fdg.scorchSize = opt.value_or(fdg.scorchSize);
+      return opt.has_value();
+    }
+  },
 };
 
 static INIApplierMap<Objects::FireWeaponCollision> FireWeaponCollisionDataKVMap = {
@@ -1149,6 +1305,32 @@ static INIApplierMap<Objects::GenerateMinefield> GenerateMinefieldKVMap = {
 
 static INIApplierMap<Objects::GrantScienceUpgrade> GrantScienceUpgradeKVMap = {
   { "GrantScience", [](Objects::GrantScienceUpgrade& su, INIFile& f) { su.science = f.parseString(); return !su.science.empty(); } }
+};
+
+static INIApplierMap<Objects::GrantStealth> GrantStealthKVMap = {
+  { "FinalRadius", [](Objects::GrantStealth& gs, INIFile& f) {
+      auto opt = f.parseFloat();
+      gs.finalRadius = opt.value_or(gs.finalRadius);
+      return opt.has_value();
+    }
+  },
+  { "KindOf", [](Objects::GrantStealth& gs, INIFile& f) {
+      return f.parseEnumSet<Objects::Attribute>(gs.affecting, CALL(Objects::getAttribute));
+    }
+  },
+  { "RadiusGrowRate", [](Objects::GrantStealth& gs, INIFile& f) {
+      auto opt = f.parseFloat();
+      gs.growthRate = opt.value_or(gs.growthRate);
+      return opt.has_value();
+    }
+  },
+  { "RadiusParticleSystemName", [](Objects::GrantStealth& gs, INIFile& f) { gs.particles = f.parseString(); return !gs.particles.empty(); } },
+  { "StartRadius", [](Objects::GrantStealth& gs, INIFile& f) {
+      auto opt = f.parseFloat();
+      gs.startRadius = opt.value_or(gs.startRadius);
+      return opt.has_value();
+    }
+  },
 };
 
 static INIApplierMap<Objects::GrantUpgrade> GrantUpgradeKVMap = {
@@ -1784,6 +1966,11 @@ static INIApplierMap<Objects::ModelDrawData> ModelDrawDataKVMap = {
 
 static INIApplierMap<Objects::DependencyModelDrawData> DependencyModelDrawDataKVMap = {
   { "AttachToBoneInContainer", [](Objects::DependencyModelDrawData& dd, INIFile& f) { dd.attachTo = f.parseString(); return !dd.attachTo.empty(); } },
+};
+
+// TODO
+static INIApplierMap<Objects::NeutronMissileSlowDeath> NeutronMissileSlowDeathKVMap = {
+  { "*", SKIP(Objects::NeutronMissileSlowDeath) }
 };
 
 static INIApplierMap<Objects::ObjectCreationUpgrade> ObjectCreationUpgradeKVMap = {
@@ -3337,6 +3524,10 @@ static INIApplierMap<Objects::SpecialPower> SpecialPowerKVMap = {
   { "UpdateModuleStartsAttack", [](Objects::SpecialPower& sd, INIFile& f) { sd.updateStartsAttack = f.parseBool(); return true; } }
 };
 
+static INIApplierMap<Objects::SpecialPowerCompletionDie> SpecialPowerCompletionDieKVMap = {
+  { "SpecialPowerTemplate", [](Objects::SpecialPowerCompletionDie& sp, INIFile& f) { sp.specialPower = f.parseString(); return !sp.specialPower.empty(); } },
+};
+
 static INIApplierMap<Objects::SpecialPowerUpdate> SpecialPowerUpdateKVMap = {
   { "AbilityAbortRange", [](Objects::SpecialPowerUpdate& sd, INIFile& f) {
       auto value = f.parseFloat();
@@ -3852,6 +4043,118 @@ static INIApplierMap<Objects::VeterancyGain> VeterancyGainKVMap = {
   }
 };
 
+static INIApplierMap<Objects::WeaponBonus> WeaponBonusKVMap = {
+  { "BonusConditionType", [](Objects::WeaponBonus& wb, INIFile& f) {
+      auto opt = f.parseEnum<Objects::WeaponBonusCondition>(CALL(Objects::getWeaponBonusCondition));
+      wb.condition = opt.value_or(wb.condition);
+      return opt.has_value();
+    }
+  },
+  { "BonusDelay", [](Objects::WeaponBonus& wb, INIFile& f) {
+      auto opt = f.parseInteger();
+      wb.delayMs = opt.value_or(wb.delayMs);
+      return opt.has_value();
+    }
+  },
+  { "BonusDuration", [](Objects::WeaponBonus& wb, INIFile& f) {
+      auto opt = f.parseInteger();
+      wb.durationMs = opt.value_or(wb.durationMs);
+      return opt.has_value();
+    }
+  },
+  { "BonusRange", [](Objects::WeaponBonus& wb, INIFile& f) {
+      auto opt = f.parseFloat();
+      wb.range = opt.value_or(wb.range);
+      return opt.has_value();
+    }
+  },
+  { "ForbiddenAffectKindOf", [](Objects::WeaponBonus& wb, INIFile& f) {
+      return f.parseEnumSet<Objects::Attribute>(wb.affectedExclusion, CALL(Objects::getAttribute));
+    }
+  },
+  { "RequiredAffectKindOf", [](Objects::WeaponBonus& wb, INIFile& f) {
+      return f.parseEnumSet<Objects::Attribute>(wb.affectedInclusion, CALL(Objects::getAttribute));
+    }
+  },
+};
+
+static INIApplierMap<Objects::WaveGuide> WaveGuideKVMap = {
+  { "BridgeParticle", [](Objects::WaveGuide& wg, INIFile& f) { wg.bridgeParticles = f.parseString(); return !wg.bridgeParticles.empty(); } },
+  { "BridgeParticleAngleFudge", [](Objects::WaveGuide& wg, INIFile& f) {
+      auto opt = f.parseFloat();
+      wg.bridgeParticlesAngle = opt.value_or(wg.bridgeParticlesAngle);
+      return opt.has_value();
+    }
+  }, { "DamageAmount", [](Objects::WaveGuide& wg, INIFile& f) {
+      auto opt = f.parseFloat();
+      wg.damageAmount = opt.value_or(wg.damageAmount);
+      return opt.has_value();
+    }
+  },
+  { "DamageRadius", [](Objects::WaveGuide& wg, INIFile& f) {
+      auto opt = f.parseFloat();
+      wg.damageRadius = opt.value_or(wg.damageRadius);
+      return opt.has_value();
+    }
+  },
+  { "LinearWaveSpacing", [](Objects::WaveGuide& wg, INIFile& f) {
+      auto opt = f.parseFloat();
+      wg.linearSpacing = opt.value_or(wg.linearSpacing);
+      return opt.has_value();
+    }
+  },
+  { "LoopingSound", [](Objects::WaveGuide& wg, INIFile& f) { wg.loopingSound = f.parseString(); return !wg.loopingSound.empty(); } },
+  { "PreferredHeight", [](Objects::WaveGuide& wg, INIFile& f) {
+      auto opt = f.parseFloat();
+      wg.preferredHeight = opt.value_or(wg.preferredHeight);
+      return opt.has_value();
+    }
+  },
+  { "RandomSplashSound", [](Objects::WaveGuide& wg, INIFile& f) { wg.splashSound = f.parseString(); return !wg.splashSound.empty(); } },
+  { "RandomSplashSoundFrequency", [](Objects::WaveGuide& wg, INIFile& f) {
+      auto opt = f.parseInteger();
+      wg.splashSoundRate = opt.value_or(wg.splashSoundRate);
+      return opt.has_value();
+    }
+  },
+  { "ShorelineEffectDistance", [](Objects::WaveGuide& wg, INIFile& f) {
+      auto opt = f.parseFloat();
+      wg.shorelineEffectDistance = opt.value_or(wg.shorelineEffectDistance);
+      return opt.has_value();
+    }
+  },
+  { "ToppleForce", [](Objects::WaveGuide& wg, INIFile& f) {
+      auto opt = f.parseFloat();
+      wg.toppleForce = opt.value_or(wg.toppleForce);
+      return opt.has_value();
+    }
+  },
+  { "WaveBendMagnitude", [](Objects::WaveGuide& wg, INIFile& f) {
+      auto opt = f.parseFloat();
+      wg.bendMagnitude = opt.value_or(wg.bendMagnitude);
+      return opt.has_value();
+    }
+  },
+  { "WaveDelay", [](Objects::WaveGuide& wg, INIFile& f) {
+      auto opt = f.parseInteger();
+      wg.delayMs = opt.value_or(wg.delayMs);
+      return opt.has_value();
+    }
+  },
+  { "WaterVelocity", [](Objects::WaveGuide& wg, INIFile& f) {
+      auto opt = f.parseFloat();
+      wg.velocity = opt.value_or(wg.velocity);
+      return opt.has_value();
+    }
+  },
+  { "YSize", [](Objects::WaveGuide& wg, INIFile& f) {
+      auto opt = f.parseFloat();
+      wg.ySize = opt.value_or(wg.ySize);
+      return opt.has_value();
+    }
+  },
+};
+
 static INIApplierMap<Objects::WorkerAI> WorkerAIKVMap = {
   { "BoredRange", [](Objects::WorkerAI& w, INIFile& f) {
       auto opt = f.parseFloat();
@@ -3985,6 +4288,7 @@ bool ObjectsINI::parseBehavior(Objects::ObjectBuilder& builder) {
   switch (behavior.type) {
     case Objects::ModuleType::BASE_REGENERATE:
     case Objects::ModuleType::BONE_FX_DAMAGE:
+    case Objects::ModuleType::BRIDGE_SCAFFOLD:
     case Objects::ModuleType::BRIDGE_TOWER:
     case Objects::ModuleType::CHECKPOINT:
     case Objects::ModuleType::COMMAND_BUTTON_HUNT:
@@ -4002,6 +4306,7 @@ bool ObjectsINI::parseBehavior(Objects::ObjectBuilder& builder) {
 
     case Objects::ModuleType::AI:
     case Objects::ModuleType::TRANSPORT_AI:
+    case Objects::ModuleType::WANDER_AI:
       return parseSubtypedAttributeBlock<Objects::AI>(std::move(behavior.moduleData), AIKVMap);
     case Objects::ModuleType::ASSISTED_TARGETING:
       return parseSubtypedAttributeBlock<Objects::AssistedTargeting>(std::move(behavior.moduleData), AssistedTargetingKVMap);
@@ -4139,7 +4444,9 @@ bool ObjectsINI::parseBehavior(Objects::ObjectBuilder& builder) {
           , EjectPilotDieKVMap
           , DieKVMap
         );
-    case Objects::ModuleType::EXPERINCE_SCALAR_UPGRADE:
+    case Objects::ModuleType::EMP:
+      return parseSubtypedAttributeBlock<Objects::EMP>(std::move(behavior.moduleData), EMPKVMap);
+    case Objects::ModuleType::EXPERIENCE_SCALAR_UPGRADE:
       return
         parseSubtypedAttributeBlocks<Objects::ExperienceScalarUpgrade>(
             std::move(behavior.moduleData)
@@ -4160,6 +4467,12 @@ bool ObjectsINI::parseBehavior(Objects::ObjectBuilder& builder) {
         , FireWeaponWhenDeadKVMap
         , UpgradeKVMap<Objects::DieUpgrade>
         , DieKVMap
+      );
+    case Objects::ModuleType::FIRESTORM_DYNAMIC_GEOMETRY_INFO:
+      return parseSubtypedAttributeBlocks<Objects::FirestormDynamicGeometryInfo>(
+          std::move(behavior.moduleData)
+        , FirestormDynamicGeometryInfoKVMap
+        , DynamicGeometryInfoKVMap
       );
     case Objects::ModuleType::FLAMMABLE:
       return parseSubtypedAttributeBlock<Objects::Flammable>(std::move(behavior.moduleData), FlammableDataKVMap);
@@ -4190,6 +4503,8 @@ bool ObjectsINI::parseBehavior(Objects::ObjectBuilder& builder) {
           , GrantScienceUpgradeKVMap
           , UpgradeKVMap<Objects::Upgrade>
         );
+    case Objects::ModuleType::GRANT_STEALTH:
+      return parseSubtypedAttributeBlock<Objects::GrantStealth>(std::move(behavior.moduleData), GrantStealthKVMap);
     case Objects::ModuleType::GRANT_UPGRADE:
       return parseSubtypedAttributeBlock<Objects::GrantUpgrade>(std::move(behavior.moduleData), GrantUpgradeKVMap);
     case Objects::ModuleType::HEAL_CONTAIN:
@@ -4259,6 +4574,13 @@ bool ObjectsINI::parseBehavior(Objects::ObjectBuilder& builder) {
             std::move(behavior.moduleData)
           , ModelConditionUpgradeKVMap
           , UpgradeKVMap<Objects::Upgrade>
+        );
+    case Objects::ModuleType::NEUTRON_MISSILE_SLOW_DEATH:
+      return
+        parseSubtypedAttributeBlocks<Objects::NeutronMissileSlowDeath>(
+            std::move(behavior.moduleData)
+          , NeutronMissileSlowDeathKVMap
+          , SlowDeathKVMap
         );
     case Objects::ModuleType::OBJECT_CREATION_UPGRADE:
       return
@@ -4401,6 +4723,13 @@ bool ObjectsINI::parseBehavior(Objects::ObjectBuilder& builder) {
       return parseSubtypedAttributeBlock<Objects::SpawnPointProductionExit>(std::move(behavior.moduleData), SpawnPointProductionExitKVMap);
     case Objects::ModuleType::SPECIAL_POWER:
       return parseSubtypedAttributeBlock<Objects::SpecialPower>(std::move(behavior.moduleData), SpecialPowerKVMap);
+    case Objects::ModuleType::SPECIAL_POWER_COMPLETION_DIE:
+      return
+        parseSubtypedAttributeBlocks<Objects::SpecialPowerCompletionDie>(
+            std::move(behavior.moduleData)
+          , SpecialPowerCompletionDieKVMap
+          , DieKVMap
+        );
     case Objects::ModuleType::SPECIAL_POWER_UPDATE:
       return parseSubtypedAttributeBlock<Objects::SpecialPowerUpdate>(std::move(behavior.moduleData), SpecialPowerUpdateKVMap);
     case Objects::ModuleType::SPECTRE_GUNSHIP:
@@ -4510,6 +4839,10 @@ bool ObjectsINI::parseBehavior(Objects::ObjectBuilder& builder) {
         );
     case Objects::ModuleType::VETERANCY_GAIN:
       return parseSubtypedAttributeBlock<Objects::VeterancyGain>(std::move(behavior.moduleData), VeterancyGainKVMap);
+    case Objects::ModuleType::WAVE_GUIDE:
+      return parseSubtypedAttributeBlocks<Objects::WaveGuide>(std::move(behavior.moduleData), WaveGuideKVMap);
+    case Objects::ModuleType::WEAPON_BONUS:
+      return parseSubtypedAttributeBlocks<Objects::WeaponBonus>(std::move(behavior.moduleData), WeaponBonusKVMap);
     case Objects::ModuleType::WORKER_AI:
       return
         parseSubtypedAttributeBlocks<Objects::WorkerAI>(
@@ -4549,11 +4882,9 @@ bool ObjectsINI::parseBody(Objects::ObjectBuilder& builder) {
     case Objects::ModuleType::HIGHLANDER_BODY:
     case Objects::ModuleType::IMMORTAL_BODY:
     case Objects::ModuleType::STRUCTURE_BODY:
-      return
-        parseSubtypedAttributeBlock<Objects::ActiveBody>(
-            std::move(builder.body->moduleData)
-          , ActiveBodyKVMap
-        );
+      return parseSubtypedAttributeBlock<Objects::ActiveBody>( std::move(builder.body->moduleData), ActiveBodyKVMap);
+    case Objects::ModuleType::INACTIVE_BODY:
+      return parseEmptyAttributeBlock();
     case Objects::ModuleType::HIVE_STRUCTURE_BODY:
       return
         parseSubtypedAttributeBlocks<Objects::HiveStructureBody>(
@@ -4654,7 +4985,9 @@ bool ObjectsINI::parseDraw(Objects::ObjectBuilder& builder) {
 
   advanceStream();
   token = getTokenInLine();
-  if (token == "W3DDefaultDraw") {
+  if (token == "W3DDebrisDraw") {
+    metaData.type = Objects::DrawType::DEBRIS_DRAW;
+  } else if (token == "W3DDefaultDraw") {
     metaData.type = Objects::DrawType::DEFAULT_DRAW;
   } else if (token == "W3DDependencyModelDraw") {
     metaData.type = Objects::DrawType::DEPENDENCY_MODEL_DRAW;
@@ -4670,14 +5003,18 @@ bool ObjectsINI::parseDraw(Objects::ObjectBuilder& builder) {
     metaData.type = Objects::DrawType::OVERLORD_TRUCK_DRAW;
   } else if (token == "W3DPoliceCarDraw") {
     metaData.type = Objects::DrawType::POLICE_CAR_DRAW;
+  } else if (token == "W3DRopeDraw") {
+    metaData.type = Objects::DrawType::ROPE_DRAW;
+  } else if (token == "W3DSupplyDraw") {
+    metaData.type = Objects::DrawType::SUPPLY_DRAW;
   } else if (token == "W3DTankDraw") {
     metaData.type = Objects::DrawType::TANK_DRAW;
+  } else if (token == "W3DTracerDraw") {
+    metaData.type = Objects::DrawType::TRACER_DRAW;
   } else if (token == "W3DTreeDraw") {
     metaData.type = Objects::DrawType::TREE_DRAW;
   } else if (token == "W3DTruckDraw") {
     metaData.type = Objects::DrawType::TRUCK_DRAW;
-  } else if (token == "W3DSupplyDraw") {
-    metaData.type = Objects::DrawType::SUPPLY_DRAW;
   } else {
     WARN_ZH("ObjectsINI", "Unsupported draw type {}", token);
   }
@@ -4686,7 +5023,10 @@ bool ObjectsINI::parseDraw(Objects::ObjectBuilder& builder) {
   metaData.moduleTag = getTokenInLine();
 
   switch (metaData.type) {
+    case Objects::DrawType::DEBRIS_DRAW:
     case Objects::DrawType::DEFAULT_DRAW:
+    case Objects::DrawType::ROPE_DRAW:
+    case Objects::DrawType::TRACER_DRAW:
       return parseSubtypedAttributeBlocks<Objects::DrawData>(std::move(metaData.drawData));
     case Objects::DrawType::DEPENDENCY_MODEL_DRAW:
       return

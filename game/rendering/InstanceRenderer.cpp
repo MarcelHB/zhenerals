@@ -49,7 +49,11 @@ bool InstanceRenderer::prepareInstance(const Objects::Instance& instance) {
   size_t i = 0;
   for (auto& drawMetaData : base->drawMetaData) {
     // Nothing to draw
-    if (drawMetaData.type == Objects::DrawType::DEFAULT_DRAW) {
+    if (drawMetaData.type == Objects::DrawType::DEBRIS_DRAW
+        || drawMetaData.type == Objects::DrawType::DEFAULT_DRAW
+        || drawMetaData.type == Objects::DrawType::ROPE_DRAW
+        || drawMetaData.type == Objects::DrawType::TRACER_DRAW
+    ) {
       continue;
     }
 

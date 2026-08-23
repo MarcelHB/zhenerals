@@ -587,11 +587,13 @@ enum class Veterancy {
 enum class WeaponAffection {
     NONE
   , SELF
+  , ALLY
   , ENEMY
   , NEUTRAL
   , SUICIDE
   , NOT_SIMILAR
   , NOT_AIRBORNE
+  , ALL
 };
 
 enum class WeaponBonusCondition {

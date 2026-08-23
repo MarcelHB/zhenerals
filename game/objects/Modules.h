@@ -39,6 +39,7 @@ enum class ModuleType {
   , BONE_FX
   , BONE_FX_DAMAGE
   , BRIDGE
+  , BRIDGE_SCAFFOLD
   , BRIDGE_TOWER
   , BUNKER_BUSTER
   , BODY
@@ -78,7 +79,7 @@ enum class ModuleType {
   , EJECT_PILOT_DIE
   , EMP
   , ENEMY_NEAR
-  , EXPERINCE_SCALAR_UPGRADE
+  , EXPERIENCE_SCALAR_UPGRADE
   , FIRE_OCL_AFTER_WEAPON_COOLDOWN
   , FIRE_SPREAD
   , FIRESTORM_DYNAMIC_GEOMETRY_INFO
@@ -106,6 +107,7 @@ enum class ModuleType {
   , HIVE_STRUCTURE_BODY
   , HORDE
   , IMMORTAL_BODY
+  , INACTIVE_BODY
   , INSTANT_DEATH
   , INTERNET_HACK_CONTAIN
   , JET_AI
@@ -202,7 +204,9 @@ enum class ModuleType {
   , UPGRADE_DIE
   , VETERANCY_GAIN
   , VETERANCY_CRATE_COLLISION
+  , WANDER_AI
   , WAVE_GUIDE
+  , WEAPON_BONUS
   , WEAPON_BONUS_UPGRADE
   , WEAPON_SET_UPGRADE
   , WORKER_AI
@@ -561,14 +565,14 @@ struct DumbProjectile : public Module {
 };
 
 struct DynamicGeometryInfo : public Module {
-  uint32_t initialDelay = 0;
+  Duration initialDelayMs = 0;
   float initialHeight = 0.0f;
   float initialMinorRadius = 0.0f;
   float initialMajorRadius = 0.0f;
   float finalHeight = 0.0f;
   float finalMinorRadius = 0.0f;
   float finalMajorRadius = 0.0f;
-  uint32_t transitionTime = 1;
+  Duration transitionTimeMs = 1000;
   bool reverseAtTransitionTime = false;
 };
 
@@ -593,17 +597,19 @@ struct DynamicShroudClearingRange : public Module {
 };
 
 struct EMP : public Module {
-  uint32_t lifetime = 10;
-  uint32_t startFadeAfter = 10;
+  Duration lifetimeMs = 1000;
+  Duration startFadeAfterMs = 10;
   float startScale = 1.0f;
-  uint32_t disabledDuration = 0;
+  Duration disabledDurationMs = 0;
   float minTargetScale = 1.0f;
   float maxTargetScale = 2.0f;
   Color startColor;
   Color endColor;
+  bool notAffectingSelf = true;
   std::string disableEffectParticles; // TODO ParticleSystem
   float sparksPerCubicFoot = 1.0f;
-  std::set<WeaponAffection> unaffectedSides;
+  float effectRadius = 10.0f;
+  std::set<WeaponAffection> unaffectedParties;
   bool spareLauncher = true; // EVAL redundancy?
   std::set<Attribute> targetInclusion;
   std::set<Attribute> targetExclusion;
@@ -629,7 +635,7 @@ struct FireSpread : public Module {
 };
 
 struct FirestormDynamicGeometryInfo : public DynamicGeometryInfo {
-  uint32_t delayBetweenFramesMs = 1000;
+  Duration delayBetweenFramesMs = 1000;
   float damage = 1.0f;
   float maxDamageHeight = 1.0f;
   std::string effect; // TODO FXList
@@ -1580,15 +1586,15 @@ struct VeterancyGain : public Module {
 struct WeaponBonus : public Upgrade {
   std::set<Attribute> affectedInclusion;
   std::set<Attribute> affectedExclusion;
-  uint32_t duration = 1;
-  uint32_t delay = 1;
+  Duration durationMs = 1000;
+  Duration delayMs = 0;
   float range = 5.0f;
   WeaponBonusCondition condition;
 };
 
 struct WaveGuide : public Module {
-  float delay = 0.0f;
-  float ySize = 1.0f; // EVAL axis?
+  Duration delayMs = 0; // EVAL float parsing in original
+  float ySize = 1.0f;
   float linearSpacing = 1.0f;
   float bendMagnitude = 1.0f;
   float velocity = 1.0f;

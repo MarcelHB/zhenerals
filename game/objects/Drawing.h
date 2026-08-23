@@ -19,6 +19,7 @@ struct DrawData {
 
 enum class DrawType {
     LASER_DRAW
+  , DEBRIS_DRAW
   , DEFAULT_DRAW
   , DEPENDENCY_MODEL_DRAW
   , MODEL_DRAW
@@ -26,10 +27,12 @@ enum class DrawType {
   , OVERLORD_TANK_DRAW
   , OVERLORD_TRUCK_DRAW
   , POLICE_CAR_DRAW
+  , ROPE_DRAW
+  , SUPPLY_DRAW
   , TANK_DRAW
+  , TRACER_DRAW
   , TREE_DRAW
   , TRUCK_DRAW
-  , SUPPLY_DRAW
 };
 
 struct WeaponFX {

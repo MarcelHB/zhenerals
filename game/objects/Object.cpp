@@ -844,6 +844,8 @@ std::optional<ModuleType> getModuleType(const std::string_view& value) {
     return {ModuleType::BONE_FX};
   } else if (value == "BridgeBehavior") {
     return {ModuleType::BRIDGE};
+  } else if (value == "BridgeScaffoldBehavior") {
+    return {ModuleType::BRIDGE_SCAFFOLD};
   } else if (value == "BridgeTowerBehavior") {
     return {ModuleType::BRIDGE_TOWER};
   } else if (value == "CashBountyPower") {
@@ -896,12 +898,12 @@ std::optional<ModuleType> getModuleType(const std::string_view& value) {
     return {ModuleType::DOZER_AI};
   } else if (value == "EjectPilotDie") {
     return {ModuleType::EJECT_PILOT_DIE};
+  } else if (value == "EMPUpdate") {
+    return {ModuleType::EMP};
   } else if (value == "EnemyNearUpdate") {
     return {ModuleType::ENEMY_NEAR};
   } else if (value == "ExperienceScalarUpgrade") {
-    return {ModuleType::EXPERINCE_SCALAR_UPGRADE};
-  } else if (value == "ExperienceScalarUpgrade") {
-    return {ModuleType::EXPERINCE_SCALAR_UPGRADE};
+    return {ModuleType::EXPERIENCE_SCALAR_UPGRADE};
   } else if (value == "FireSpreadUpdate") {
     return {ModuleType::FIRE_SPREAD};
   } else if (value == "FireWeaponCollide") {
@@ -912,6 +914,8 @@ std::optional<ModuleType> getModuleType(const std::string_view& value) {
     return {ModuleType::FIRE_WEAPON_WHEN_DAMAGED};
   } else if (value == "FireWeaponWhenDeadBehavior") {
     return {ModuleType::FIRE_WEAPON_WHEN_DEAD};
+  } else if (value == "FirestormDynamicGeometryInfoUpdate") {
+    return {ModuleType::FIRESTORM_DYNAMIC_GEOMETRY_INFO};
   } else if (value == "FlammableUpdate") {
     return {ModuleType::FLAMMABLE};
   } else if (value == "FlightDeckBehavior") {
@@ -924,10 +928,12 @@ std::optional<ModuleType> getModuleType(const std::string_view& value) {
     return {ModuleType::GARRISON_CONTAIN};
   } else if (value == "GenerateMinefieldBehavior") {
     return {ModuleType::GENERATE_MINEFIELD};
-  } else if (value == "GrantUpgradeCreate") {
-    return {ModuleType::GRANT_UPGRADE};
   } else if (value == "GrantScienceUpgrade") {
     return {ModuleType::GRANT_SCIENCE_UPGRADE};
+  } else if (value == "GrantStealthBehavior") {
+    return {ModuleType::GRANT_STEALTH};
+  } else if (value == "GrantUpgradeCreate") {
+    return {ModuleType::GRANT_UPGRADE};
   } else if (value == "HealContain") {
     return {ModuleType::HEAL_CONTAIN};
   } else if (value == "HeightDieUpdate") {
@@ -946,6 +952,8 @@ std::optional<ModuleType> getModuleType(const std::string_view& value) {
     return {ModuleType::HORDE};
   } else if (value == "ImmortalBody") {
     return {ModuleType::IMMORTAL_BODY};
+  } else if (value == "InactiveBody") {
+    return {ModuleType::INACTIVE_BODY};
   } else if (value == "InstantDeathBehavior") {
     return {ModuleType::INSTANT_DEATH};
   } else if (value == "InternetHackContain") {
@@ -974,6 +982,8 @@ std::optional<ModuleType> getModuleType(const std::string_view& value) {
     return {ModuleType::MOB_MEMBER_SLAVED};
   } else if (value == "ModelConditionUpgrade") {
     return {ModuleType::MODEL_CONDITION_UPGRADE};
+  } else if (value == "NeutronMissileSlowDeathBehavior") {
+    return {ModuleType::NEUTRON_MISSILE_SLOW_DEATH};
   } else if (value == "ObjectCreationUpgrade") {
     return {ModuleType::OBJECT_CREATION_UPGRADE};
   } else if (value == "OCLUpdate") {
@@ -1060,6 +1070,8 @@ std::optional<ModuleType> getModuleType(const std::string_view& value) {
     return {ModuleType::SPECIAL_POWER};
   } else if (value == "SpecialAbilityUpdate") {
     return {ModuleType::SPECIAL_POWER_UPDATE};
+  } else if (value == "SpecialPowerCompletionDie") {
+    return {ModuleType::SPECIAL_POWER_COMPLETION_DIE};
   } else if (value == "SpecialPowerCreate") {
     return {ModuleType::SPECIAL_POWER_CREATE};
   } else if (value == "SpectreGunshipUpdate") {
@@ -1124,6 +1136,12 @@ std::optional<ModuleType> getModuleType(const std::string_view& value) {
     return {ModuleType::VETERANCY_CRATE_COLLISION};
   } else if (value == "VeterancyGainCreate") {
     return {ModuleType::VETERANCY_GAIN};
+  } else if (value == "WanderAIUpdate") {
+    return {ModuleType::WANDER_AI};
+  } else if (value == "WaveGuideUpdate") {
+    return {ModuleType::WAVE_GUIDE};
+  } else if (value == "WeaponBonusUpdate") {
+    return {ModuleType::WEAPON_BONUS};
   } else if (value == "WeaponBonusUpgrade") {
     return {ModuleType::WEAPON_BONUS_UPGRADE};
   } else if (value == "WeaponSetUpgrade") {
@@ -1344,6 +1362,88 @@ std::optional<Veterancy> getVeterancy(const std::string_view& value) {
     return {Veterancy::ELITE};
   } else if (value == "HEROIC") {
     return {Veterancy::HEROIC};
+  } else {
+    return {};
+  }
+}
+
+std::optional<WeaponAffection> getWeaponAffection(const std::string_view& value) {
+  if (value == "SELF") {
+    return {Objects::WeaponAffection::SELF};
+  } else if (value == "ALLIES") {
+    return {Objects::WeaponAffection::ALLY};
+  } else if (value == "ENEMIES") {
+    return {Objects::WeaponAffection::ENEMY};
+  } else if (value == "NEUTRALS") {
+    return {Objects::WeaponAffection::NEUTRAL};
+  } else if (value == "SUICIDE") {
+    return {Objects::WeaponAffection::SUICIDE};
+  } else if (value == "NOT_SIMILAR") {
+    return {Objects::WeaponAffection::NOT_SIMILAR};
+  } else if (value == "NOT_AIRBORNE") {
+    return {Objects::WeaponAffection::NOT_AIRBORNE};
+  } else {
+    return {};
+  }
+}
+
+std::optional<WeaponBonusCondition> getWeaponBonusCondition(const std::string_view& value) {
+  if (value == "INVALID") {
+    return {WeaponBonusCondition::INVALID};
+  } else if (value == "GARRISONED") {
+    return {WeaponBonusCondition::GARRISONED};
+  } else if (value == "HORDE") {
+    return {WeaponBonusCondition::HORDE};
+  } else if (value == "CONTINUOUS_FIRE_MEAN") {
+    return {WeaponBonusCondition::CONTINUOUS_FIRE_MEAN};
+  } else if (value == "CONTINUOUS_FIRE_FAST") {
+    return {WeaponBonusCondition::CONTINUOUS_FIRE_FAST};
+  } else if (value == "NATIONALISM") {
+    return {WeaponBonusCondition::NATIONALISM};
+  } else if (value == "PLAYER_UPGRADE") {
+    return {WeaponBonusCondition::PLAYER_UPGRADE};
+  } else if (value == "DRONE_SPOTTING") {
+    return {WeaponBonusCondition::DRONE_SPOTTING};
+  } else if (value == "DEMORALIZED") {
+    return {WeaponBonusCondition::DEMORALIZED};
+  } else if (value == "ENTHUSIASTIC") {
+    return {WeaponBonusCondition::ENTHUSIASTIC};
+  } else if (value == "VETERAN") {
+    return {WeaponBonusCondition::VETERAN};
+  } else if (value == "ELITE") {
+    return {WeaponBonusCondition::ELITE};
+  } else if (value == "HERO") {
+    return {WeaponBonusCondition::HERO};
+  } else if (value == "BATTLEPLAN_BOMBARDMENT") {
+    return {WeaponBonusCondition::BATTLEPLAN_BOMBARDMENT};
+  } else if (value == "BATTLEPLAN_HOLDTHELINE") {
+    return {WeaponBonusCondition::BATTLEPLAN_HOLDTHELINE};
+  } else if (value == "BATTLEPLAN_SEARCHANDDESTROY") {
+    return {WeaponBonusCondition::BATTLEPLAN_SEARCHANDDESTROY};
+  } else if (value == "SUBLIMINAL") {
+    return {WeaponBonusCondition::SUBLIMINAL};
+  } else if (value == "SOLO_HUMAN_EASY") {
+    return {WeaponBonusCondition::SOLO_HUMAN_EASY};
+  } else if (value == "SOLO_HUMAN_NORMAL") {
+    return {WeaponBonusCondition::SOLO_HUMAN_NORMAL};
+  } else if (value == "SOLO_HUMAN_HARD") {
+    return {WeaponBonusCondition::SOLO_HUMAN_HARD};
+  } else if (value == "SOLO_AI_EASY") {
+    return {WeaponBonusCondition::SOLO_AI_EASY};
+  } else if (value == "SOLO_AI_NORMAL") {
+    return {WeaponBonusCondition::SOLO_AI_NORMAL};
+  } else if (value == "SOLO_AI_HARD") {
+    return {WeaponBonusCondition::SOLO_AI_HARD};
+  } else if (value == "TARGET_FAERIE_FIRE") {
+    return {WeaponBonusCondition::TARGET_FAERIE_FIRE};
+  } else if (value == "FANATICISM") {
+    return {WeaponBonusCondition::FANATICISM};
+  } else if (value == "FRENZY_ONE") {
+    return {WeaponBonusCondition::FRENZY_ONE};
+  } else if (value == "FRENZY_TWO") {
+    return {WeaponBonusCondition::FRENZY_TWO};
+  } else if (value == "FRENZY_THREE") {
+    return {WeaponBonusCondition::FRENZY_THREE};
   } else {
     return {};
   }
