@@ -133,8 +133,7 @@ FUNCTION(ADD_GAME_TEST game_test_name)
   ENDIF()
 ENDFUNCTION()
 
-# preset for pedantic review
-# SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror -Wfatal-errors -Wextra -Wpedantic -Wno-gnu-zero-variadic-macro-arguments -Wno-nullability-extension -Wno-missing-field-initializers")
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror -Wfatal-errors -Wextra -Wpedantic -Wno-gnu-zero-variadic-macro-arguments -Wno-nullability-extension -Wno-missing-field-initializers -Wno-unused-parameter")
 
 ADD_DEFINITIONS("-DGLM_ENABLE_EXPERIMENTAL")
 SET(CMAKE_EXPORT_COMPILE_COMMANDS ON)
