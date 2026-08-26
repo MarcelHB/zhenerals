@@ -67,14 +67,15 @@ IF (USE_TRACY)
   ENDIF()
 
   OPTION(TRACY_ON_DEMAND "" ON)
+  OPTION(TRACY_ENABLED "" ON)
 
   FETCHCONTENT_DECLARE(
     tracy
     GIT_REPOSITORY https://github.com/wolfpld/tracy.git
-    GIT_TAG        099df3de3dc37eca4712c06b8320fb9c53596edd
+    GIT_TAG        30997d5ca6bb632cc10807a1da8a6d3de0aeeb3c
     GIT_SHALLOW TRUE
     GIT_PROGRESS TRUE
-  ) # 0.14.0
+  ) # 0.14.1
   FETCHCONTENT_MAKEAVAILABLE(tracy)
 
   ADD_DEFINITIONS("-DUSE_TRACY")

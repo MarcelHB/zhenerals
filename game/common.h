@@ -12,10 +12,8 @@
 void* operator new(size_t count);
 void operator delete(void* ptr) noexcept;
 void operator delete(void* ptr, std::size_t sz) noexcept;
-    #define TRACY_ON_DEMAND 1
   #endif
 
-  #define TRACY_ENABLE 1
   #include <tracy/Tracy.hpp>
   #define TRACY(x) x
 #else
