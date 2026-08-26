@@ -20,9 +20,9 @@ class DDSFile {
   private:
     std::istream& stream;
 
-    std::vector<char> decodeDXT1(Size);
+    std::vector<unsigned char> decodeDXT1(Size);
     // if bool is true, the image looks fully transparent
-    std::pair<std::vector<char>, bool> decodeDXT5(Size);
+    std::pair<std::vector<unsigned char>, bool> decodeDXT5(Size);
 };
 
 }

@@ -56,7 +56,7 @@ TextureGenerator::~TextureGenerator() {
 
 std::shared_ptr<Atlas> TextureGenerator::createFontAtlas(FT_Face face) {
   // 256x256 for ASCII
-  std::vector<char> buffer;
+  std::vector<unsigned char> buffer;
   buffer.resize(BUFFER_DIMENSION * BUFFER_DIMENSION * 4, 0);
 
   size_t totalWidth = 0;

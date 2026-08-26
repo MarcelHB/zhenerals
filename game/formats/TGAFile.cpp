@@ -28,12 +28,12 @@ std::shared_ptr<GFX::HostTexture> TGAFile::getTexture() {
   }
 
   uint8_t bytesPerPx = bitsPerPixel / 8;
-  std::vector<char> data;
+  std::vector<unsigned char> data;
   data.resize(4 * size.x * size.y);
 
   if (bitsPerPixel == 32) {
     for (decltype(size.y) y = 0; y < size.y; ++y) {
-      stream.read(data.data() + (size.y - 1 - y) * size.x * 4, size.x * 4);
+      stream.read(reinterpret_cast<char*>(data.data() + (size.y - 1 - y) * size.x * 4), size.x * 4);
       if (stream.gcount() != size.x * 4) {
         return {};
       }

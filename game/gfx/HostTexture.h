@@ -17,15 +17,15 @@ class HostTexture {
       , RGBA8888
     };
 
-    HostTexture (Size, Format, std::vector<char>&&);
+    HostTexture (Size, Format, std::vector<unsigned char>&&);
 
     Size getSize() const;
     Format getFormat() const;
-    const std::vector<char>& getData() const;
+    const std::vector<unsigned char>& getData() const;
   private:
     Size size;
     Format format;
-    std::vector<char> data;
+    std::vector<unsigned char> data;
 };
 
 }

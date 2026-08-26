@@ -108,7 +108,7 @@ std::shared_ptr<GFX::HostTexture> DDSFile::getTexture() {
 
   Size size {width, height};
 
-  std::vector<char> data;
+  std::vector<unsigned char> data;
   if (encoding == Encoding::DXT1) {
     data = decodeDXT1(size);
   } else if (encoding == Encoding::DXT5) {
@@ -144,8 +144,8 @@ std::array<uint8_t, 6> extractColors(const std::array<uint16_t, 2>& borderColors
   return colors;
 }
 
-std::vector<char> DDSFile::decodeDXT1(Size size) {
-  std::vector<char> data;
+std::vector<unsigned char> DDSFile::decodeDXT1(Size size) {
+  std::vector<unsigned char> data;
   data.resize(size.x * size.y * 4, 0);
 
   std::array<uint16_t, 2> borderColors;
@@ -208,8 +208,8 @@ std::vector<char> DDSFile::decodeDXT1(Size size) {
   return data;
 }
 
-std::pair<std::vector<char>, bool> DDSFile::decodeDXT5(Size size) {
-  std::vector<char> data;
+std::pair<std::vector<unsigned char>, bool> DDSFile::decodeDXT5(Size size) {
+  std::vector<unsigned char> data;
   data.resize(size.x * size.y * 4, 0);
 
   std::array<uint8_t, 8> alpha;
