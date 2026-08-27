@@ -58,7 +58,7 @@ INCLUDE_DIRECTORIES(
 OPTION(USE_TESTS "Enable building and running of tests" OFF)
 OPTION(USE_GAME_TESTS "Enable building and running of test against game data" OFF)
 OPTION(USE_TRACY "Build with Tracy support" OFF)
-OPTION(USE_USE_STATIC_LINKINGING "Link own sources statically" OFF)
+OPTION(USE_STATIC_LINKINGING "Link own sources statically" OFF)
 
 IF (USE_TRACY)
   INCLUDE(FetchContent)
