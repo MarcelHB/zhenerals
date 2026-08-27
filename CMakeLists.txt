@@ -58,16 +58,17 @@ INCLUDE_DIRECTORIES(
 OPTION(USE_TESTS "Enable building and running of tests" OFF)
 OPTION(USE_GAME_TESTS "Enable building and running of test against game data" OFF)
 OPTION(USE_TRACY "Build with Tracy support" OFF)
+OPTION(USE_USE_STATIC_LINKINGING "Link own sources statically" OFF)
 
 IF (USE_TRACY)
   INCLUDE(FetchContent)
 
-  IF (NOT STATIC_LINK)
+  IF (NOT USE_STATIC_LINKING)
     SET(CMAKE_POSITION_INDEPENDENT_CODE ON)
   ENDIF()
 
   OPTION(TRACY_ON_DEMAND "" ON)
-  OPTION(TRACY_ENABLED "" ON)
+  OPTION(TRACY_ENABLE "" ON)
 
   FETCHCONTENT_DECLARE(
     tracy
@@ -78,7 +79,7 @@ IF (USE_TRACY)
   ) # 0.14.1
   FETCHCONTENT_MAKEAVAILABLE(tracy)
 
-  ADD_DEFINITIONS("-DUSE_TRACY")
+  ADD_DEFINITIONS("-DUSE_TRACY -DTRACY_ENABLE -DTRACY_ON_DEMAND")
   INCLUDE_DIRECTORIES(${tracy_SOURCE_DIR}/public)
 ENDIF()
 
@@ -93,10 +94,11 @@ FUNCTION(ADD_UNIT_TEST unit_name)
   IF (BUILD_TESTING AND USE_TESTS)
     ADD_EXECUTABLE(Test_${unit_name}
       ${ARGN}
-      game/Logging.cpp
     )
 
     TARGET_LINK_LIBRARIES(Test_${unit_name}
+      inis
+      formats
       GTest::gtest
       GTest::gtest_main
       fmt::fmt
@@ -114,19 +116,19 @@ FUNCTION(ADD_GAME_TEST game_test_name)
   IF (BUILD_TESTING AND USE_GAME_TESTS)
     ADD_EXECUTABLE(GameTest_${game_test_name}
       ${ARGN}
-      game/formats/BIGFile.cpp
-      game/Logging.cpp
       game/MemoryViewStream.cpp
       game/ResourceLoader.cpp
     )
 
     TARGET_LINK_LIBRARIES(GameTest_${game_test_name}
+      inis
+      formats
       GTest::gtest
       GTest::gtest_main
       fmt::fmt
     )
 
-    TARGET_COMPILE_DEFINITIONS(GameTest_${game_test_name} PRIVATE NO_TRACY=1 IN_TEST=1)
+    TARGET_COMPILE_DEFINITIONS(GameTest_${game_test_name} PRIVATE NO_TRACY=1 IN_TEST=1 IS_CORE=1)
 
     ADD_TEST(NAME GameTest_${game_test_name}
       COMMAND $<TARGET_FILE:GameTest_${game_test_name}>
@@ -146,6 +148,29 @@ ENDIF()
 IF (WIN32)
   SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fuse-ld=lld")
 ENDIF()
+
+IF (USE_STATIC_LINKING)
+  ADD_DEFINITIONS("-DUSE_STATIC_LINKING")
+ENDIF ()
+
+IF (USE_TRACY)
+  IF(USE_STATIC_LINKING)
+    ADD_LIBRARY(Tracy STATIC ${tracy_SOURCE_DIR}/public/TracyClient.cpp)
+  ELSE()
+    ADD_LIBRARY(Tracy SHARED ${tracy_SOURCE_DIR}/public/TracyClient.cpp)
+  ENDIF()
+
+  TARGET_COMPILE_DEFINITIONS(Tracy PRIVATE TRACY_ENABLE=1)
+  TARGET_COMPILE_OPTIONS(Tracy PRIVATE "-Wno-sign-compare")
+  TARGET_COMPILE_OPTIONS(Tracy PRIVATE "-Wno-format")
+  TARGET_COMPILE_OPTIONS(Tracy PRIVATE "-Wno-unused-value")
+  TARGET_COMPILE_OPTIONS(Tracy PRIVATE "-Wno-c11-extensions")
+  TARGET_COMPILE_OPTIONS(Tracy PRIVATE "-Wno-error=cast-function-type")
+
+  IF (WIN32)
+    TARGET_LINK_LIBRARIES(Tracy ws2_32 dbghelp secur32)
+  ENDIF ()
+ENDIF ()
 
 SET(vugl_sources
   game/vugl/vma_loader.cpp
@@ -167,6 +192,78 @@ SET(vugl_sources
   game/vugl/vugl_uniform_buffer.cpp
 )
 
+IF (USE_STATIC_LINKING)
+  ADD_LIBRARY(vugl STATIC ${vugl_sources})
+ELSE ()
+  ADD_LIBRARY(vugl SHARED ${vugl_sources})
+ENDIF ()
+
+TARGET_LINK_LIBRARIES(vugl
+  ${Vulkan_LIBRARY}
+)
+
+SET(logging_sources
+  game/Logger.cpp
+  game/Logging.cpp
+)
+ADD_LIBRARY(logging STATIC ${logging_sources})
+
+SET(format_sources
+  game/gfx/HostTexture.cpp
+  game/formats/BIGFile.cpp
+  game/formats/CSFFile.cpp
+  game/formats/DDSFile.cpp
+  game/formats/MAPFile.cpp
+  game/formats/Dict.cpp
+  game/formats/TGAFile.cpp
+  game/formats/WNDFile.cpp
+  game/formats/W3DFile.cpp
+  game/GUI/Button.cpp
+  game/GUI/Component.cpp
+  game/GUI/Label.cpp
+  game/GUI/Window.cpp
+  game/GUI/wnd/DrawData.cpp
+  game/GUI/wnd/Font.cpp
+  game/GUI/wnd/Layout.cpp
+  game/GUI/wnd/ScreenRect.cpp
+  game/GUI/wnd/TextColor.cpp
+  game/GUI/wnd/Window.cpp
+  game/GUI/wnd/WindowAndLayout.cpp
+  game/InflatingStream.cpp
+  game/objects/Object.cpp
+  game/Script.cpp
+)
+
+IF (USE_STATIC_LINKING)
+  ADD_LIBRARY(formats STATIC ${format_sources})
+ELSE ()
+  ADD_LIBRARY(formats SHARED ${format_sources})
+ENDIF ()
+
+TARGET_LINK_LIBRARIES(formats PRIVATE logging fmt::fmt)
+
+SET(ini_sources
+  game/inis/INIFile.cpp
+  game/inis/MappedImageINI.cpp
+  game/inis/ObjectsINI.cpp
+  game/inis/RoadsBridgesINI.cpp
+  game/inis/SoundEffectsINI.cpp
+  game/inis/TerrainINI.cpp
+  game/inis/WaterINI.cpp
+  game/MurmurHash.cpp
+)
+
+IF (USE_STATIC_LINKING)
+  ADD_LIBRARY(inis STATIC ${ini_sources})
+ELSE ()
+  ADD_LIBRARY(inis SHARED ${ini_sources})
+ENDIF ()
+
+TARGET_LINK_LIBRARIES(inis
+  formats
+  fmt::fmt
+)
+
 # main executable
 ADD_EXECUTABLE(zhen
   game/audio/Backend.cpp
@@ -180,18 +277,9 @@ ADD_EXECUTABLE(zhen
   game/Game.cpp
   game/Geometry.cpp
   game/formats/AudioFile.cpp
-  game/formats/BIGFile.cpp
-  game/formats/CSFFile.cpp
-  game/formats/DDSFile.cpp
-  game/formats/MAPFile.cpp
-  game/formats/Dict.cpp
-  game/formats/TGAFile.cpp
-  game/formats/WNDFile.cpp
-  game/formats/W3DFile.cpp
   game/gfx/Camera.cpp
   game/gfx/FrameDisposable.cpp
   game/gfx/Frustum.cpp
-  game/gfx/HostTexture.cpp
   game/gfx/Model.cpp
   game/gfx/ModelCache.cpp
   game/gfx/TextureCache.cpp
@@ -200,53 +288,27 @@ ADD_EXECUTABLE(zhen
   game/gfx/font/Atlas.cpp
   game/gfx/font/FontManager.cpp
   game/gfx/font/TextureGenerator.cpp
-  game/GUI/Button.cpp
-  game/GUI/Component.cpp
   game/GUI/ComponentFactory.cpp
-  game/GUI/Label.cpp
   game/GUI/Overlay.cpp
-  game/GUI/Window.cpp
   game/GUI/drawing/RenderListFactory.cpp
   game/GUI/hosts/EventDefaults.cpp
   game/GUI/hosts/MainMenu.cpp
-  game/GUI/wnd/DrawData.cpp
-  game/GUI/wnd/Font.cpp
-  game/GUI/wnd/Layout.cpp
-  game/GUI/wnd/ScreenRect.cpp
-  game/GUI/wnd/TextColor.cpp
-  game/GUI/wnd/Window.cpp
-  game/GUI/wnd/WindowAndLayout.cpp
-  game/InflatingStream.cpp
-  game/inis/INIFile.cpp
-  game/inis/MappedImageINI.cpp
-  game/inis/ObjectsINI.cpp
-  game/inis/RoadsBridgesINI.cpp
-  game/inis/SoundEffectsINI.cpp
-  game/inis/TerrainINI.cpp
-  game/inis/WaterINI.cpp
   game/Main.cpp
   game/Map.cpp
   game/MemProfiling.cpp
   game/objects/Instance.cpp
   game/objects/InstanceFactory.cpp
-  game/objects/Object.cpp
   game/ObjectLoader.cpp
   game/MemoryViewStream.cpp
-  game/MurmurHash.cpp
-  game/Logger.cpp
-  game/Logging.cpp
   game/ResourceLoader.cpp
   game/rendering/BattlefieldRenderer.cpp
   game/rendering/InstanceRenderer.cpp
   game/rendering/ModelRenderer.cpp
   game/rendering/PatchRenderer.cpp
-  game/Script.cpp
   game/StringLoader.cpp
   game/ThreadPool.cpp
   game/Window.cpp
   game/WindowFactory.cpp
-
-  ${vugl_sources}
 )
 
 IF(WIN32)
@@ -256,24 +318,24 @@ IF(WIN32)
 ENDIF()
 
 TARGET_LINK_LIBRARIES(zhen
+  logging
+  inis
+  formats
+  vugl
   fmt::fmt
   ${FREETYPE_LIBRARIES}
   glm::glm
   PkgConfig::LIBAV
   ${OPENAL_LIBRARY}
   ${SDL3_LIBRARIES}
-  ${Vulkan_LIBRARY}
 )
-
-IF (USE_TRACY)
-  TARGET_LINK_LIBRARIES(zhen Tracy::TracyClient)
-ENDIF()
 
 # big tool
 ADD_EXECUTABLE(big
-  game/formats/BIGFile.cpp
   tools/BIG.cpp
 )
+
+TARGET_LINK_LIBRARIES(big formats)
 
 # decompress tool
 ADD_EXECUTABLE(decompress
@@ -284,48 +346,46 @@ ADD_EXECUTABLE(decompress
 # map dump
 ADD_EXECUTABLE(mapdump
   game/common.cpp
-  game/formats/Dict.cpp
-  game/formats/BIGFile.cpp
-  game/InflatingStream.cpp
-  game/Logger.cpp
-  game/Logging.cpp
   game/MemoryViewStream.cpp
   game/ResourceLoader.cpp
   tools/mapdump.cpp
 )
 
+TARGET_LINK_LIBRARIES(mapdump
+  logging
+  vugl
+  inis
+  formats
+  fmt::fmt
+)
+
 # w3d dump
 ADD_EXECUTABLE(w3ddump
   game/common.cpp
-  game/formats/BIGFile.cpp
-  game/Logger.cpp
-  game/Logging.cpp
   game/MemoryViewStream.cpp
   game/ResourceLoader.cpp
   tools/w3ddump.cpp
 )
 
+TARGET_LINK_LIBRARIES(w3ddump
+  logging
+  inis
+  formats
+  fmt::fmt
+)
+
 SET(common_viewer_sources
   game/common.cpp
-  game/formats/BIGFile.cpp
-  game/formats/DDSFile.cpp
-  game/formats/TGAFile.cpp
-  game/formats/W3DFile.cpp
   game/gfx/Camera.cpp
   game/gfx/font/Atlas.cpp
   game/gfx/font/FontManager.cpp
   game/gfx/font/TextureGenerator.cpp
   game/gfx/FrameDisposable.cpp
-  game/gfx/HostTexture.cpp
   game/gfx/Model.cpp
   game/gfx/ModelCache.cpp
   game/gfx/TextureCache.cpp
   game/gfx/TextureLoader.cpp
   game/gfx/TextureLookup.cpp
-  game/inis/INIFile.cpp
-  game/inis/MappedImageINI.cpp
-  game/Logger.cpp
-  game/Logging.cpp
   game/MemoryViewStream.cpp
   game/MurmurHash.cpp
   game/rendering/LineRenderer.cpp
@@ -338,68 +398,50 @@ SET(common_viewer_sources
 # obj viewer
 ADD_EXECUTABLE(objview
   game/Color.cpp
-  game/formats/Dict.cpp
-  game/InflatingStream.cpp
-  game/inis/ObjectsINI.cpp
   game/objects/Instance.cpp
   game/objects/InstanceFactory.cpp
-  game/objects/Object.cpp
   game/ObjectLoader.cpp
-  game/GUI/Button.cpp
-  game/GUI/Component.cpp
-  game/GUI/Label.cpp
-  game/GUI/Window.cpp
   game/GUI/drawing/RenderListFactory.cpp
-  game/GUI/wnd/DrawData.cpp
-  game/GUI/wnd/Font.cpp
-  game/GUI/wnd/Layout.cpp
-  game/GUI/wnd/ScreenRect.cpp
-  game/GUI/wnd/TextColor.cpp
-  game/GUI/wnd/Window.cpp
-  game/GUI/wnd/WindowAndLayout.cpp
   game/rendering/InstanceRenderer.cpp
   game/ThreadPool.cpp
   ${common_viewer_sources}
   tools/objview.cpp
+)
 
-  ${vugl_sources}
+TARGET_LINK_LIBRARIES(objview
+  logging
+  inis
+  formats
+  vugl
+  fmt::fmt
+  ${FREETYPE_LIBRARIES}
+  glm::glm
+  ${SDL3_LIBRARIES}
 )
 
 # w3d viewer
 ADD_EXECUTABLE(w3dview
   ${common_viewer_sources}
   tools/w3dview.cpp
-
-  ${vugl_sources}
-)
-
-TARGET_LINK_LIBRARIES(mapdump
-  fmt::fmt
-)
-
-TARGET_LINK_LIBRARIES(w3ddump
-  fmt::fmt
-)
-
-TARGET_LINK_LIBRARIES(objview
-  fmt::fmt
-  ${FREETYPE_LIBRARIES}
-  glm::glm
-  ${SDL3_LIBRARIES}
-  ${Vulkan_LIBRARY}
 )
 
 TARGET_LINK_LIBRARIES(w3dview
+  logging
+  inis
+  formats
+  vugl
   fmt::fmt
   ${FREETYPE_LIBRARIES}
   glm::glm
   ${SDL3_LIBRARIES}
-  ${Vulkan_LIBRARY}
 )
 
 IF (USE_TRACY)
-  TARGET_LINK_LIBRARIES(objview Tracy::TracyClient)
-  TARGET_LINK_LIBRARIES(w3dview Tracy::TracyClient)
+  TARGET_LINK_LIBRARIES(formats PRIVATE Tracy)
+  TARGET_LINK_LIBRARIES(inis Tracy)
+  TARGET_LINK_LIBRARIES(objview Tracy)
+  TARGET_LINK_LIBRARIES(w3dview Tracy)
+  TARGET_LINK_LIBRARIES(zhen Tracy)
 ENDIF()
 
 ADD_CUSTOM_TARGET(always_run
@@ -441,7 +483,6 @@ ADD_UNIT_TEST(AudioFile
   game/audio/Backend.cpp
 
   game/audio/SoundData.cpp
-  game/Logging.cpp
   game/formats/AudioFile.cpp
   game/tests/Test_AudioFile.cpp
 )
@@ -455,30 +496,23 @@ IF (BUILD_TESTING AND USE_TESTS)
 ENDIF()
 
 ADD_UNIT_TEST(BIGFile
-  game/formats/BIGFile.cpp
   game/tests/Test_BIGFile.cpp
 )
 
 ADD_UNIT_TEST(CSFFile
-  game/formats/CSFFile.cpp
   game/tests/Test_CSFFile.cpp
 )
 
 ADD_UNIT_TEST(DDSFile
-  game/gfx/HostTexture.cpp
-  game/formats/DDSFile.cpp
   game/tests/Test_DDSFile.cpp
 )
 
 ADD_UNIT_TEST(Dict
-  game/formats/Dict.cpp
-  game/InflatingStream.cpp
   game/tests/Test_Dict.cpp
 )
 
 ADD_UNIT_TEST(Font
   game/common.cpp
-  game/gfx/HostTexture.cpp
   game/gfx/font/Atlas.cpp
   game/gfx/font/FontManager.cpp
   game/gfx/font/TextureGenerator.cpp
@@ -503,8 +537,6 @@ ADD_UNIT_TEST(Geometry
 )
 
 ADD_UNIT_TEST(MappedImageINI
-  game/inis/INIFile.cpp
-  game/inis/MappedImageINI.cpp
   game/tests/Test_MappedImageINI.cpp
 )
 
@@ -519,55 +551,40 @@ ADD_UNIT_TEST(MemoryViewStream
 )
 
 ADD_UNIT_TEST(ObjectsINI
-  game/inis/INIFile.cpp
-  game/inis/ObjectsINI.cpp
   game/MurmurHash.cpp
-  game/objects/Object.cpp
   game/tests/Test_ObjectsINI.cpp
 )
 
 ADD_UNIT_TEST(ResourceLoader
   game/MemoryViewStream.cpp
-  game/formats/BIGFile.cpp
   game/ResourceLoader.cpp
   game/tests/Test_ResourceLoader.cpp
 )
 
 ADD_UNIT_TEST(RoadsBridgesINI
   game/MurmurHash.cpp
-  game/inis/INIFile.cpp
-  game/inis/RoadsBridgesINI.cpp
   game/tests/Test_RoadsBridgesINI.cpp
 )
 
 ADD_UNIT_TEST(SoundEffectsINI
   game/MurmurHash.cpp
-  game/inis/INIFile.cpp
-  game/inis/SoundEffectsINI.cpp
   game/tests/Test_SoundEffectsINI.cpp
 )
 
 ADD_UNIT_TEST(TerrainINI
   game/MurmurHash.cpp
-  game/inis/INIFile.cpp
-  game/inis/TerrainINI.cpp
   game/tests/Test_TerrainINI.cpp
 )
 
 ADD_UNIT_TEST(TGAFile
-  game/gfx/HostTexture.cpp
-  game/formats/TGAFile.cpp
   game/tests/Test_TGAFile.cpp
 )
 
 ADD_UNIT_TEST(WaterINI
-  game/inis/INIFile.cpp
-  game/inis/WaterINI.cpp
   game/tests/Test_WaterINI.cpp
 )
 
 ADD_UNIT_TEST(WNDFile
-  game/formats/WNDFile.cpp
   game/GUI/wnd/DrawData.cpp
   game/GUI/wnd/Font.cpp
   game/GUI/wnd/Font.cpp
@@ -584,23 +601,14 @@ ADD_GAME_TEST(MAPFile
   game/BattlefieldFactory.cpp
   game/Geometry.cpp
   game/gfx/Camera.cpp
-  game/gfx/HostTexture.cpp
   game/gfx/Model.cpp
   game/gfx/ModelCache.cpp
-  game/InflatingStream.cpp
   game/Map.cpp
   game/MemoryViewStream.cpp
   game/MurmurHash.cpp
   game/objects/Instance.cpp
   game/objects/InstanceFactory.cpp
-  game/objects/Object.cpp
   game/ObjectLoader.cpp
-  game/formats/Dict.cpp
-  game/formats/MAPFile.cpp
-  game/formats/TGAFile.cpp
-  game/formats/W3DFile.cpp
-  game/inis/INIFile.cpp
-  game/inis/ObjectsINI.cpp
   game/inis/TerrainINI.cpp
   game/Script.cpp
   game/ThreadPool.cpp
@@ -610,23 +618,16 @@ ADD_GAME_TEST(MAPFile
 ADD_GAME_TEST(ObjectsINI
   game/MemoryViewStream.cpp
   game/MurmurHash.cpp
-  game/inis/INIFile.cpp
-  game/inis/ObjectsINI.cpp
-  game/objects/Object.cpp
   game/tests/GameTest_ObjectsINI.cpp
 )
 
 ADD_GAME_TEST(Textures
-  game/formats/DDSFile.cpp
-  game/formats/TGAFile.cpp
-  game/gfx/HostTexture.cpp
   game/gfx/TextureLoader.cpp
   game/tests/GameTest_Textures.cpp
 )
 
 ADD_GAME_TEST(W3DFile
   game/MemoryViewStream.cpp
-  game/formats/W3DFile.cpp
   game/gfx/Model.cpp
   game/tests/GameTest_W3D.cpp
 )
