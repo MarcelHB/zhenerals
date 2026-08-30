@@ -35,6 +35,7 @@ FetchContent_Declare(
   GIT_TAG        1be298e1bd68957e4cd352e1f676f00e07dcfb57
 ) # 12.2.0
 FetchContent_MakeAvailable(fmt)
+SET_TARGET_PROPERTIES(fmt PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
 FetchContent_Declare(
   glm
@@ -136,7 +137,8 @@ FUNCTION(ADD_GAME_TEST game_test_name)
   ENDIF()
 ENDFUNCTION()
 
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror -Wfatal-errors -Wextra -Wpedantic -Wno-gnu-zero-variadic-macro-arguments -Wno-nullability-extension -Wno-missing-field-initializers -Wno-unused-parameter")
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror -Wfatal-errors -Wextra -Wpedantic")
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-gnu-zero-variadic-macro-arguments -Wno-nullability-extension -Wno-missing-field-initializers -Wno-unused-parameter -Wno-unused-result")
 
 ADD_DEFINITIONS("-DGLM_ENABLE_EXPERIMENTAL")
 SET(CMAKE_EXPORT_COMPILE_COMMANDS ON)
