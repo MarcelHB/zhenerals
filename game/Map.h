@@ -231,6 +231,8 @@ class Map {
     const std::vector<std::string>& getTexturesIndex() const;
     const std::vector<VertexData>& getVertexData() const;
     const std::vector<uint32_t>& getVertexIndices() const;
+    const std::pair<std::vector<uint32_t>, std::vector<VertexData>>
+      getVertexSlice(const IntFlatBox&) const;
     const std::vector<WaterState>& getWater() const;
     const std::vector<WaterVertexData>& getWaterVertices() const;
     const glm::mat4& getWorldOffsetMatrix() const;

@@ -232,6 +232,51 @@ const std::vector<uint32_t>& Map::getVertexIndices() const {
   return vertexIndices;
 }
 
+const std::pair<
+    std::vector<uint32_t>
+  , std::vector<Map::VertexData>
+> Map::getVertexSlice(const IntFlatBox& region) const {
+  std::pair<
+      std::vector<uint32_t>
+    , std::vector<VertexData>
+  > slice;
+  size_t sliceSize = region.size.x * region.size.y;
+  slice.first.resize(sliceSize * 6);
+  slice.second.resize(sliceSize * 4);
+
+  auto statesWidthBytes = (size.x + 7) / 8;
+  size_t newVertexIdx = 0, newBaseIdx = 0;
+
+  for (size_t y = region.position.y; y < region.position.y + region.size.y; ++y) {
+    for (
+        size_t x = region.position.x
+      ; x < region.position.x + region.size.x
+      ; ++x, newVertexIdx += 6, newBaseIdx += 4
+    ) {
+      size_t baseIdx = (y * size.x + x) * 4;
+      for (size_t j = 0; j < 4; ++j) {
+        slice.second[newBaseIdx + j] = verticesAndNormals[baseIdx + j];
+      }
+
+      auto flipped = flipStates[y * statesWidthBytes + (x >> 3)] & (1 << (x & 0x7));
+
+      slice.first[newVertexIdx] = newBaseIdx;
+      slice.first[newVertexIdx + 1] = newBaseIdx + 1;
+      if (flipped) {
+        slice.first[newVertexIdx + 2] = newBaseIdx + 2;
+        slice.first[newVertexIdx + 3] = newBaseIdx + 1;
+      } else {
+        slice.first[newVertexIdx + 2] = newBaseIdx + 3;
+        slice.first[newVertexIdx + 3] = newBaseIdx;
+      }
+      slice.first[newVertexIdx + 4] = newBaseIdx + 3;
+      slice.first[newVertexIdx + 5] = newBaseIdx + 2;
+    }
+  }
+
+  return slice;
+}
+
 const std::vector<Map::WaterState>& Map::getWater() const {
   return waterState;
 }

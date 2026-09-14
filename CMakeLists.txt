@@ -59,7 +59,7 @@ INCLUDE_DIRECTORIES(
 OPTION(USE_TESTS "Enable building and running of tests" OFF)
 OPTION(USE_GAME_TESTS "Enable building and running of test against game data" OFF)
 OPTION(USE_TRACY "Build with Tracy support" OFF)
-OPTION(USE_STATIC_LINKINGING "Link own sources statically" OFF)
+OPTION(USE_STATIC_LINKING "Link own sources statically" OFF)
 
 IF (USE_TRACY)
   INCLUDE(FetchContent)
@@ -536,6 +536,13 @@ ADD_UNIT_TEST(Frustum
 ADD_UNIT_TEST(Geometry
   game/ThreadPool.cpp
   game/tests/Test_Geometry.cpp
+)
+
+ADD_UNIT_TEST(Map
+  game/Geometry.cpp
+  game/Map.cpp
+  game/ThreadPool.cpp
+  game/tests/Test_Map.cpp
 )
 
 ADD_UNIT_TEST(MappedImageINI
