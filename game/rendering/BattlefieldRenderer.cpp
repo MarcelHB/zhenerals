@@ -19,6 +19,8 @@ struct WaterScene {
   alignas(16) glm::mat4 mvp;
 };
 
+glm::mat4 BattlefieldRenderer::terrainScaleMatrix = {1.0f};
+
 BattlefieldRenderer::BattlefieldRenderer(
     Vugl::Context& vuglContext
   , const Config& config
@@ -83,7 +85,7 @@ bool BattlefieldRenderer::init(Vugl::RenderPass& renderPass) {
     glm::scale(
         glm::mat4 {1.0f}
       , glm::vec3 {10.0f, Map::TERRAIN_HEIGHT_SCALE, 10.0f}
-      );
+    );
 
   waterScaleMatrix =
     glm::scale(
@@ -135,6 +137,10 @@ bool BattlefieldRenderer::init(Vugl::RenderPass& renderPass) {
   }
 
   return true;
+}
+
+const glm::mat4& BattlefieldRenderer::getTerrainScaleMatrix() {
+  return terrainScaleMatrix;
 }
 
 void BattlefieldRenderer::createRenderList(Vugl::CommandBuffer& commandBuffer, uint32_t frameIdx, Vugl::RenderPass& renderPass) {

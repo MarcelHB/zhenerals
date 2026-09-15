@@ -30,6 +30,8 @@ class BattlefieldRenderer {
 
     bool init(Vugl::RenderPass&);
     void createRenderList(Vugl::CommandBuffer&, uint32_t, Vugl::RenderPass&);
+
+    static const glm::mat4& getTerrainScaleMatrix();
   private:
     struct DrawCheck {
       std::shared_ptr<Objects::Instance> instance;
@@ -51,7 +53,7 @@ class BattlefieldRenderer {
     RoadsBridgesINI::Roads roads;
     RoadsBridgesINI::Bridges bridges;
 
-    glm::mat4 terrainScaleMatrix;
+    static glm::mat4 terrainScaleMatrix;
     glm::mat4 waterScaleMatrix;
 
     std::vector<DrawCheck> drawChecks;
