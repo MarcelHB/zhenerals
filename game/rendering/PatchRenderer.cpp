@@ -103,6 +103,8 @@ bool PatchRenderer::prepareScorchData(const Battlefield::ScorchData& scorch) {
   auto entry = scorchData.emplace(std::make_pair(scorch.id, ScorchData {}));
   auto& renderData = entry.first->second;
   renderData.position = scorch.location;
+  // data has it at 0
+  renderData.position.y = battlefield.getWorldHeight(scorch.location);
   renderData.radius = scorch.radius;
 
   auto map = battlefield.getMap();
@@ -195,16 +197,19 @@ void PatchRenderer::renderPatches(Vugl::CommandBuffer& commandBuffer, uint32_t f
     TRACY(ZoneScoped);
     scorchFrameIdxSet = 0;
 
+    auto& offsetMatrix = map->getWorldOffsetMatrix();
+
+    // TODO if there are big height differences in the patch, this is inaccurate
     size_t i = 0;
     for (auto& pair : scorchData) {
       auto& scorch = pair.second;
       auto& drawData = scorchOrderData[i];
 
-      auto scale = scorch.radius * 6.0f; // EVAL why so much bigger than drawn
-      auto position = glm::vec3 {map->getWorldOffsetMatrix() * glm::vec4 {scorch.position, 1.0f}};
+      auto radius = std::sqrt(2 * scorch.radius * scorch.radius);
+      auto position = glm::vec3 {offsetMatrix * glm::vec4 {scorch.position, 1.0f}};
 
       drawData.scorch = &scorch;
-      drawData.draw = frustrum.isSphereInside(position, scale);
+      drawData.draw = frustrum.isSphereInside(position, radius);
       drawData.dist = glm::length(camera.getPosition() - position);
 
       i += 1;
