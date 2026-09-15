@@ -14,8 +14,7 @@ layout(location = 1) out vec3 normalOut;
 
 void main() {
   uvOut = (scene.uvMatrix * vec4(uvIn, 1.0, 1.0)).xy;
-  // r/n only facing up, always
   normalOut = normalIn;
 
-  gl_Position = scene.mvpMatrix * vec4(position, 1.0);
+  gl_Position = scene.mvpMatrix * vec4(position + vec3(0.0, 0.1, 0.0), 1.0);
 }

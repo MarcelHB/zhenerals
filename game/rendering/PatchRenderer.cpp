@@ -4,6 +4,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 #include "gfx/Frustum.h"
+#include "BattlefieldRenderer.h"
 #include "PatchRenderer.h"
 
 namespace ZH {
@@ -78,28 +79,15 @@ bool PatchRenderer::preparePatches(Vugl::RenderPass& renderPass) {
   pipelineSetup.addVertexInput(VK_FORMAT_R32G32B32_SFLOAT, 12, 12, 0);
   pipelineSetup.addVertexInput(VK_FORMAT_R32G32_SFLOAT, 24, 8, 0);
 
+  pipelineSetup.addVertexInput(VK_FORMAT_R32_UINT, 32, 4, 0);
+  pipelineSetup.addVertexInput(VK_FORMAT_R32_UINT, 36, 4, 0);
+  pipelineSetup.addVertexInput(VK_FORMAT_R32_SFLOAT, 40, 4, 0);
+  pipelineSetup.addVertexInput(VK_FORMAT_R32G32_SFLOAT, 44, 8, 0);
+
   patchPipeline =
     std::make_shared<Vugl::Pipeline>(vuglContext.createPipeline(pipelineSetup, renderPass.getVkRenderPass()));
 
   if (patchPipeline->getLastResult() != VK_SUCCESS) {
-    return false;
-  }
-
-  std::vector<float> data = {
-    // vertex          normal             uv
-    0.0f, 0.0f, 0.0f,  0.0f, 1.0f, 0.0f,  0.0f, 0.0f,
-    1.0f, 0.0f, 1.0f,  0.0f, 1.0f, 0.0f,  1.0f, 1.0f,
-    0.0f, 0.0f, 1.0f,  0.0f, 1.0f, 0.0f,  0.0f, 1.0f,
-
-    0.0f, 0.0f, 0.0f,  0.0f, 1.0f, 0.0f,  0.0f, 0.0f,
-    1.0f, 0.0f, 0.0f,  0.0f, 1.0f, 0.0f,  1.0f, 0.0f,
-    1.0f, 0.0f, 1.0f,  0.0f, 1.0f, 0.0f,  1.0f, 1.0f
-  };
-
-  patchVertices =
-    std::make_shared<Vugl::ElementBuffer>(vuglContext.createElementBuffer(0));
-  patchVertices->writeData(data, std::vector<uint16_t> {});
-  if (!vuglContext.uploadResource(*patchVertices)) {
     return false;
   }
 
@@ -117,6 +105,28 @@ bool PatchRenderer::prepareScorchData(const Battlefield::ScorchData& scorch) {
   renderData.position = scorch.location;
   renderData.radius = scorch.radius;
 
+  auto map = battlefield.getMap();
+  glm::vec4 location = {scorch.location.x, 0.0f, scorch.location.z, 1.0f};
+
+  auto& offsetMap = map->getWorldOffsetMatrix();
+  location = offsetMap * location;
+
+  IntFlatBox sliceRequest;
+  sliceRequest.position = {
+      static_cast<int32_t>(std::floor(location.x - scorch.radius) * 0.1f)
+    , static_cast<int32_t>(std::floor(location.z - scorch.radius) * 0.1f)
+  };
+  sliceRequest.size = {
+      static_cast<uint32_t>((std::ceil(location.x + scorch.radius) - std::floor(location.x - scorch.radius)) * 0.1f)
+    , static_cast<uint32_t>((std::ceil(location.z + scorch.radius) - std::floor(location.z - scorch.radius)) * 0.1f)
+  };
+
+  auto vertices = map->getVertexSlice(sliceRequest);
+
+  renderData.vertices =
+    std::make_shared<Vugl::ElementBuffer>(vuglContext.createElementBuffer(0));
+  renderData.vertices->setBigIndexBuffer(true);
+
   glm::vec3 translation {0.0f, 0.0f, 0.0f};
   // upper two rows of 3x3 texture, but 64x64 at size with 32 gap
   auto rest = scorch.type % 3;
@@ -125,6 +135,21 @@ bool PatchRenderer::prepareScorchData(const Battlefield::ScorchData& scorch) {
   if (scorch.type >= 3) {
     translation.y = 1.0f/4.0f + 1.0/8.0f;
   }
+
+  float factor = 1.0f / sliceRequest.size.x;
+  size_t numCells = sliceRequest.size.x * sliceRequest.size.y;
+
+  for (size_t i = 0; i < numCells; ++i) {
+    auto xCell = i % sliceRequest.size.x;
+    auto yCell = i / sliceRequest.size.x;
+
+    vertices.second[i * 4    ].uv = { xCell * factor, yCell * factor};
+    vertices.second[i * 4 + 1].uv = { (xCell + 1) * factor, yCell * factor};
+    vertices.second[i * 4 + 2].uv = { xCell * factor, (yCell + 1) * factor};
+    vertices.second[i * 4 + 3].uv = { (xCell + 1) * factor, (yCell + 1) * factor};
+  }
+
+  renderData.vertices->writeData(vertices.second, vertices.first);
 
   renderData.uv =
     glm::translate(glm::mat4 {1.0f}, translation)
@@ -137,6 +162,7 @@ bool PatchRenderer::prepareScorchData(const Battlefield::ScorchData& scorch) {
   renderData.descriptorSet->assignUniformBuffer(*renderData.uniformBuffer);
   renderData.descriptorSet->assignCombinedSampler(*scorchTextureSampler);
 
+  vuglContext.uploadResource(*renderData.vertices);
   renderData.descriptorSet->updateDevice();
 
   return true;
@@ -164,7 +190,6 @@ void PatchRenderer::renderPatches(Vugl::CommandBuffer& commandBuffer, uint32_t f
   GFX::Frustum frustrum {camera};
 
   commandBuffer.bindResource(*patchPipeline);
-  commandBuffer.bindResource(*patchVertices);
 
   if (newMatrices) {
     TRACY(ZoneScoped);
@@ -195,7 +220,6 @@ void PatchRenderer::renderPatches(Vugl::CommandBuffer& commandBuffer, uint32_t f
   float distStep = 0.1f / (scorchOrderData.size());
   size_t i = 0;
   bool needsFrameUpdate = (scorchFrameIdxSet & (1 << frameIdx)) == 0;
-  auto numVertices = patchVertices->getNumVertices();
   auto camMatrix = camera.getProjectionMatrix() * camera.getCameraMatrix();
 
   ScorchUBData ubData;
@@ -212,26 +236,10 @@ void PatchRenderer::renderPatches(Vugl::CommandBuffer& commandBuffer, uint32_t f
 
     scorch->decreaseMiss();
     if (needsFrameUpdate) {
-      auto scale = scorch->radius * 2.0f;
-
-      auto worldMatrix = battlefield.getWorldMatrix(scorch->position, 0);
-      auto drawTranslation =
-        glm::translate(
-            glm::mat4 {1.0f}
-          , glm::vec3 {-scorch->radius, 0.1f + i * distStep, -scorch->radius}
-        );
-
-      auto scaleMatrix =
-        glm::scale(
-            glm::mat4 {1.0f}
-          , glm::vec3 {scale, 1.0f, scale}
-        );
       ubData.uv = scorch->uv;
       ubData.mvp =
         camMatrix
-        * drawTranslation
-        * worldMatrix
-        * scaleMatrix;
+        * BattlefieldRenderer::getTerrainScaleMatrix();
 
       scorch->uniformBuffer->writeData(ubData, frameIdx);
     }
@@ -241,9 +249,11 @@ void PatchRenderer::renderPatches(Vugl::CommandBuffer& commandBuffer, uint32_t f
       commandBuffer.beginDebugLabel(label);
     }
 
+    commandBuffer.bindResource(*scorch->vertices);
     commandBuffer.bindResource(*scorch->descriptorSet);
-    commandBuffer.draw([numVertices](VkCommandBuffer vkCommandBuffer, uint32_t) {
-      vkCmdDraw(vkCommandBuffer, 6, 1, 0, 0);
+    auto numIndices = scorch->vertices->getNumIndices();
+    commandBuffer.draw([numIndices](VkCommandBuffer vkCommandBuffer, uint32_t) {
+      vkCmdDrawIndexed(vkCommandBuffer, numIndices, 1, 0, 0, 0);
 
       return VK_SUCCESS;
     });

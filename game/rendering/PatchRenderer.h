@@ -49,6 +49,7 @@ class PatchRenderer {
       glm::mat4 uv;
       std::shared_ptr<Vugl::DescriptorSet> descriptorSet;
       std::shared_ptr<Vugl::UniformBuffer> uniformBuffer;
+      std::shared_ptr<Vugl::ElementBuffer> vertices;
     };
 
     struct ScorchOrderData {
@@ -58,7 +59,6 @@ class PatchRenderer {
     };
 
     std::shared_ptr<Vugl::Pipeline> patchPipeline;
-    std::shared_ptr<Vugl::ElementBuffer> patchVertices;
 
     std::shared_ptr<Vugl::CombinedSampler> scorchTextureSampler;
     std::unordered_map<uint64_t, ScorchData> scorchData;
