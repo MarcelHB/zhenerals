@@ -2,6 +2,7 @@
 
 #include <vector>
 
+#include "objects/Instance.h"
 #include "Logging.h"
 #include "MAPFile.h"
 
@@ -600,6 +601,8 @@ size_t MAPFile::parseObject(MapBuilder& mapBuilder, const ChunkMetaData& metaDat
   auto scorchOpt = object.properties.getInt("scorchType");
   if (scorchOpt) {
     mapBuilder.scorches.emplace_back(std::move(object));
+  } else if (object.flags & static_cast<uint32_t>(Objects::Instance::InstanceFlag::IS_ROAD)) {
+    mapBuilder.roads.emplace_back(std::move(object));
   } else {
     mapBuilder.objects.emplace_back(std::move(object));
   }

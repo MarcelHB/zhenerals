@@ -165,6 +165,7 @@ struct MapBuilder {
 
   std::list<MapObject> objects;
   std::list<MapObject> scorches;
+  std::list<MapObject> roads;
 
   std::vector<uint16_t> tileIndices;
   std::vector<uint16_t> cliffInfoIndices;

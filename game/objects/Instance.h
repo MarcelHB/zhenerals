@@ -24,6 +24,7 @@ class Instance {
       , BRIDGE_POINT2 = 0x20
       , ROAD_CORNER_TIGHT = 0x40
       , ROAD_JOIN = 0x80
+      , IS_ROAD = (ROAD_POINT1 | ROAD_POINT2 | ROAD_CORNER_ANGLED | ROAD_CORNER_TIGHT | ROAD_JOIN)
     };
 
     float getAngle() const;
