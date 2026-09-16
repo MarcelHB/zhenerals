@@ -38,6 +38,14 @@
     return totalBytes; \
   }
 
+#define readvec3() \
+  readf() \
+  buffervec3.x = bufferf; \
+  readf() \
+  buffervec3.y = bufferf; \
+  readf() \
+  buffervec3.z = bufferf; \
+
 #define readString() \
   stringOpt = parseString(stream); \
   totalBytes += stringOpt.first; \
@@ -141,6 +149,7 @@ size_t parseChunk(
   uint8_t buffer1 = 0;
   uint32_t buffer4 = 0;
   float bufferf = 0.0f;
+  glm::vec3 buffervec3;
   StringOpt stringOpt;
 
   auto d1 = depth + 1;
@@ -415,6 +424,47 @@ size_t parseChunk(
     ZH::Dict dict;
     totalBytes += dict.parse(state.chunkLabels, stream);
     dumpDict(dict, depth);
+  } else if (chunkType == "GlobalLighting") {
+    for (uint8_t i = 0; i < 4; ++i) {
+      for (uint8_t j = 0; j < 2; ++j) {
+        dump(depth, "Light {}/{}:", i, j);
+
+        readvec3()
+        dump(d1, "Ambient col: {}, {}, {}", buffervec3.x, buffervec3.y, buffervec3.z);
+        readvec3()
+        dump(d1, "Diffuse col: {}, {}, {}", buffervec3.x, buffervec3.y, buffervec3.z);
+        readvec3()
+        dump(d1, "Position: {}, {}, {}", buffervec3.x, buffervec3.y, buffervec3.z);
+      }
+
+      if (metaData.version >= 2) {
+        for (uint8_t j = 1; j < 3; ++j) {
+          dump(depth, "Light {}/{}:", i, j);
+
+          readvec3()
+          dump(d1, "Ambient col: {}, {}, {}", buffervec3.x, buffervec3.y, buffervec3.z);
+          readvec3()
+          dump(d1, "Diffuse col: {}, {}, {}", buffervec3.x, buffervec3.y, buffervec3.z);
+          readvec3()
+          dump(d1, "Position: {}, {}, {}", buffervec3.x, buffervec3.y, buffervec3.z);
+        }
+      }
+
+      if (metaData.version >= 3) {
+        for (uint8_t j = 1; j < 3; ++j) {
+          dump(depth, "Light {}/{}:", i, j);
+
+          readvec3()
+          dump(d1, "Ambient col: {}, {}, {}", buffervec3.x, buffervec3.y, buffervec3.z);
+          readvec3()
+          dump(d1, "Diffuse col: {}, {}, {}", buffervec3.x, buffervec3.y, buffervec3.z);
+          readvec3()
+          dump(d1, "Position: {}, {}, {}", buffervec3.x, buffervec3.y, buffervec3.z);
+        }
+      }
+    }
+  } else {
+    fmt::print(std::cerr, "Unsupported chunk: {}\n", chunkType);
   }
 
   return totalBytes;
@@ -447,11 +497,12 @@ size_t parseNextChunk(ZH::InflatingStream& stream, State& state, uint16_t depth)
   if (typeLookup == state.chunkLabels.cend()) {
     dump(depth + 1, "Name: UNKNOWN");
     stream.seekg(md.payloadSize, std::ios::cur);
-    return md.payloadSize;
+    return md.payloadSize + 10;
   }
 
   dump(depth + 1, "Name: {}", typeLookup->second);
   dump(depth + 1, "Version: {}", md.version);
+  dump(depth + 1, "Size: {}", md.payloadSize);
 
   size_t bytesRead = parseChunk(stream, state, typeLookup->second, md, depth + 1);
   if (bytesRead > md.payloadSize) {
@@ -463,7 +514,7 @@ size_t parseNextChunk(ZH::InflatingStream& stream, State& state, uint16_t depth)
     bytesRead += left;
   }
 
-  return bytesRead;
+  return bytesRead + 10;
 }
 
 bool parseMap(ZH::InflatingStream& stream, State& state) {
