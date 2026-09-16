@@ -1005,8 +1005,8 @@ size_t MAPFile::parseWaypoints(MapBuilder& mapBuilder) {
   size_t totalBytes = 0;
 
   read4()
-  int32_t numWayoints = buffer4;
-  for (int32_t i = 0; i < numWayoints; ++i) {
+  int32_t numWaypoints = buffer4;
+  for (int32_t i = 0; i < numWaypoints; ++i) {
     std::pair<int32_t, int32_t> p;
     read4()
     p.first = buffer4;
