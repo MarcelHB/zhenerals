@@ -64,8 +64,11 @@ std::shared_ptr<Vugl::Texture> TextureCache::getTexture(const std::string& key, 
   auto texture = vuglContext.createTexture();
   auto size = hostTexture->getSize();
 
+  uint32_t providedMipMaps = hostTexture->getNumMipMaps();
   uint32_t numMipMaps = 1;
-  if (mipMaps) {
+  if (providedMipMaps > 1) {
+    numMipMaps = providedMipMaps;
+  } else if (mipMaps) {
     numMipMaps = static_cast<uint32_t>(std::floor(std::log2(std::max(size.x, size.y)))) + 1;
   }
 
@@ -74,6 +77,7 @@ std::shared_ptr<Vugl::Texture> TextureCache::getTexture(const std::string& key, 
     , VkExtent2D {size.x, size.y}
     , mappedFormat(hostTexture->getFormat())
     , numMipMaps
+    , providedMipMaps > 1
   );
 
   auto cachedTexture =
@@ -110,6 +114,10 @@ VkFormat TextureCache::mappedFormat(HostTexture::Format format) {
       return VK_FORMAT_B8G8R8A8_UNORM;
     case ZH::GFX::HostTexture::Format::RGBA8888:
       return VK_FORMAT_R8G8B8A8_UNORM;
+    case ZH::GFX::HostTexture::Format::DXT1:
+      return VK_FORMAT_BC1_RGBA_UNORM_BLOCK;
+    case ZH::GFX::HostTexture::Format::DXT5:
+      return VK_FORMAT_BC3_UNORM_BLOCK;
     default:
       WARN_ZH("TextureCache", "Unmapped format, falling back");
       return VK_FORMAT_R8G8B8A8_UNORM;
