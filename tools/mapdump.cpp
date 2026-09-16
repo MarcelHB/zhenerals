@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0
 
+#include <cstdlib>
 #include <fstream>
 #include <istream>
 #include <iostream>
@@ -518,8 +519,8 @@ int main(int argc, char **argv) {
   logger.start();
 
   if (argc < 2) {
-    std::cerr << "Please supply a map name." << std::endl;
-    return 1;
+    std::cerr << "Please supply a map name or file path to a file, ending on *.map" << std::endl;
+    return EXIT_FAILURE;
   }
 
   State state;
@@ -532,23 +533,35 @@ int main(int argc, char **argv) {
     }
   }
 
+  std::string mapArg {argv[1]};
   ZH::Config config;
-  auto mapsLoader =
-    std::shared_ptr<ZH::ResourceLoader>(
-      new ZH::ResourceLoader {{"MapsZH.big", "ZH_Generals/Maps.big"} , config.baseDir}
-    );
 
-  auto path = fmt::format("maps\\{}\\{}.map", argv[1], argv[1]);
-  auto lookup = mapsLoader->getFileStream(path, true);
-  if (!lookup) {
-    std::cerr << "Map does not exist." << std::endl;
-    return 1;
+  if (mapArg.ends_with(".map")) {
+    std::ifstream stream {mapArg, std::ios::binary | std::ios::in };
+
+    if (!stream) {
+      std::cerr << "File does not exist or cannot be opened." << std::endl;
+      return EXIT_FAILURE;
+    }
+
+    ZH::InflatingStream inflatingStream {stream};
+    return parseMap(inflatingStream, state) ? EXIT_SUCCESS : EXIT_FAILURE;
+  } else {
+    auto mapsLoader =
+      std::shared_ptr<ZH::ResourceLoader>(
+        new ZH::ResourceLoader {{"MapsZH.big", "ZH_Generals/Maps.big"} , config.baseDir}
+      );
+
+    auto path = fmt::format("maps\\{}\\{}.map", argv[1], argv[1]);
+    auto lookup = mapsLoader->getFileStream(path, true);
+    if (!lookup) {
+      std::cerr << "Map does not exist." << std::endl;
+      return EXIT_FAILURE;
+    }
+
+    auto stream = lookup->getStream();
+    ZH::InflatingStream inflatingStream {stream};
+
+    return parseMap(inflatingStream, state) ? EXIT_SUCCESS : EXIT_FAILURE;
   }
-
-  auto stream = lookup->getStream();
-  ZH::InflatingStream inflatingStream {stream};
-
-  auto broken = !parseMap(inflatingStream, state);
-
-  return broken ? 1 : 0;
 }
