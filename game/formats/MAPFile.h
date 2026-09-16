@@ -46,6 +46,7 @@ class MAPFile {
     size_t parseScriptList(MapBuilder&, const ChunkMetaData&);
     size_t parseScriptOrCondition(MapBuilder& mapBuilder, const ChunkMetaData&);
     size_t parseSidesList(MapBuilder&, const ChunkMetaData&);
+    size_t parseWaypoints(MapBuilder&);
     size_t parseWorldInfo(MapBuilder&);
 
     size_t parseParams(std::vector<MapScriptParam>& params);

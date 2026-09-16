@@ -139,6 +139,8 @@ size_t MAPFile::parseChunk(
     return parseScriptList(mapBuilder, metaData);
   } else if (chunkType == "SidesList") {
     return parseSidesList(mapBuilder, metaData);
+  } else if (chunkType == "WaypointsList") {
+    return parseWaypoints(mapBuilder);
   } else if (chunkType == "WorldInfo") {
     return parseWorldInfo(mapBuilder);
   } else {
@@ -992,6 +994,25 @@ size_t MAPFile::parseSidesList(MapBuilder& mapBuilder, const ChunkMetaData& meta
   totalBytes += parseNextChunk(mapBuilder);
   if (totalBytes > metaData.payloadSize) {
     WARN_ZH("MAPFile", "PlayerScriptsList exceeds limits");
+  }
+
+  return totalBytes;
+}
+
+size_t MAPFile::parseWaypoints(MapBuilder& mapBuilder) {
+  int32_t buffer4 = 0;
+  size_t bytesRead = 0;
+  size_t totalBytes = 0;
+
+  read4()
+  int32_t numWayoints = buffer4;
+  for (int32_t i = 0; i < numWayoints; ++i) {
+    std::pair<int32_t, int32_t> p;
+    read4()
+    p.first = buffer4;
+    read4()
+    p.second = buffer4;
+    mapBuilder.waypointPairs.emplace_back(std::move(p));
   }
 
   return totalBytes;

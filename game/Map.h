@@ -186,6 +186,7 @@ struct MapBuilder {
   std::list<MapScriptGroup> scriptGroups;
 
   std::vector<PolygonTrigger> polygonTriggers;
+  std::list<std::pair<int32_t, int32_t>> waypointPairs;
 
   uint32_t timeOfDay = 0;
   Lights lights;

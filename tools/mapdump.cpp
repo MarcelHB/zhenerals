@@ -463,6 +463,19 @@ size_t parseChunk(
         }
       }
     }
+  } else if (chunkType == "WaypointsList") {
+    read4()
+    auto numWaypointPairs = buffer4;
+    uint32_t v = 0;
+    dump(depth, "# waypoint pairs: {}", numWaypointPairs);
+
+    for (uint32_t i = 0; i < numWaypointPairs; ++i) {
+      read4()
+      v = buffer4;
+      read4()
+      dump(d1, "{} -> {}", v, buffer4);
+    }
+
   } else {
     fmt::print(std::cerr, "Unsupported chunk: {}\n", chunkType);
   }
