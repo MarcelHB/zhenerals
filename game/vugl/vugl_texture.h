@@ -19,6 +19,7 @@ class Texture : public UploadableResource {
     VkDevice vkDevice;
     VkResult vkLastResult;
 
+    VkFormat format;
     VkExtent2D extent;
 
     VkBuffer vkStagingBuffer;
@@ -26,10 +27,13 @@ class Texture : public UploadableResource {
     VkImage vkTexture;
     VmaAllocation vmaTextureAllocation;
     VkImageView vkTextureView;
-    uint32_t mipLevels = 1;
+    uint32_t mipLevels;
+    bool mipMapsProvided;
     bool uploaded;
 
-    void generateMipMaps();
+    void copyMipMaps(VkCommandBuffer);
+    void generateMipMaps(VkCommandBuffer);
+    VkDeviceSize getCompressedBlockSize();
   public:
     Texture (Texture &&);
     Texture (VkDevice vkDevice, ResourceAllocator& allocator);
@@ -48,7 +52,7 @@ class Texture : public UploadableResource {
     VkImage getVkImage () const;
     VkImageView getVkImageView () const;
 
-    VkResult recordUploadCommands (VkCommandBuffer vkCommandBuffer) override;
+    VkResult recordUploadCommands (VkCommandBuffer) override;
 
     template <typename T>
     void createTexture (
@@ -56,14 +60,17 @@ class Texture : public UploadableResource {
       , const VkExtent2D& extent
       , VkFormat vkFormat
       , uint32_t mipLevels = 1
+      , bool mipMapsProvided = false
     ) {
       if (vkTexture != VK_NULL_HANDLE) {
         this->vkLastResult = VK_ERROR_UNKNOWN;
         return;
       }
 
+      this->format = vkFormat;
       this->extent = extent;
       this->mipLevels = mipLevels;
+      this->mipMapsProvided = mipMapsProvided;
       VkDeviceSize vkTBSize = data.size();
 
       this->vkLastResult =

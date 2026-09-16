@@ -8,6 +8,7 @@ Texture::Texture (Texture && other)
   : allocator{other.allocator}
   , vkDevice{other.vkDevice}
   , vkLastResult{other.vkLastResult}
+  , format{other.format}
   , extent{other.extent}
   , vkStagingBuffer{other.vkStagingBuffer}
   , vmaStagingBufferAllocation{other.vmaStagingBufferAllocation}
@@ -15,6 +16,7 @@ Texture::Texture (Texture && other)
   , vmaTextureAllocation{other.vmaTextureAllocation}
   , vkTextureView{other.vkTextureView}
   , mipLevels{other.mipLevels}
+  , mipMapsProvided{other.mipMapsProvided}
   , uploaded{other.uploaded}
 {
   other.vkStagingBuffer = VK_NULL_HANDLE;
@@ -29,12 +31,14 @@ Texture::Texture (VkDevice vkDevice, ResourceAllocator& allocator)
   , vkDevice{vkDevice}
   , vkLastResult{VK_SUCCESS}
   , extent{}
+  , format{VK_FORMAT_UNDEFINED}
   , vkStagingBuffer{VK_NULL_HANDLE}
   , vmaStagingBufferAllocation{VK_NULL_HANDLE}
   , vkTexture{VK_NULL_HANDLE}
   , vmaTextureAllocation{VK_NULL_HANDLE}
   , vkTextureView{VK_NULL_HANDLE}
   , mipLevels{1}
+  , mipMapsProvided{false}
   , uploaded{false}
 {}
 
@@ -169,9 +173,100 @@ VkResult Texture::recordUploadCommands (VkCommandBuffer vkCommandBuffer) {
       , &vkImgMemBarrier
     );
 
+    this->uploaded = true;
+
     return VK_SUCCESS;
   }
 
+  if (mipMapsProvided) {
+    copyMipMaps(vkCommandBuffer);
+  } else {
+    generateMipMaps(vkCommandBuffer);
+  }
+
+  this->uploaded = true;
+
+  return VK_SUCCESS;
+}
+
+VkDeviceSize Texture::getCompressedBlockSize() {
+  switch (format) {
+    case VK_FORMAT_BC1_RGBA_UNORM_BLOCK:
+      return 8;
+    case VK_FORMAT_BC3_UNORM_BLOCK:
+      return 16;
+    default:
+      return 1;
+  }
+}
+
+void Texture::copyMipMaps(VkCommandBuffer vkCommandBuffer) {
+  std::vector<VkBufferImageCopy> regions;
+  regions.reserve(mipLevels);
+
+  VkDeviceSize offset = 0;
+  VkDeviceSize compressedBlockSize = getCompressedBlockSize();
+
+  for (uint32_t i = 0; i < mipLevels; ++i) {
+    uint32_t mipWidth = std::max(1u, extent.width >> i);
+    uint32_t mipHeight = std::max(1u, extent.height >> i);
+
+    VkBufferImageCopy vkBufferRgn = {};
+    vkBufferRgn.bufferOffset = offset;
+    vkBufferRgn.bufferRowLength = 0;
+    vkBufferRgn.bufferImageHeight = 0;
+    vkBufferRgn.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    vkBufferRgn.imageSubresource.mipLevel = i;
+    vkBufferRgn.imageSubresource.baseArrayLayer = 0;
+    vkBufferRgn.imageSubresource.layerCount = 1;
+    vkBufferRgn.imageOffset = { 0, 0, 0 };
+    vkBufferRgn.imageExtent = { mipWidth, mipHeight, 1 };
+
+    regions.push_back(vkBufferRgn);
+
+    offset +=
+      (((mipWidth + 3) / 4) * ((mipHeight + 3) / 4)) * compressedBlockSize;
+  }
+
+  vkCmdCopyBufferToImage(
+      vkCommandBuffer
+    , vkStagingBuffer
+    , vkTexture
+    , VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL
+    , regions.size()
+    , regions.data()
+  );
+
+  VkImageMemoryBarrier vkMipMapBarrier = {};
+  vkMipMapBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+  vkMipMapBarrier.image = vkTexture;
+  vkMipMapBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+  vkMipMapBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+  vkMipMapBarrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+  vkMipMapBarrier.subresourceRange.baseArrayLayer = 0;
+  vkMipMapBarrier.subresourceRange.baseMipLevel = 0;
+  vkMipMapBarrier.subresourceRange.layerCount = 1;
+  vkMipMapBarrier.subresourceRange.levelCount = mipLevels;
+  vkMipMapBarrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+  vkMipMapBarrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+  vkMipMapBarrier.srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+  vkMipMapBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+
+  vkCmdPipelineBarrier(
+      vkCommandBuffer
+    , VK_PIPELINE_STAGE_TRANSFER_BIT
+    , VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT
+    , 0
+    , 0
+    , nullptr
+    , 0
+    , nullptr
+    , 1
+    , &vkMipMapBarrier
+  );
+}
+
+void Texture::generateMipMaps(VkCommandBuffer vkCommandBuffer) {
   VkImageMemoryBarrier vkMipMapBarrier = {};
   vkMipMapBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
   vkMipMapBarrier.image = vkTexture;
@@ -278,10 +373,6 @@ VkResult Texture::recordUploadCommands (VkCommandBuffer vkCommandBuffer) {
     , 1
     , &vkMipMapBarrier
   );
-
-  this->uploaded = true;
-
-  return VK_SUCCESS;
 }
 
 }
