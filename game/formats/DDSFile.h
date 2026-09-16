@@ -18,11 +18,15 @@ class DDSFile {
 
     std::shared_ptr<GFX::HostTexture> getTexture();
   private:
+    enum class Encoding {
+        UNKNOWN
+      , DXT1
+      , DXT5
+    };
+
     std::istream& stream;
 
-    std::vector<unsigned char> decodeDXT1(Size);
-    // if bool is true, the image looks fully transparent
-    std::pair<std::vector<unsigned char>, bool> decodeDXT5(Size);
+    static size_t calculateTotalSize(const Size&, uint32_t, Encoding);
 };
 
 }
