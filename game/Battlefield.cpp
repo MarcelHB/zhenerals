@@ -5,6 +5,7 @@
 
 #include "common.h"
 #include "Battlefield.h"
+#include "MurmurHash.h"
 
 namespace ZH {
 
@@ -26,6 +27,7 @@ Battlefield::Battlefield(
   TRACY(ZoneScoped);
 
   loadInstances(mapBuilder);
+  loadRoads(mapBuilder);
   loadScorches(mapBuilder);
 
   camera.reposition(
@@ -117,6 +119,90 @@ void Battlefield::loadInstances(MapBuilder& mapBuilder) {
     }
 
     instances.emplace_back(std::move(instance));
+  }
+}
+
+void Battlefield::loadRoads(MapBuilder& mapBuilder) {
+  TRACY(ZoneScoped);
+
+  std::unordered_map<uint32_t, std::reference_wrapper<RoadNode>> lookupMap;
+
+  auto getCacheKey = [](const MapObject& road) -> uint32_t {
+    union FtoU {
+      float f;
+      uint32_t u;
+    };
+    FtoU ftoU;
+
+    MurmurHash3_32 hasher;
+    for (uint8_t i = 0; i < 3; ++i) {
+      ftoU.f = road.location[i];
+      hasher.feed(ftoU.u);
+    }
+
+    return hasher.getHash();
+  };
+
+  auto& mapRoads = mapBuilder.roads;
+  for (auto it = mapRoads.cbegin(); it != mapRoads.cend(); ++it) {
+    auto& roadPt1 = *it;
+    ++it;
+
+    if (it == mapRoads.cend()) {
+      break;
+    }
+
+    auto& roadPt2 = *it;
+
+    auto key1 = getCacheKey(roadPt1);
+    auto key2 = getCacheKey(roadPt2);
+
+    OptionalRef<RoadNode> node1Ref;
+    OptionalRef<RoadNode> node2Ref;
+
+    auto nodeLookup = lookupMap.find(key1);
+    if (nodeLookup == lookupMap.end()) {
+      node1Ref = std::ref(roads.emplace_back());
+      node1Ref->get().location = roadPt1.location;
+      node1Ref->get().type = roadPt1.name;
+      node1Ref->get().flags = roadPt1.flags;
+
+      lookupMap.emplace(key1, *node1Ref);
+    } else {
+      node1Ref = std::ref(nodeLookup->second);
+    }
+
+    nodeLookup = lookupMap.find(key2);
+    if (nodeLookup == lookupMap.end()) {
+      node2Ref = std::ref(roads.emplace_back());
+      node2Ref->get().location = roadPt2.location;
+      node2Ref->get().type = roadPt2.name;
+      node2Ref->get().flags = roadPt2.flags;
+
+      lookupMap.emplace(key2, *node2Ref);
+    } else {
+      node2Ref = std::ref(nodeLookup->second);
+    }
+
+    node1Ref->get().links.emplace_back(node2Ref->get());
+    node2Ref->get().links.emplace_back(node1Ref->get());
+  }
+
+  uint32_t i = 1;
+  for (auto& roadNode : roads) {
+    if (roadNode.roadSystem == 0) {
+      floodRoad(roadNode, i++);
+    }
+  }
+}
+
+void Battlefield::floodRoad(RoadNode& node, uint32_t i) {
+  node.roadSystem = i;
+
+  for (auto& link : node.links) {
+    if (link.get().roadSystem != i) {
+      floodRoad(link.get(), i);
+    }
   }
 }
 

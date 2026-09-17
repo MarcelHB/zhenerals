@@ -3,6 +3,8 @@
 #ifndef H_GAME_BATTLEFIELD
 #define H_GAME_BATTLEFIELD
 
+#include <list>
+
 #include "common.h"
 #include "Map.h"
 #include "objects/InstanceFactory.h"
@@ -25,6 +27,15 @@ class Battlefield {
         static uint64_t nextID;
 
         ScorchData();
+    };
+
+    struct RoadNode {
+      uint32_t roadSystem = 0;
+      glm::vec3 location;
+      std::string type;
+      BitField<Objects::Instance::InstanceFlag> flags;
+
+      std::list<std::reference_wrapper<RoadNode>> links;
     };
 
     Battlefield(
@@ -65,9 +76,12 @@ class Battlefield {
     glm::vec3 sunlightNormal;
 
     std::list<std::shared_ptr<Objects::Instance>> instances;
+    std::list<RoadNode> roads;
     std::list<ScorchData> scorches;
 
+    void floodRoad(RoadNode&, uint32_t);
     void loadInstances(MapBuilder& mapBuilder);
+    void loadRoads(MapBuilder& mapBuilder);
     void loadScorches(MapBuilder& mapBuilder);
 };
 
