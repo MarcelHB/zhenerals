@@ -11,7 +11,7 @@ layout(binding = 0) uniform Scene {
   mat4 mvpMatrix;
   vec3 sunlight;
   mat4 normalMatrix;
-  uint pivotEnabler;
+  float alphaModifier;
 } scene;
 
 layout(binding = 3) uniform Pivot {
@@ -28,6 +28,6 @@ void main() {
   textureIdxOut = textureIdx;
 
   gl_Position = scene.mvpMatrix
-    * pivotMatrices[nonuniformEXT(pivotIdx * scene.pivotEnabler)].matrix
+    * pivotMatrices[nonuniformEXT(pivotIdx)].matrix
     * vec4(position, 1.0);
 }

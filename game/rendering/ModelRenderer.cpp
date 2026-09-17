@@ -121,6 +121,13 @@ bool ModelRenderer::prepareModel(
   renderData.boundingSpheres.resize(models->size());
   renderData.boundingSphere = (*models)[0]->boundingSphere;
 
+  // TODO when we know more cases, this should go somewhere else
+  if (modelName.starts_with("CBSandBW")) {
+    for (auto& sd : renderData.shaderData) {
+      sd.alphaModifier = 1.0f;
+    }
+  }
+
   createPivotBuffer(renderData, std::move(pivotMatrices));
 
   if (models->size() > 1) {
@@ -223,10 +230,6 @@ void ModelRenderer::createPivotBuffer(RenderData& renderData, std::vector<glm::m
   renderData.pivotData.resize(numPivots);
   for (size_t i = 0; i < numPivots; ++i) {
     renderData.pivotData[i].transformation = std::move(pivots[i]);
-  }
-
-  for (auto& shaderData : renderData.shaderData) {
-    shaderData.pivotEnabler = 1;
   }
 }
 

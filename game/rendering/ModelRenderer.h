@@ -49,7 +49,7 @@ class ModelRenderer {
       alignas(16) glm::mat4 mvp;
       alignas(16) glm::vec3 sunlight;
       alignas(16) glm::mat4 normalMatrix;
-      alignas(16) uint32_t pivotEnabler = 0;
+      alignas(16) float alphaModifier = 0.0f;
     };
 
     struct PivotData {

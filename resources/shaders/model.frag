@@ -13,6 +13,7 @@ layout(binding = 0) uniform Scene {
   mat4 mvpMatrix;
   vec3 sunlight;
   mat4 normalMatrix;
+  float alphaModifier;
 } scene;
 
 layout(binding = 1) uniform sampler textureSampler;
@@ -23,4 +24,6 @@ void main() {
   brightness.w = 1.0f;
 
   outColor = texture(sampler2D(textures[nonuniformEXT(textureIdx % NUM_ALLOWED_TEXTURES)], textureSampler), uv) * brightness;
+  // to fix some textures that are technically transparent, but should not be
+  outColor.a += scene.alphaModifier;
 }
