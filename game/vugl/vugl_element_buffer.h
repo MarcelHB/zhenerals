@@ -76,10 +76,10 @@ class ElementBuffer
       }
 
       void *mappedData = resourceAllocator.mapMemory(vmaStagingAllocation);
-      std::uninitialized_copy(vertexData.cbegin(), vertexData.cend(), static_cast<T*>(mappedData));
-      std::uninitialized_copy(
+      std::uninitialized_copy_n(vertexData.cbegin(), vertexData.size(), static_cast<T*>(mappedData));
+      std::uninitialized_copy_n(
           indexData.cbegin()
-        , indexData.cend()
+        , indexData.size()
         , reinterpret_cast<U*>(static_cast<T*>(mappedData) + vertexData.size())
       );
 

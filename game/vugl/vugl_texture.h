@@ -126,7 +126,7 @@ class Texture : public UploadableResource {
     template<typename T>
     void updateTexture (const std::vector<T>& data) {
       void *mappedData = allocator.mapMemory(vmaStagingBufferAllocation);
-      std::uninitialized_copy(data.cbegin(), data.cend(), reinterpret_cast<T*>(mappedData));
+      std::uninitialized_copy_n(data.cbegin(), data.size(), reinterpret_cast<T*>(mappedData));
       allocator.unmapMemory(vmaStagingBufferAllocation);
     }
 };
