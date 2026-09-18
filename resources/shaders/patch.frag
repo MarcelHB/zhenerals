@@ -14,7 +14,7 @@ layout(binding = 1) uniform sampler2D textureSampler;
 layout(location = 0) out vec4 outColor;
 
 void main() {
-  vec4 brightness = vec4(0.2 + max(0.0, 0.5f * (1.0f + dot(normal, scene.sunlight))) * 0.8);
+  vec4 brightness = vec4(0.4 + max(0.0, dot(normal, scene.sunlight)) * 0.6);
   vec4 color = texture(textureSampler, uv);
 
   outColor = color * brightness;
