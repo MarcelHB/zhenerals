@@ -17,7 +17,8 @@ class FrameDisposable {
     void decreaseMiss();
 
   private:
-    uint8_t misses = 0;
+    // EVAL concept
+    uint16_t misses = 0;
 };
 
 }
