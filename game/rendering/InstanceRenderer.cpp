@@ -20,7 +20,7 @@ void InstanceRenderer::beginResourceCounting() {
 }
 
 void InstanceRenderer::finishResourceCounting() {
-  modelRenderer.beginResourceCounting();
+  modelRenderer.finishResourceCounting();
 }
 
 Sphere InstanceRenderer::getBoundingSphere(const Objects::Instance& instance) const {
