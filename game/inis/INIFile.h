@@ -184,7 +184,7 @@ class INIFile {
     }
 
     template <typename T, typename Map, typename ... Maps>
-    bool applyValueByKeyOfMaps(T& obj, const std::string& key, const Map& map, Maps ... maps) {
+    bool applyValueByKeyOfMaps(T& obj, const std::string& key, const Map& map, const Maps& ... maps) {
       auto it = map.find(key);
 
       if (it != map.cend()) {
