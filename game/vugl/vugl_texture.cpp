@@ -86,7 +86,8 @@ VkImageView Texture::getVkImageView () const {
 
 VkResult Texture::recordUploadCommands (VkCommandBuffer vkCommandBuffer) {
   if (uploaded) {
-    return VK_SUCCESS;
+    // no special meaning, just not VK_SUCCESS
+    return VK_NOT_READY;
   }
 
   VkPipelineStageFlags vkSrcStageFlags;

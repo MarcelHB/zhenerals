@@ -722,10 +722,12 @@ bool Context::uploadResource (UploadableResource& resource) {
   vkCmdBufferBeginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
 
   vkBeginCommandBuffer(buffer, &vkCmdBufferBeginInfo);
-  resource.recordUploadCommands(buffer);
+  auto submit = resource.recordUploadCommands(buffer) == VK_SUCCESS;
   vkEndCommandBuffer(buffer);
 
-  submitToGPUQueue(buffer);
+  if (submit) {
+    submitToGPUQueue(buffer);
+  }
 
   return true;
 }
