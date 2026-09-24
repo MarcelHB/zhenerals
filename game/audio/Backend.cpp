@@ -145,6 +145,8 @@ Backend::~Backend() {
 }
 
 bool Backend::init() {
+  TRACY(ZoneScoped);
+
   auto device = alcOpenDevice(nullptr);
   if (device == nullptr) {
     WARN_ZH("OpenAL", "Failed to acquire device");
