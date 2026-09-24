@@ -142,6 +142,7 @@ INSTANTIATE_TEST_SUITE_P(
       , "americamiscunit.ini"
       , "americavehicle.ini"
       , "bossgeneral.ini"
+      , "chemicalgeneral.ini"
       , "chinaair.ini"
       , "chinacineunit.ini"
       , "chinavehicle.ini"

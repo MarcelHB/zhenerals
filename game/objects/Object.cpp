@@ -838,6 +838,8 @@ std::optional<ModuleType> getModuleType(const std::string_view& value) {
     return {ModuleType::BAIKONUR_LAUNCH_POWER};
   } else if (value == "BaseRegenerateUpdate") {
     return {ModuleType::BASE_REGENERATE};
+  } else if (value == "BattleBusSlowDeathBehavior") {
+    return {ModuleType::BATTLE_BUS_SLOW_DEATH};
   } else if (value == "BattlePlanUpdate") {
     return {ModuleType::BATTLE_PLAN};
   } else if (value == "BoneFXDamage") {
@@ -906,6 +908,8 @@ std::optional<ModuleType> getModuleType(const std::string_view& value) {
     return {ModuleType::ENEMY_NEAR};
   } else if (value == "ExperienceScalarUpgrade") {
     return {ModuleType::EXPERIENCE_SCALAR_UPGRADE};
+  } else if (value == "FireOCLAfterWeaponCooldownUpdate") {
+    return {ModuleType::FIRE_OCL_AFTER_WEAPON_COOLDOWN};
   } else if (value == "FireSpreadUpdate") {
     return {ModuleType::FIRE_SPREAD};
   } else if (value == "FireWeaponCollide") {
@@ -1014,6 +1018,8 @@ std::optional<ModuleType> getModuleType(const std::string_view& value) {
     return {ModuleType::PILOT_FIND_VEHICLE};
   } else if (value == "PreorderCreate") {
     return {ModuleType::PREORDER_CREATE};
+  } else if (value == "ProjectileStreamUpdate") {
+    return {ModuleType::PROJECTILE_STREAM};
   } else if (value == "PointDefenseLaserUpdate") {
     return {ModuleType::POINT_DEFENSE_LASER};
   } else if (value == "PoisonedBehavior") {
@@ -1136,6 +1142,8 @@ std::optional<ModuleType> getModuleType(const std::string_view& value) {
     return {ModuleType::TRANSPORT_CONTAIN};
   } else if (value == "TunnelContain") {
     return {ModuleType::TUNNEL_CONTAIN};
+  } else if (value == "UndeadBody") {
+    return {ModuleType::UNDEAD_BODY};
   } else if (value == "UnpauseSpecialPowerUpgrade") {
     return {ModuleType::UNPAUSE_SPECIAL_POWER_UPGRADE};
   } else if (value == "UpgradeDie") {

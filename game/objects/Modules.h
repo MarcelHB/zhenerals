@@ -135,14 +135,15 @@ enum class ModuleType {
   , PARKING_PLACE
   , PARTICLE_UPLINK_CANNON
   , PASSENGERS_FIRE_UPGRADE
-  , PREORDER_CREATE
   , PHYSICS
   , PILOT_FIND_VEHICLE
   , POINT_DEFENSE_LASER
   , POISONED
   , POWER_PLANT
   , POWER_PLANT_UPGRADE
+  , PREORDER_CREATE
   , PRODUCTION
+  , PROJECTILE_STREAM
   , PROPAGANDA_TOWER
   , QUEUE_PRODUCTION_EXIT
   , RADAR
@@ -201,6 +202,7 @@ enum class ModuleType {
   , TRANSPORT_CONTAIN
   , TUNNEL_CONTAIN
   , UNPAUSE_SPECIAL_POWER_UPGRADE
+  , UNDEAD_BODY
   , UPGRADE
   , UPGRADE_DIE
   , VETERANCY_GAIN
@@ -443,7 +445,7 @@ struct Die : public Module {
 
 // to avoid diamond hierarchy
 struct DieUpgrade : public Die {
-  std::list<std::string> triggers; // TODO Upgrade
+  std::list<std::string> triggeredBy; // TODO Upgrade
   std::list<std::string> conflicts;
   std::list<std::string> removes;
   bool needAllTriggers = false;
@@ -618,14 +620,6 @@ struct EMP : public Module {
 
 struct EnemyNear : public Module {
   uint32_t scanDelayTime = 1;
-};
-
-struct FireOCLAfterWeaponCooldown : public Module {
-  WeaponSlot slot;
-  std::string creationList; // TODO ObjectCreationList
-  uint32_t minShots = 1;
-  uint32_t lifetimePerSecond = 1;
-  uint32_t maxCap = 1;
 };
 
 struct FireSpread : public Module {
@@ -949,6 +943,7 @@ struct TransportContain : public OpenContain {
   std::pair<std::string, uint32_t> initialPayload; // objects?
   float healthRegenPerSecond = 1.0f;
   uint32_t slots = 1;
+  bool weaponBonusToPassengers = false;
 };
 
 struct RiderChangeContain : public TransportContain {
@@ -1355,18 +1350,24 @@ struct SpectreGunshipDeployment : public Module {
 };
 
 struct Stealth : public Module {
+  bool disguisesAsTeam = false;
+  std::string disguiseEffect; // TODO FX
+  std::string disguiseRevealEffect; // TODO FX
+  Duration disguiseTransitionTimeMs = 1000;
+  Duration disguiseRevealTransitionTimeMs = 1000;
   Duration delayMs = 500;
   std::set<Status> detectableStates;
   std::string enemyDetectionEvaEvent; // EvaEvent
   std::set<StealthLevel> forbiddenConditions;
-  Duration pulseFrequencyMs = 500;
   Percent friendlyOpacityMin = 50;
   Percent friendlyOpacityMax = 100;
   bool gettingAttackWhenRevealed = true;
   bool innateStealth = true;
   float moveSpeedThreshold = 3.0f;
   std::string ownDetectionEvaEvent; // EvaEvent
+  Duration pulseFrequencyMs = 500;
   bool useRiderStealth = false;
+  float revealDistanceToTarget = 1.0f;
 };
 
 struct StructureTopple : public Module {
@@ -1511,8 +1512,12 @@ struct TransitionDamageFX : public Module {
   TransitionDamageParticlesSlots particleSystems;
 };
 
+struct UndeadBody : public ActiveBody {
+  Health secondLifeMaxHealth = 100.0f;
+};
+
 struct Upgrade : public Module {
-  std::list<std::string> triggers; // TODO Upgrade
+  std::list<std::string> triggeredBy; // TODO Upgrade
   std::list<std::string> conflicts;
   std::list<std::string> removes;
   bool needAllTriggers = false;
@@ -1531,6 +1536,14 @@ struct CostModifierUpgrade : public Upgrade {
 
 struct ExperienceScalarUpgrade : public Upgrade {
   float xpScalar = 1.0f;
+};
+
+struct FireOCLAfterWeaponCooldown : public Upgrade {
+  WeaponSlot slot = WeaponSlot::NONE;
+  std::string creationList; // TODO ObjectCreationList
+  uint32_t lifetimeMaxCap = 1;
+  uint32_t lifetimePerSecond = 1;
+  uint32_t minShots = 1;
 };
 
 struct FireWeaponWhenDamagedUpgrade : public Upgrade {
@@ -1567,6 +1580,11 @@ struct ModelConditionUpgrade : public Upgrade {
 
 struct ObjectCreationUpgrade : public Upgrade {
   std::string object;
+};
+
+struct RadarUpgrade : public Upgrade {
+  Duration extendTimeMs = 1000;
+  bool disableProof = false;
 };
 
 struct ReplaceObjectUpgrade : public Upgrade {

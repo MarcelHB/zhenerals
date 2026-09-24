@@ -84,7 +84,7 @@ struct ObjectBuilder {
   bool buildable = false;
   uint16_t buildCost = 0;
   uint16_t buildTimeSec = 1; // EVAL float?
-  std::list<std::string> buildVariations; // object names
+  std::vector<std::string> buildVariations; // object names
   std::set<Attribute> attributes;
   std::string buttonImage;
   bool enterGuard = false;

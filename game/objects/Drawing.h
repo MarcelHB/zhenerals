@@ -27,9 +27,11 @@ enum class DrawType {
   , OVERLORD_TANK_DRAW
   , OVERLORD_TRUCK_DRAW
   , POLICE_CAR_DRAW
+  , PROJECTILE_STREAM_DRAW
   , ROPE_DRAW
   , SUPPLY_DRAW
   , TANK_DRAW
+  , TANK_TRUCK_DRAW
   , TRACER_DRAW
   , TREE_DRAW
   , TRUCK_DRAW
@@ -119,12 +121,30 @@ struct DependencyModelDrawData : public ModelDrawData {
   std::string attachTo;
 };
 
+struct ProjectileStreamDraw : public DrawData {
+  uint32_t maxSegments = 1;
+  std::string texture;
+  float tileFactor = 1.0f;
+  float scrollRate = 1.0f;
+  float width = 10.0f;
+};
+
 struct TankDrawData : public ModelDrawData {
   float treadAnimationRate = 1.0f;
   float treadDriveSpeedFraction = 1.0f;
   float treadPivotSpeedFraction = 1.0f;
   std::string treadDebrisLeft;
   std::string treadDebrisRight;
+};
+
+struct TankTruckDrawData : public TankDrawData {
+  std::string dirtEffect;
+  std::string dustEffect;
+  std::string powerslideEffect;
+  float powerslideRotationAddition = 0.0f;
+  float rotationSpeedMul = 1.0f;
+  // FL, FR, RL, RR, MFL, MFR, MRL, MRR
+  std::array<std::string, 8> tireBones;
 };
 
 struct OverlordTankDrawData : public TankDrawData {

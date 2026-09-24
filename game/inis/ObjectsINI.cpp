@@ -392,6 +392,7 @@ static INIApplierMap<Objects::BoneFX> BoneFXKVMap = {
       return f.parseEnumSet<Objects::DamageType>(bfx.damageParticleTypes, CALL(Objects::getDamageType));
     }
   },
+  { "PristineParticleSystem1", [](Objects::BoneFX& bfx, INIFile& f) { return parseBoneFXItem(f, bfx.particles, 0, 0); } },
   { "RubbleFXList1", [](Objects::BoneFX& bfx, INIFile& f) { return parseBoneFXItem(f, bfx.effects, 3, 0); } },
   { "RubbleParticleSystem1", [](Objects::BoneFX& bfx, INIFile& f) { return parseBoneFXItem(f, bfx.particles, 3, 0); } },
 };
@@ -449,6 +450,11 @@ static INIApplierMap<Objects::Bridge> BridgeKVMap = {
       return opt.has_value();
     }
   },
+};
+
+// TODO
+static INIApplierMap<Objects::BattleBusSlowDeath> BattleBusSlowDeathKVMap = {
+  { "*", SKIP(Objects::BattleBusSlowDeath) }
 };
 
 // TODO
@@ -1196,10 +1202,6 @@ static INIApplierMap<Objects::FireWeaponWhenDamaged> FireWeaponWhenDamagedKVMap 
   { "StartsActive", [](Objects::FireWeaponWhenDamaged& fwd, INIFile& f) { fwd.active = f.parseBool(); return true; } },
 };
 
-static INIApplierMap<Objects::FireWeaponWhenDead> FireWeaponWhenDeadKVMap = {
-  { "DeathWeapon", [](Objects::FireWeaponWhenDead& fwd, INIFile& f) { fwd.weapon = f.parseString(); return !fwd.weapon.empty(); } },
-  { "StartsActive", [](Objects::FireWeaponWhenDead& fwd, INIFile& f) { fwd.active = f.parseBool(); return true; } },
-};
 
 static INIApplierMap<Objects::FireSpread> FireSpreadKVMap = {
   { "OCLEmbers", [](Objects::FireSpread& fs, INIFile& f) { fs.creationList = f.parseString(); return !fs.creationList.empty(); } },
@@ -1221,6 +1223,34 @@ static INIApplierMap<Objects::FireSpread> FireSpreadKVMap = {
       return opt.has_value();
     }
   }
+};
+
+static INIApplierMap<Objects::FireOCLAfterWeaponCooldown> FireOCLAfterWeaponCooldownKVMap = {
+  { "MinShotsToCreateOCL", [](Objects::FireOCLAfterWeaponCooldown& fw, INIFile& f) {
+      auto opt = f.parseInteger();
+      fw.minShots = opt.value_or(fw.minShots);
+      return opt.has_value();
+    }
+  },
+  { "OCL", [](Objects::FireOCLAfterWeaponCooldown& fw, INIFile& f) { fw.creationList = f.parseString(); return !fw.creationList.empty(); } },
+  { "OCLLifetimeMaxCap", [](Objects::FireOCLAfterWeaponCooldown& fw, INIFile& f) {
+      auto opt = f.parseInteger();
+      fw.lifetimeMaxCap = opt.value_or(fw.lifetimeMaxCap);
+      return opt.has_value();
+    }
+  },
+  { "OCLLifetimePerSecond", [](Objects::FireOCLAfterWeaponCooldown& fw, INIFile& f) {
+      auto opt = f.parseInteger();
+      fw.lifetimePerSecond = opt.value_or(fw.lifetimePerSecond);
+      return opt.has_value();
+    }
+  },
+  { "WeaponSlot", [](Objects::FireOCLAfterWeaponCooldown& fw, INIFile& f) {
+      auto opt = Objects::getWeaponSlot(f.parseString());
+      fw.slot = opt.value_or(fw.slot);
+      return opt.has_value();
+    }
+  },
 };
 
 static INIApplierMap<Objects::FireWeapon> FireWeaponKVMap = {
@@ -1246,6 +1276,11 @@ static INIApplierMap<Objects::FireWeaponPower> FireWeaponPowerKVMap = {
       return opt.has_value();
     }
   },
+};
+
+static INIApplierMap<Objects::FireWeaponWhenDead> FireWeaponWhenDeadKVMap = {
+  { "DeathWeapon", [](Objects::FireWeaponWhenDead& fwd, INIFile& f) { fwd.weapon = f.parseString(); return !fwd.weapon.empty(); } },
+  { "StartsActive", [](Objects::FireWeaponWhenDead& fwd, INIFile& f) { fwd.active = f.parseBool(); return true; } },
 };
 
 static INIApplierMap<Objects::Flammable> FlammableDataKVMap = {
@@ -2412,6 +2447,34 @@ static INIApplierMap<Objects::Production> ProductionKVMap = {
   }
 };
 
+static INIApplierMap<Objects::ProjectileStreamDraw> ProjectileStreamDrawKVMap = {
+  { "MaxSegments", [](Objects::ProjectileStreamDraw& pd, INIFile& f) {
+      auto opt = f.parseInteger();
+      pd.maxSegments = opt.value_or(pd.maxSegments);
+      return opt.has_value();
+    }
+  },
+  { "ScrollRate", [](Objects::ProjectileStreamDraw& pd, INIFile& f) {
+      auto opt = f.parseFloat();
+      pd.scrollRate = opt.value_or(pd.scrollRate);
+      return opt.has_value();
+    }
+  },
+  { "Texture", [](Objects::ProjectileStreamDraw& pd, INIFile& f) { pd.texture = f.parseString(); return !pd.texture.empty(); } },
+  { "TileFactor", [](Objects::ProjectileStreamDraw& pd, INIFile& f) {
+      auto opt = f.parseFloat();
+      pd.tileFactor = opt.value_or(pd.tileFactor);
+      return opt.has_value();
+    }
+  },
+  { "Width", [](Objects::ProjectileStreamDraw& pd, INIFile& f) {
+      auto opt = f.parseFloat();
+      pd.width = opt.value_or(pd.width);
+      return opt.has_value();
+    }
+  },
+};
+
 static INIApplierMap<Objects::PropagandaTower> PropagandaTowerKVMap = {
   { "DelayBetweenUpdates", [](Objects::PropagandaTower& pt, INIFile& f) {
       auto opt = f.parseInteger();
@@ -2474,7 +2537,7 @@ static INIApplierMap<Objects::ReplaceObjectUpgrade> ReplaceObjectUpgradeKVMap = 
   { "ReplaceObject", [](Objects::ReplaceObjectUpgrade& up, INIFile& f) { up.object = f.parseString(); return !up.object.empty(); } }
 };
 
-bool parseRider(Objects::RiderChangeContain& rcc, INIFile& f, size_t index) {
+static bool parseRider(Objects::RiderChangeContain& rcc, INIFile& f, size_t index) {
   if (index > 7) {
     return false;
   }
@@ -2545,6 +2608,7 @@ static INIApplierMap<T> SabotageDurationKVMap = {
 
 static INIApplierMap<Objects::TransportContain> TransportContainKVMap = {
   { "ArmedRidersUpgradeMyWeaponSet", [](Objects::TransportContain& tc, INIFile& f) { tc.armedRidersWeaponUpgrade = f.parseBool(); return true; } },
+  { "DelayExitInAir", [](Objects::TransportContain& tc, INIFile& f) { tc.exitDelayInAir = f.parseBool(); return true; } },
   { "DestroyRidersWhoAreNotFreeToExit", [](Objects::TransportContain& tc, INIFile& f) { tc.destroyTrappedRiders = f.parseBool(); return true; } },
   { "ExitBone", [](Objects::TransportContain& tc, INIFile& f) {
       auto value = f.parseString();
@@ -2596,7 +2660,8 @@ static INIApplierMap<Objects::TransportContain> TransportContainKVMap = {
       tc.slots = opt.value_or(tc.slots);
       return opt.has_value();
     }
-  }
+  },
+  { "WeaponBonusPassedToPassengers", [](Objects::TransportContain& tc, INIFile& f) { tc.weaponBonusToPassengers = f.parseBool(); return true; } },
 };
 
 static INIApplierMap<Objects::TunnelContain> TunnelContainKVMap = {
@@ -2770,6 +2835,15 @@ static bool parseSound(Objects::ObjectBuilder& b, INIFile& f, Objects::Noise noi
   return true;
 };
 
+static INIApplierMap<Objects::UndeadBody> UndeadBodyKVMap = {
+  { "SecondLifeMaxHealth", [](Objects::UndeadBody& b, INIFile& f) {
+      auto opt = f.parseFloat();
+      b.secondLifeMaxHealth = opt.value_or(b.secondLifeMaxHealth);
+      return opt.has_value();
+    }
+  }
+};
+
 static INIApplierMap<Objects::ObjectBuilder> UnitSpecificFXKV = {
   { "CombatDropKillFX", [](Objects::ObjectBuilder& b, INIFile& f) { b.unitCombatDropKillEffect = f.parseString(); return !b.unitCombatDropKillEffect.empty(); } }
 };
@@ -2777,6 +2851,9 @@ static INIApplierMap<Objects::ObjectBuilder> UnitSpecificFXKV = {
 static INIApplierMap<Objects::ObjectBuilder> UnitSpecificSoundsKV = {
   { "Afterburner", [](Objects::ObjectBuilder& b, INIFile& f) { return parseSound(b, f, Objects::Noise::SOUND_AFTERBURNER); } },
   { "Deploy", [](Objects::ObjectBuilder& b, INIFile& f) { return parseSound(b, f, Objects::Noise::SOUND_DEPLOY); } },
+  { "DisguiseStarted", [](Objects::ObjectBuilder& b, INIFile& f) { return parseSound(b, f, Objects::Noise::SOUND_DISGUISE_STARTED); } },
+  { "DisguiseRevealedFailure", [](Objects::ObjectBuilder& b, INIFile& f) { return parseSound(b, f, Objects::Noise::SOUND_DISGUISE_REVEALED_FAILURE); } },
+  { "DisguiseRevealedSuccess", [](Objects::ObjectBuilder& b, INIFile& f) { return parseSound(b, f, Objects::Noise::SOUND_DISGUISE_REVEALED_SUCCESS); } },
   { "HowitzerFire", [](Objects::ObjectBuilder& b, INIFile& f) { return parseSound(b, f, Objects::Noise::SOUND_HOWITZER_FIRE); } },
   { "SoundEject", [](Objects::ObjectBuilder& b, INIFile& f) { return parseSound(b, f, Objects::Noise::SOUND_EJECT); } },
   { "StartDive", [](Objects::ObjectBuilder& b, INIFile& f) { return parseSound(b, f, Objects::Noise::SOUND_START_DIVE); } },
@@ -2811,6 +2888,7 @@ static INIApplierMap<Objects::ObjectBuilder> UnitSpecificSoundsKV = {
   { "VoiceMelee", [](Objects::ObjectBuilder& b, INIFile& f) { return parseSound(b, f, Objects::Noise::VOICE_MELEE); } },
   { "VoiceMoveUpgraded", [](Objects::ObjectBuilder& b, INIFile& f) { return parseSound(b, f, Objects::Noise::VOICE_MOVE_UPGRADED); } },
   { "VoiceNoBuild", [](Objects::ObjectBuilder& b, INIFile& f) { return parseSound(b, f, Objects::Noise::VOICE_NO_BUILD); } },
+  { "VoicePoisonLocation", [](Objects::ObjectBuilder& b, INIFile& f) { return parseSound(b, f, Objects::Noise::VOICE_POISON_LOCATION); } },
   { "VoicePrimaryWeaponMode", [](Objects::ObjectBuilder& b, INIFile& f) { return parseSound(b, f, Objects::Noise::VOICE_PRIMARY_WEAPON_MODE); } },
   { "VoiceRapidFire", [](Objects::ObjectBuilder& b, INIFile& f) { return parseSound(b, f, Objects::Noise::VOICE_RAPID_FIRE); } },
   { "VoiceRepair", [](Objects::ObjectBuilder& b, INIFile& f) { return parseSound(b, f, Objects::Noise::VOICE_REPAIR); } },
@@ -2871,12 +2949,14 @@ static INIApplierMap<T> UpgradeKVMap = {
   },
   { "RequiresAllTriggers", [](T& upg, INIFile& f) { upg.needAllTriggers = f.parseBool(); return true; } },
   { "TriggeredBy", [](T& upg, INIFile& f) {
-      auto string = f.parseString();
-      if (string.empty()) {
+      auto strings = f.parseStringList();
+      if (strings.empty()) {
         return false;
       }
 
-      upg.triggers.emplace_back(std::move(string));
+      for (auto& val : strings) {
+        upg.triggeredBy.emplace_back(std::move(val));
+      }
 
       return true;
     }
@@ -3045,6 +3125,11 @@ static INIApplierMap<Objects::ObjectBuilder> ObjectDataKVMap = {
       auto opt = f.parseShort();
       b.buildTimeSec = opt.value_or(b.buildTimeSec);
       return opt.has_value();
+    }
+  },
+  { "BuildVariations", [](Objects::ObjectBuilder& b, INIFile& f) {
+      b.buildVariations = f.parseStringList();
+      return !b.buildVariations.empty();
     }
   },
   { "ButtonImage", [](Objects::ObjectBuilder& b, INIFile& f) { b.buttonImage = f.parseString(); return !b.buttonImage.empty(); } },
@@ -3366,6 +3451,10 @@ static INIApplierMap<Objects::Radar> RadarKVMap = {
       return opt.has_value();
     }
   }
+};
+
+static INIApplierMap<Objects::RadarUpgrade> RadarUpgradeKVMap = {
+  { "DisableProof", [](Objects::RadarUpgrade& r, INIFile& f) { r.disableProof = f.parseBool(); return true; } },
 };
 
 static INIApplierMap<Objects::RailedTransportAI> RailedTransportAIKVMap = {
@@ -3817,6 +3906,21 @@ static INIApplierMap<Objects::SpectreGunshipDeployment> SpectreGunshipDeployment
 };
 
 static INIApplierMap<Objects::Stealth> StealthKVMap = {
+  { "DisguisesAsTeam", [](Objects::Stealth& s, INIFile& f) { s.disguisesAsTeam = f.parseBool(); return true; } },
+  { "DisguiseFX", [](Objects::Stealth& s, INIFile& f) { s.disguiseEffect = f.parseString(); return !s.disguiseEffect.empty(); } },
+  { "DisguiseRevealFX", [](Objects::Stealth& s, INIFile& f) { s.disguiseRevealEffect = f.parseString(); return !s.disguiseRevealEffect.empty(); } },
+  { "DisguiseTransitionTime", [](Objects::Stealth& s, INIFile& f) {
+      auto opt = f.parseInteger();
+      s.disguiseTransitionTimeMs = opt.value_or(s.disguiseTransitionTimeMs);
+      return opt.has_value();
+    }
+  },
+  { "DisguiseRevealTransitionTime", [](Objects::Stealth& s, INIFile& f) {
+      auto opt = f.parseInteger();
+      s.disguiseRevealTransitionTimeMs = opt.value_or(s.disguiseRevealTransitionTimeMs);
+      return opt.has_value();
+    }
+  },
   { "EnemyDetectionEvaEvent", [](Objects::Stealth& s, INIFile& f) { s.enemyDetectionEvaEvent = f.parseString(); return !s.enemyDetectionEvaEvent.empty(); } },
   { "FriendlyOpacityMax", [](Objects::Stealth& s, INIFile& f) {
       auto opt = f.parsePercent();
@@ -3847,6 +3951,12 @@ static INIApplierMap<Objects::Stealth> StealthKVMap = {
       auto opt = f.parseInteger();
       s.pulseFrequencyMs = opt.value_or(s.pulseFrequencyMs);
       return opt.has_value();
+    }
+  },
+  { "RevealDistanceFromTarget", [](Objects::Stealth& s, INIFile& f) {
+      auto value = f.parseFloat();
+      s.revealDistanceToTarget = value.value_or(s.revealDistanceToTarget);
+      return value.has_value();
     }
   },
   { "StealthDelay", [](Objects::Stealth& s, INIFile& f) {
@@ -4135,7 +4245,8 @@ static INIApplierMap<Objects::TreeDrawData> TreeDrawDataKVMap = {
   { "ToppleFX", [](Objects::TreeDrawData& t, INIFile& f) { t.toppleEffect = f.parseString(); return !t.toppleEffect.empty(); } },
 };
 
-static bool parseTireBone(INIFile& f, std::array<std::string, 10>& tireBones, size_t idx) {
+template<size_t N>
+static bool parseTireBone(INIFile& f, std::array<std::string, N>& tireBones, size_t idx) {
   tireBones[idx] = f.parseString();
   return !tireBones[idx].empty();
 };
@@ -4161,6 +4272,32 @@ static INIApplierMap<Objects::TankDrawData> TankDrawDataKVMap = {
   },
   { "TreadDebrisLeft", [](Objects::TankDrawData& t, INIFile& f) { t.treadDebrisLeft = f.parseString(); return !t.treadDebrisLeft.empty(); } },
   { "TreadDebrisRight", [](Objects::TankDrawData& t, INIFile& f) { t.treadDebrisRight = f.parseString(); return !t.treadDebrisRight.empty(); } },
+};
+
+static INIApplierMap<Objects::TankTruckDrawData> TankTruckDrawDataKVMap = {
+  { "DirtSpray", [](Objects::TankTruckDrawData& t, INIFile& f) { t.dirtEffect = f.parseString(); return !t.dirtEffect.empty(); } },
+  { "Dust", [](Objects::TankTruckDrawData& t, INIFile& f) { t.dustEffect = f.parseString(); return !t.dustEffect.empty(); } },
+  { "LeftFrontTireBone", [](Objects::TankTruckDrawData& t, INIFile& f) { return parseTireBone(f, t.tireBones, 0); } },
+  { "LeftRearTireBone", [](Objects::TankTruckDrawData& t, INIFile& f) { return parseTireBone(f, t.tireBones, 2); } },
+  { "MidLeftFrontTireBone", [](Objects::TankTruckDrawData& t, INIFile& f) { return parseTireBone(f, t.tireBones, 4); } },
+  { "MidLeftRearTireBone", [](Objects::TankTruckDrawData& t, INIFile& f) { return parseTireBone(f, t.tireBones, 6); } },
+  { "MidRightFrontTireBone", [](Objects::TankTruckDrawData& t, INIFile& f) { return parseTireBone(f, t.tireBones, 5); } },
+  { "MidRightRearTireBone", [](Objects::TankTruckDrawData& t, INIFile& f) { return parseTireBone(f, t.tireBones, 7); } },
+  { "PowerslideRotationAddition", [](Objects::TankTruckDrawData& t, INIFile& f) {
+      auto value = f.parseFloat();
+      t.powerslideRotationAddition = value.value_or(t.powerslideRotationAddition);
+      return value.has_value();
+    }
+  },
+  { "PowerslideSpray", [](Objects::TankTruckDrawData& t, INIFile& f) { t.powerslideEffect = f.parseString(); return !t.powerslideEffect.empty(); } },
+  { "RightFrontTireBone", [](Objects::TankTruckDrawData& t, INIFile& f) { return parseTireBone(f, t.tireBones, 1); } },
+  { "RightRearTireBone", [](Objects::TankTruckDrawData& t, INIFile& f) { return parseTireBone(f, t.tireBones, 3); } },
+  { "TireRotationMultiplier", [](Objects::TankTruckDrawData& t, INIFile& f) {
+      auto value = f.parseFloat();
+      t.rotationSpeedMul = value.value_or(t.rotationSpeedMul);
+      return value.has_value();
+    }
+  },
 };
 
 static INIApplierMap<Objects::TruckDrawData> TruckDrawDataKVMap = {
@@ -4489,6 +4626,7 @@ bool ObjectsINI::parseBehavior(Objects::ObjectBuilder& builder) {
     case Objects::ModuleType::ENEMY_NEAR:
     case Objects::ModuleType::KEEP_OBJECT_DIE:
     case Objects::ModuleType::PREORDER_CREATE:
+    case Objects::ModuleType::PROJECTILE_STREAM:
     case Objects::ModuleType::RADIUS_DECAL:
     case Objects::ModuleType::SPECIAL_POWER_CREATE:
     case Objects::ModuleType::SQUISH_COLLIDE:
@@ -4524,6 +4662,13 @@ bool ObjectsINI::parseBehavior(Objects::ObjectBuilder& builder) {
             std::move(behavior.moduleData)
           , BaikonurLaunchPowerKVMap
           , SpecialPowerKVMap
+        );
+    case Objects::ModuleType::BATTLE_BUS_SLOW_DEATH:
+      return
+        parseSubtypedAttributeBlocks<Objects::BattleBusSlowDeath>(
+            std::move(behavior.moduleData)
+          , BattleBusSlowDeathKVMap
+          , SlowDeathKVMap
         );
     case Objects::ModuleType::BATTLE_PLAN:
       return parseSubtypedAttributeBlock<Objects::BattlePlan>(std::move(behavior.moduleData), BattlePlanKVMap);
@@ -4648,6 +4793,12 @@ bool ObjectsINI::parseBehavior(Objects::ObjectBuilder& builder) {
           , ExperienceScalarUpgradeKVMap
           , UpgradeKVMap<Objects::Upgrade>
         );
+    case Objects::ModuleType::FIRE_OCL_AFTER_WEAPON_COOLDOWN:
+      return parseSubtypedAttributeBlocks<Objects::FireOCLAfterWeaponCooldown>(
+          std::move(behavior.moduleData)
+        , FireOCLAfterWeaponCooldownKVMap
+        , UpgradeKVMap<Objects::Upgrade>
+      );
     case Objects::ModuleType::FIRE_SPREAD:
       return parseSubtypedAttributeBlock<Objects::FireSpread>(std::move(behavior.moduleData), FireSpreadKVMap);
     case Objects::ModuleType::FIRE_WEAPON:
@@ -4845,6 +4996,13 @@ bool ObjectsINI::parseBehavior(Objects::ObjectBuilder& builder) {
       return parseSubtypedAttributeBlock<Objects::QueueProductionExit>(std::move(behavior.moduleData), QueueProductionExitKVMap);
     case Objects::ModuleType::RADAR:
       return parseSubtypedAttributeBlock<Objects::Radar>(std::move(behavior.moduleData), RadarKVMap);
+    case Objects::ModuleType::RADAR_UPGRADE:
+      return
+        parseSubtypedAttributeBlocks<Objects::RadarUpgrade>(
+            std::move(behavior.moduleData)
+          , RadarUpgradeKVMap
+          , UpgradeKVMap<Objects::Upgrade>
+        );
     case Objects::ModuleType::RAILED_TRANSPORT_AI:
       return parseSubtypedAttributeBlock<Objects::RailedTransportAI>(std::move(behavior.moduleData), RailedTransportAIKVMap);
     case Objects::ModuleType::RAILED_TRANSPORT_DOCK:
@@ -5023,7 +5181,6 @@ bool ObjectsINI::parseBehavior(Objects::ObjectBuilder& builder) {
         );
     case Objects::ModuleType::ARMOR_UPGRADE:
     case Objects::ModuleType::LOCOMOTOR_SET_UPGRADE:
-    case Objects::ModuleType::RADAR_UPGRADE:
     case Objects::ModuleType::PASSENGERS_FIRE_UPGRADE:
     case Objects::ModuleType::POWER_PLANT_UPGRADE:
     case Objects::ModuleType::STEALTH_UPGRADE:
@@ -5106,6 +5263,13 @@ bool ObjectsINI::parseBody(Objects::ObjectBuilder& builder) {
         parseSubtypedAttributeBlocks<Objects::HiveStructureBody>(
             std::move(builder.body->moduleData)
           , HiveStructureBodyKVMap
+          , ActiveBodyKVMap
+        );
+    case Objects::ModuleType::UNDEAD_BODY:
+      return
+        parseSubtypedAttributeBlocks<Objects::UndeadBody>(
+            std::move(builder.body->moduleData)
+          , UndeadBodyKVMap
           , ActiveBodyKVMap
         );
     default:
@@ -5221,6 +5385,8 @@ bool ObjectsINI::parseDraw(Objects::ObjectBuilder& builder) {
     metaData.type = Objects::DrawType::POLICE_CAR_DRAW;
   } else if (token == "W3DRopeDraw") {
     metaData.type = Objects::DrawType::ROPE_DRAW;
+  } else if (token == "W3DProjectileStreamDraw") {
+    metaData.type = Objects::DrawType::PROJECTILE_STREAM_DRAW;
   } else if (token == "W3DSupplyDraw") {
     metaData.type = Objects::DrawType::SUPPLY_DRAW;
   } else if (token == "W3DTankDraw") {
@@ -5231,6 +5397,8 @@ bool ObjectsINI::parseDraw(Objects::ObjectBuilder& builder) {
     metaData.type = Objects::DrawType::TREE_DRAW;
   } else if (token == "W3DTruckDraw") {
     metaData.type = Objects::DrawType::TRUCK_DRAW;
+  } else if (token == "W3DTankTruckDraw") {
+    metaData.type = Objects::DrawType::TANK_TRUCK_DRAW;
   } else {
     WARN_ZH("ObjectsINI", "Unsupported draw type {}", token);
   }
@@ -5264,11 +5432,25 @@ bool ObjectsINI::parseDraw(Objects::ObjectBuilder& builder) {
             std::move(metaData.drawData)
           , LaserDrawDataKVMap
         );
+    case Objects::DrawType::PROJECTILE_STREAM_DRAW:
+      return
+        parseSubtypedAttributeBlock<Objects::ProjectileStreamDraw>(
+            std::move(metaData.drawData)
+          , ProjectileStreamDrawKVMap
+        );
     case Objects::DrawType::OVERLORD_TANK_DRAW:
     case Objects::DrawType::TANK_DRAW:
       return
         parseSubtypedAttributeBlocks<Objects::TankDrawData>(
             std::move(metaData.drawData)
+          , TankDrawDataKVMap
+          , ModelDrawDataKVMap
+        );
+    case Objects::DrawType::TANK_TRUCK_DRAW:
+      return
+        parseSubtypedAttributeBlocks<Objects::TankTruckDrawData>(
+            std::move(metaData.drawData)
+          , TankTruckDrawDataKVMap
           , TankDrawDataKVMap
           , ModelDrawDataKVMap
         );
