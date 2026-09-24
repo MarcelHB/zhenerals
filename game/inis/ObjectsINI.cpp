@@ -2926,39 +2926,19 @@ static INIApplierMap<Objects::UnpauseSpecialPowerUpgrade> UnpauseSpecialPowerUpg
 template<typename T>
 static INIApplierMap<T> UpgradeKVMap = {
   { "ConflictsWith", [](T& upg, INIFile& f) {
-      auto values = f.parseStringList();
-      if (values.empty()) {
-        return false;
-      }
-
-      upg.conflicts.insert(upg.conflicts.end(), values.cbegin(), values.cend());
-
-      return true;
+      upg.conflicts = f.parseStringList();
+      return !upg.conflicts.empty();
     }
   },
   { "RemovesUpgrades", [](T& upg, INIFile& f) {
-      auto values = f.parseStringList();
-      if (values.empty()) {
-        return false;
-      }
-
-      upg.removes.insert(upg.removes.end(), values.cbegin(), values.cend());
-
-      return true;
+      upg.removes = f.parseStringList();
+      return !upg.removes.empty();
     }
   },
   { "RequiresAllTriggers", [](T& upg, INIFile& f) { upg.needAllTriggers = f.parseBool(); return true; } },
   { "TriggeredBy", [](T& upg, INIFile& f) {
-      auto strings = f.parseStringList();
-      if (strings.empty()) {
-        return false;
-      }
-
-      for (auto& val : strings) {
-        upg.triggeredBy.emplace_back(std::move(val));
-      }
-
-      return true;
+      upg.triggeredBy = f.parseStringList();
+      return !upg.triggeredBy.empty();
     }
   }
 };

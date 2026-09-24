@@ -445,9 +445,9 @@ struct Die : public Module {
 
 // to avoid diamond hierarchy
 struct DieUpgrade : public Die {
-  std::list<std::string> triggeredBy; // TODO Upgrade
-  std::list<std::string> conflicts;
-  std::list<std::string> removes;
+  std::vector<std::string> triggeredBy; // TODO Upgrade
+  std::vector<std::string> conflicts;
+  std::vector<std::string> removes;
   bool needAllTriggers = false;
 };
 
@@ -1517,9 +1517,9 @@ struct UndeadBody : public ActiveBody {
 };
 
 struct Upgrade : public Module {
-  std::list<std::string> triggeredBy; // TODO Upgrade
-  std::list<std::string> conflicts;
-  std::list<std::string> removes;
+  std::vector<std::string> triggeredBy; // TODO Upgrade
+  std::vector<std::string> conflicts;
+  std::vector<std::string> removes;
   bool needAllTriggers = false;
 };
 
