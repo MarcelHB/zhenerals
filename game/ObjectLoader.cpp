@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0
 
 #include <mutex>
+#include <queue>
 
 #include "common.h"
 #include "MurmurHash.h"
@@ -44,18 +45,28 @@ bool ObjectLoader::init() {
   };
 
   ThreadPool pool = ThreadPool::maxAllowed();
-  std::mutex mutex;
+  std::mutex mergeMutex;
+  std::mutex pullMutex;
 
-  pool.kickAll([&, this](uint16_t j) {
+  // C++23
+  std::queue<std::string> queue;
+  for (auto& key : keys) {
+    queue.push(key);
+  }
+
+  pool.kickAll([&, this](uint16_t) {
     TRACY(ZoneScoped);
-    for (size_t i = 0; i < keys.size(); ++i) {
-      if (i % pool.getNumThreads() != j) {
-        continue;
-      }
+    while (true) {
       std::optional<ResourceLoader::MemoryStream> fs;
       {
-        std::unique_lock<std::mutex> lock {mutex};
-        fs = iniLoader.getFileStream(keys[i]);
+        std::unique_lock<std::mutex> lock {pullMutex};
+        if (queue.empty()) {
+          break;
+        }
+
+        auto key = queue.front();
+        queue.pop();
+        fs = iniLoader.getFileStream(key);
       }
       if (!fs) {
         continue;
@@ -67,7 +78,7 @@ bool ObjectLoader::init() {
       auto partialIndex = iniFile.parse();
 
       {
-        std::unique_lock<std::mutex> lock {mutex};
+        std::unique_lock<std::mutex> lock {mergeMutex};
         index.merge(partialIndex);
       }
     }
