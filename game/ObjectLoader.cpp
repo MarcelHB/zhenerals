@@ -43,13 +43,13 @@ bool ObjectLoader::init() {
     , "data\\ini\\object\\techbuildings.ini"
   };
 
-  ThreadPool pool {4};
+  ThreadPool pool = ThreadPool::maxAllowed();
   std::mutex mutex;
 
   pool.kickAll([&, this](uint16_t j) {
     TRACY(ZoneScoped);
     for (size_t i = 0; i < keys.size(); ++i) {
-      if (i % 4 != j) {
+      if (i % pool.getNumThreads() != j) {
         continue;
       }
       std::optional<ResourceLoader::MemoryStream> fs;

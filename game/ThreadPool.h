@@ -20,23 +20,26 @@ class ThreadPool {
     std::unique_ptr<std::barrier<std::function<void()>>> barrier;
     std::condition_variable taskCv;
     std::condition_variable launchCv;
-    uint16_t runningThreads = 0;
+    uint32_t runningThreads = 0;
 
     bool shutdown = false;
 
-    std::function<void(uint16_t)> nextFn = [](uint16_t) {};
+    std::function<void(uint32_t)> nextFn = [](uint32_t) {};
   public:
-    ThreadPool (uint16_t n);
+    ThreadPool (uint32_t n);
     ThreadPool (ThreadPool&&) = delete;
     ThreadPool& operator=(ThreadPool&&) = delete;
 
+    static ThreadPool maxAllowed();
+
+    uint32_t getNumThreads() const;
     void join();
 
     template<class F, class... Args>
     void kickAll(F && f, Args&&... args) {
       std::unique_lock<std::mutex> lock {mutex};
       if (runningThreads == 0) {
-        nextFn = [&](uint16_t i) {
+        nextFn = [&](uint32_t i) {
           f(i, args...);
         };
         runningThreads = threads.size();
@@ -47,7 +50,7 @@ class ThreadPool {
     bool isFreshBatch() const;
     void waitOnTasks();
   private:
-    static void threadFn(void *obj, uint16_t i);
+    static void threadFn(void *obj, uint32_t i);
 };
 
 }

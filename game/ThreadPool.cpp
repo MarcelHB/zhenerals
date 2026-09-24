@@ -4,12 +4,20 @@
 
 namespace ZH {
 
-ThreadPool::ThreadPool (uint16_t n) {
+ThreadPool::ThreadPool (uint32_t n) {
   barrier = std::make_unique<std::barrier<std::function<void()>>>(n, []() {});
 
-  for (uint16_t i = 0; i < n; ++i) {
+  for (uint32_t i = 0; i < n; ++i) {
     threads.emplace_back(threadFn, this, i);
   }
+}
+
+ThreadPool ThreadPool::maxAllowed() {
+   return ThreadPool(std::max(2u, std::thread::hardware_concurrency()) - 1);
+}
+
+uint32_t ThreadPool::getNumThreads() const {
+  return static_cast<uint32_t>(threads.size());
 }
 
 void ThreadPool::join() {
@@ -26,7 +34,7 @@ void ThreadPool::waitOnTasks() {
   launchCv.wait(lock, [this] { return runningThreads == 0 || shutdown; });
 }
 
-void ThreadPool::threadFn(void *obj, uint16_t i) {
+void ThreadPool::threadFn(void *obj, uint32_t i) {
   ThreadPool *pool = reinterpret_cast<ThreadPool*>(obj);
 
   while (true) {
