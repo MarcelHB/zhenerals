@@ -30,6 +30,7 @@ Vugl::Context& Window::getVuglContext() {
 }
 
 bool Window::init(Config& config) {
+  TRACY(ZoneScoped);
   SDL_Init(SDL_INIT_EVENTS | SDL_INIT_VIDEO);
 
   auto props = SDL_CreateProperties();
@@ -44,7 +45,6 @@ bool Window::init(Config& config) {
   SDL_DestroyProperties(props);
 
   CHECK_SDL(sdlWindow != nullptr);
-  // SDL_Delay(4000); // For attaching tracy before all
 
   uint32_t extCount = 0;
   auto extensionsList = SDL_Vulkan_GetInstanceExtensions(&extCount);
