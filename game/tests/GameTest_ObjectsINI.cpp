@@ -136,10 +136,12 @@ INSTANTIATE_TEST_SUITE_P(
   , ParamObjectsINITest
   , testing::Values(
         "airforcegeneral.ini"
+      , "americaair.ini"
       , "americacineunit.ini"
       , "americainfantry.ini"
       , "americamiscunit.ini"
       , "americavehicle.ini"
+      , "bossgeneral.ini"
       , "chinaair.ini"
       , "chinacineunit.ini"
       , "chinavehicle.ini"

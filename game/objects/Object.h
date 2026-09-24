@@ -18,19 +18,7 @@
 namespace ZH::Objects {
 
 struct ArmorSet {
-  enum class Condition {
-      NONE = 0
-    , VETERAN
-    , ELITE
-    , HERO
-    , PLAYER_UPGRADE
-    , WEAK_VS_BASE_DEFENSE
-    , SECOND_LIFE
-    , CRATE_UPGRADE_ONE
-    , CRATE_UPGRADE_TWO
-    , ALL
-  };
-  std::set<Condition> conditions;
+  std::set<ArmorCondition> conditions;
   std::string armor; // TODO Armor
   std::string damage; // TODO DamageFX
 };
@@ -72,28 +60,7 @@ struct WeaponPreference {
 };
 
 struct WeaponSet {
-  enum class Condition {
-      NONE = 0
-    , VETERAN
-    , ELITE
-    , HERO
-    , PLAYER_UPGRADE
-    , CRATE_UPGRADE_ONE
-    , CRATE_UPGRADE_TWO
-    , HIJACK
-    , CAR_BOMB
-    , MINE_CLEARNING
-    , RIDER1
-    , RIDER2
-    , RIDER3
-    , RIDER4
-    , RIDER5
-    , RIDER6
-    , RIDER7
-    , RIDER8
-    , ALL
-  };
-  std::set<Condition> conditions;
+  std::set<WeaponCondition> conditions;
   std::array<WeaponPreference, 3> weapons;
   bool sharedReloadTime = false;
   bool sharedLock = false;
@@ -176,7 +143,7 @@ struct ObjectBuilder {
 std::optional<AnimationMode> getAnimationMode(const std::string_view&);
 std::optional<AnimationFrameMode> getAnimationFrameMode(const std::string_view&);
 std::optional<Attribute> getAttribute(const std::string_view&);
-std::optional<ArmorSet::Condition> getArmorSetCondition(const std::string_view&);
+std::optional<ArmorCondition> getArmorSetCondition(const std::string_view&);
 std::optional<AutoAcquireEnemyMode> getAutoAcquireEnemyMode(const std::string_view&);
 std::optional<CommandSource> getCommandSource(const std::string_view&);
 std::optional<CompletionAppearance> getCompletionAppearance(const std::string_view&);
@@ -199,7 +166,7 @@ std::optional<Veterancy> getVeterancy(const std::string_view&);
 std::optional<WeaponAffection> getWeaponAffection(const std::string_view&);
 std::optional<WeaponBonusCondition> getWeaponBonusCondition(const std::string_view&);
 std::optional<WeaponSlot> getWeaponSlot(const std::string_view&);
-std::optional<WeaponSet::Condition> getWeaponSetCondition(const std::string_view&);
+std::optional<WeaponCondition> getWeaponSetCondition(const std::string_view&);
 
 
 }

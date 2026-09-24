@@ -194,8 +194,17 @@ static INIApplierMap<Objects::AI> AIKVMap = {
 
 static INIApplierMap<Objects::ArmorSet> ArmorSetKVMap = {
   { "Armor", [](Objects::ArmorSet& as, INIFile& f) { as.armor = f.parseString(); return !as.armor.empty(); } },
-  { "Conditions", [](Objects::ArmorSet& as, INIFile& f) { return f.parseEnumSet<Objects::ArmorSet::Condition>(as.conditions, CALL(Objects::getArmorSetCondition)); } },
+  { "Conditions", [](Objects::ArmorSet& as, INIFile& f) { return f.parseEnumSet<Objects::ArmorCondition>(as.conditions, CALL(Objects::getArmorSetCondition)); } },
   { "DamageFX", [](Objects::ArmorSet& as, INIFile& f) { as.damage = f.parseString(); return !as.damage.empty(); } }
+};
+
+static INIApplierMap<Objects::AnimationSteering> AnimationSteeringKVMap = {
+  { "MinTransitionTime", [](Objects::AnimationSteering& as, INIFile& f) {
+      auto opt = f.parseInteger();
+      as.minTransitionTimeMs = opt.value_or(as.minTransitionTimeMs);
+      return opt.has_value();
+    }
+  }
 };
 
 static INIApplierMap<Objects::AssistedTargeting> AssistedTargetingKVMap = {
@@ -1361,6 +1370,70 @@ static INIApplierMap<Objects::HealContain> HealContainKVMap = {
   },
 };
 
+static INIApplierMap<Objects::HackInternetAI> HackInternetAIKVMap = {
+  { "CashUpdateDelay", [](Objects::HackInternetAI& hi, INIFile& f) {
+      auto value = f.parseInteger();
+      hi.cashUpdateDelayMs = value.value_or(hi.cashUpdateDelayMs);
+      return value.has_value();
+    }
+  },
+  { "CashUpdateDelayFast", [](Objects::HackInternetAI& hi, INIFile& f) {
+      auto value = f.parseInteger();
+      hi.cashUpdateDelayFastMs = value.value_or(hi.cashUpdateDelayFastMs);
+      return value.has_value();
+    }
+  },
+  { "EliteCashAmount", [](Objects::HackInternetAI& hi, INIFile& f) {
+      auto value = f.parseInteger();
+      hi.eliteAmount = value.value_or(hi.eliteAmount);
+      return value.has_value();
+    }
+  },
+  { "HeroicCashAmount", [](Objects::HackInternetAI& hi, INIFile& f) {
+      auto value = f.parseInteger();
+      hi.heroicAmount = value.value_or(hi.heroicAmount);
+      return value.has_value();
+    }
+  },
+  { "PackTime", [](Objects::HackInternetAI& hi, INIFile& f) {
+      auto value = f.parseInteger();
+      hi.packTimeMs = value.value_or(hi.packTimeMs);
+      return value.has_value();
+    }
+  },
+  { "PackUnpackVariationFactor", [](Objects::HackInternetAI& hi, INIFile& f) {
+      auto value = f.parseFloat();
+      hi.packVariatonFactor = value.value_or(hi.packVariatonFactor);
+      return value.has_value();
+    }
+  },
+  { "RegularCashAmount", [](Objects::HackInternetAI& hi, INIFile& f) {
+      auto value = f.parseInteger();
+      hi.regularAmount = value.value_or(hi.regularAmount);
+      return value.has_value();
+    }
+  },
+  { "UnpackTime", [](Objects::HackInternetAI& hi, INIFile& f) {
+      auto value = f.parseInteger();
+      hi.unpackTimeMs = value.value_or(hi.unpackTimeMs);
+      return value.has_value();
+    }
+  },
+  { "VeteranCashAmount", [](Objects::HackInternetAI& hi, INIFile& f) {
+      auto value = f.parseInteger();
+      hi.veteranAmount = value.value_or(hi.veteranAmount);
+      return value.has_value();
+    }
+  },
+  { "XpPerCashUpdate", [](Objects::HackInternetAI& hi, INIFile& f) {
+      auto value = f.parseInteger();
+      hi.xpPerCashUpdate = value.value_or(hi.xpPerCashUpdate);
+      return value.has_value();
+    }
+  },
+};
+
+
 static INIApplierMap<Objects::HeightDie> HeightDieKVMap = {
   { "DestroyAttachedParticlesAtHeight", [](Objects::HeightDie& hd, INIFile& f) {
       auto opt = f.parseFloat();
@@ -2150,6 +2223,7 @@ static INIApplierMap<Objects::OpenContain> OpenContainKVMap = {
   { "AllowEnemiesInside", [](Objects::OpenContain& oc, INIFile& f) { oc.allowEnemies = f.parseBool(); return true; } },
   { "AllowInsideKindOf", [](Objects::OpenContain& oc, INIFile& f) { return f.parseEnumSet<Objects::Attribute>(oc.guestInclusion, CALL(Objects::getAttribute)); } },
   { "AllowNeutralInside", [](Objects::OpenContain& oc, INIFile& f) { oc.allowNeutrals = f.parseBool(); return true; } },
+  { "BurnedDeathToUnits", [](Objects::OpenContain& oc, INIFile& f) { oc.burnUnits = f.parseBool(); return true; } },
   { "ContainMax", [](Objects::OpenContain& oc, INIFile& f) {
       auto opt = f.parseSignedInteger();
       oc.max = opt.value_or(oc.max);
@@ -2398,6 +2472,50 @@ static INIApplierMap<Objects::RepairDock> RepairDockKVMap = {
 
 static INIApplierMap<Objects::ReplaceObjectUpgrade> ReplaceObjectUpgradeKVMap = {
   { "ReplaceObject", [](Objects::ReplaceObjectUpgrade& up, INIFile& f) { up.object = f.parseString(); return !up.object.empty(); } }
+};
+
+bool parseRider(Objects::RiderChangeContain& rcc, INIFile& f, size_t index) {
+  if (index > 7) {
+    return false;
+  }
+
+  auto& rider = rcc.riders[index];
+  auto list = f.parseStringList();
+  if (list.size() != 6) {
+    return false;
+  }
+
+  rider.templateName = list[0];
+  rider.conditionState = Objects::getModelCondition(list[1]).value_or(Objects::ModelCondition::NONE);
+  rider.weaponCondition = Objects::getWeaponSetCondition(list[2]).value_or(Objects::WeaponCondition::NONE);
+  //rider.objectStatus = getWeaponSetCondition(list[3]).or_value(WeaponSet::Condition::NONE);
+  rider.commandSet = list[4];
+  rider.locomotor = Objects::getLocomotorType(list[5]).value_or(Objects::LocomotorType::NONE);
+
+  return true;
+}
+
+static INIApplierMap<Objects::RiderChangeContain> RiderChangeContainKVMap = {
+  { "Rider1", [](Objects::RiderChangeContain& rcc, INIFile& f) { return parseRider(rcc, f, 0); } },
+  { "Rider2", [](Objects::RiderChangeContain& rcc, INIFile& f) { return parseRider(rcc, f, 1); } },
+  { "Rider3", [](Objects::RiderChangeContain& rcc, INIFile& f) { return parseRider(rcc, f, 2); } },
+  { "Rider4", [](Objects::RiderChangeContain& rcc, INIFile& f) { return parseRider(rcc, f, 3); } },
+  { "Rider5", [](Objects::RiderChangeContain& rcc, INIFile& f) { return parseRider(rcc, f, 4); } },
+  { "Rider6", [](Objects::RiderChangeContain& rcc, INIFile& f) { return parseRider(rcc, f, 5); } },
+  { "Rider7", [](Objects::RiderChangeContain& rcc, INIFile& f) { return parseRider(rcc, f, 6); } },
+  { "Rider8", [](Objects::RiderChangeContain& rcc, INIFile& f) { return parseRider(rcc, f, 7); } },
+  { "ScuttleDelay", [](Objects::RiderChangeContain& rcc, INIFile& f) {
+      auto opt = f.parseInteger();
+      rcc.scuttleDelay = opt.value_or(rcc.scuttleDelay);
+      return opt.has_value();
+    }
+  },
+  { "ScuttleStatus", [](Objects::RiderChangeContain& rcc, INIFile& f) {
+      auto opt = f.parseEnum<Objects::ModelCondition>(CALL(Objects::getModelCondition));
+      rcc.scuttleState = opt.value_or(Objects::ModelCondition::NONE);
+      return opt.has_value();
+    }
+  }
 };
 
 static INIApplierMap<Objects::SabotageSupplyCenter> SabotageSupplyCenterKVMap = {
@@ -2817,7 +2935,7 @@ static INIApplierMap<Objects::WeaponSet> WeaponSetKVMap = {
       return true;
     }
   },
-  { "Conditions", [](Objects::WeaponSet& ws, INIFile& f) { return f.parseEnumSet<Objects::WeaponSet::Condition>(ws.conditions, CALL(Objects::getWeaponSetCondition)); } },
+  { "Conditions", [](Objects::WeaponSet& ws, INIFile& f) { return f.parseEnumSet<Objects::WeaponCondition>(ws.conditions, CALL(Objects::getWeaponSetCondition)); } },
   { "PreferredAgainst", [](Objects::WeaponSet& ws, INIFile& f) {
       auto values = f.parseStringList();
       if (values.size() < 2) {
@@ -3740,7 +3858,8 @@ static INIApplierMap<Objects::Stealth> StealthKVMap = {
   { "StealthForbiddenConditions", [](Objects::Stealth& s, INIFile& f) {
       return f.parseEnumSet<Objects::StealthLevel>(s.forbiddenConditions, CALL(Objects::getStealthLevel));
     }
-  }
+  },
+  { "UseRiderStealth", [](Objects::Stealth& s, INIFile& f) { s.useRiderStealth = f.parseBool(); return true; } },
 };
 
 static INIApplierMap<Objects::SpyVision> SpyVisionKVMap = {
@@ -4382,6 +4501,8 @@ bool ObjectsINI::parseBehavior(Objects::ObjectBuilder& builder) {
     case Objects::ModuleType::TRANSPORT_AI:
     case Objects::ModuleType::WANDER_AI:
       return parseSubtypedAttributeBlock<Objects::AI>(std::move(behavior.moduleData), AIKVMap);
+    case Objects::ModuleType::ANIMATION_STEERING:
+      return parseSubtypedAttributeBlock<Objects::AnimationSteering>(std::move(behavior.moduleData), AnimationSteeringKVMap);
     case Objects::ModuleType::ASSISTED_TARGETING:
       return parseSubtypedAttributeBlock<Objects::AssistedTargeting>(std::move(behavior.moduleData), AssistedTargetingKVMap);
     case Objects::ModuleType::ASSAULT_TRANSPORT:
@@ -4587,6 +4708,13 @@ bool ObjectsINI::parseBehavior(Objects::ObjectBuilder& builder) {
       return parseSubtypedAttributeBlock<Objects::GrantStealth>(std::move(behavior.moduleData), GrantStealthKVMap);
     case Objects::ModuleType::GRANT_UPGRADE:
       return parseSubtypedAttributeBlock<Objects::GrantUpgrade>(std::move(behavior.moduleData), GrantUpgradeKVMap);
+    case Objects::ModuleType::HACK_INTERNET:
+      return
+        parseSubtypedAttributeBlocks<Objects::HackInternetAI>(
+            std::move(behavior.moduleData)
+          , HackInternetAIKVMap
+          , AIKVMap
+        );
     case Objects::ModuleType::HEAL_CONTAIN:
       return
         parseSubtypedAttributeBlocks<Objects::HealContain>(
@@ -4755,6 +4883,14 @@ bool ObjectsINI::parseBehavior(Objects::ObjectBuilder& builder) {
             std::move(behavior.moduleData)
           , ReplaceObjectUpgradeKVMap
           , UpgradeKVMap<Objects::Upgrade>
+        );
+    case Objects::ModuleType::RIDER_CHANGE_CONTAIN:
+      return
+        parseSubtypedAttributeBlocks<Objects::RiderChangeContain>(
+            std::move(behavior.moduleData)
+          , RiderChangeContainKVMap
+          , TransportContainKVMap
+          , OpenContainKVMap
         );
     case Objects::ModuleType::SABOTAGE_INTERNET_CENTER:
       return

@@ -156,6 +156,7 @@ enum class ModuleType {
   , REBUILD_HOLE_EXPOSE_DIE
   , REPAIR_DOCK
   , REPLACE_OBJECT_UPGRADE
+  , RIDER_CHANGE_CONTAIN
   , SABOTAGE_COMMAND_CENTER
   , SABOTAGE_FAKE_BUILDING
   , SABOTAGE_INTERNET_CENTER
@@ -250,7 +251,7 @@ struct AI : public Module {
 };
 
 struct AnimationSteering : public Module {
-  uint32_t minTransitionTime = 0;
+  Duration minTransitionTimeMs = 0;
 };
 
 struct AssaultTransport : public AI {
@@ -743,12 +744,12 @@ struct GrantUpgrade : public Module {
   std::set<Status> exclusions;
 };
 
-struct HackInternet : public AI {
-  uint32_t unpackTime = 1;
-  uint32_t packTime = 1;
+struct HackInternetAI : public AI {
+  Duration unpackTimeMs = 1;
+  Duration packTimeMs = 1;
   float packVariatonFactor = 0.0f;
-  uint32_t cashUpdateDelay = 0;
-  uint32_t cashUpdateDelayFast = 0;
+  Duration cashUpdateDelayMs = 0;
+  Duration cashUpdateDelayFastMs = 0;
   Money regularAmount = 1;
   Money veteranAmount = 2;
   Money eliteAmount = 3;
@@ -948,6 +949,20 @@ struct TransportContain : public OpenContain {
   std::pair<std::string, uint32_t> initialPayload; // objects?
   float healthRegenPerSecond = 1.0f;
   uint32_t slots = 1;
+};
+
+struct RiderChangeContain : public TransportContain {
+  struct Rider {
+    std::string templateName;
+    ModelCondition conditionState;
+    WeaponCondition weaponCondition;
+    std::string commandSet; // TODO CommandSet
+    LocomotorType locomotor;
+  };
+
+  Duration scuttleDelay = 0;
+  ModelCondition scuttleState;
+  std::array<Rider, 8> riders;
 };
 
 struct TunnelContain : public OpenContain {
@@ -1351,6 +1366,7 @@ struct Stealth : public Module {
   bool innateStealth = true;
   float moveSpeedThreshold = 3.0f;
   std::string ownDetectionEvaEvent; // EvaEvent
+  bool useRiderStealth = false;
 };
 
 struct StructureTopple : public Module {

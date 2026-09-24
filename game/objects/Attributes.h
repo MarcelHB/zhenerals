@@ -29,6 +29,19 @@ enum class AnimationMode {
   , ONCE_BACKWARDS
 };
 
+enum class ArmorCondition {
+    NONE = 0
+  , VETERAN
+  , ELITE
+  , HERO
+  , PLAYER_UPGRADE
+  , WEAK_VS_BASE_DEFENSE
+  , SECOND_LIFE
+  , CRATE_UPGRADE_ONE
+  , CRATE_UPGRADE_TWO
+  , ALL
+};
+
 enum class Attribute {
     NONE = 0
   , OBSTACLE
@@ -273,7 +286,8 @@ enum class Geometry {
 using Health = float;
 
 enum class LocomotorType {
-    NORMAL
+    NONE
+  , NORMAL
   , NORMAL_UPGRADED
   , FREEFALL
   , WANDER
@@ -602,6 +616,28 @@ enum class WeaponAffection {
   , SUICIDE
   , NOT_SIMILAR
   , NOT_AIRBORNE
+  , ALL
+};
+
+enum class WeaponCondition {
+    NONE = 0
+  , VETERAN
+  , ELITE
+  , HERO
+  , PLAYER_UPGRADE
+  , CRATE_UPGRADE_ONE
+  , CRATE_UPGRADE_TWO
+  , HIJACK
+  , CAR_BOMB
+  , MINE_CLEARNING
+  , RIDER1
+  , RIDER2
+  , RIDER3
+  , RIDER4
+  , RIDER5
+  , RIDER6
+  , RIDER7
+  , RIDER8
   , ALL
 };
 

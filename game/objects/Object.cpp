@@ -63,23 +63,23 @@ std::optional<AnimationFrameMode> getAnimationFrameMode(const std::string_view& 
   }
 }
 
-std::optional<ArmorSet::Condition> getArmorSetCondition(const std::string_view& value) {
+std::optional<ArmorCondition> getArmorSetCondition(const std::string_view& value) {
  if (value == "VETERAN") {
-   return {ArmorSet::Condition::VETERAN};
+   return {ArmorCondition::VETERAN};
  } else if (value == "ELITE") {
-   return {ArmorSet::Condition::ELITE};
+   return {ArmorCondition::ELITE};
  } else if (value == "HERO") {
-   return {ArmorSet::Condition::HERO};
+   return {ArmorCondition::HERO};
  } else if (value == "PLAYER_UPGRADE") {
-   return {ArmorSet::Condition::PLAYER_UPGRADE};
+   return {ArmorCondition::PLAYER_UPGRADE};
  } else if (value == "WEAK_VERSUS_BASEDEFENSES") {
-   return {ArmorSet::Condition::WEAK_VS_BASE_DEFENSE};
+   return {ArmorCondition::WEAK_VS_BASE_DEFENSE};
  } else if (value == "SECOND_LIFE") {
-   return {ArmorSet::Condition::SECOND_LIFE};
+   return {ArmorCondition::SECOND_LIFE};
  } else if (value == "CRATE_UPGRADE_ONE") {
-   return {ArmorSet::Condition::CRATE_UPGRADE_ONE};
+   return {ArmorCondition::CRATE_UPGRADE_ONE};
  } else if (value == "CRATE_UPGRADE_TWO") {
-   return {ArmorSet::Condition::CRATE_UPGRADE_TWO};
+   return {ArmorCondition::CRATE_UPGRADE_TWO};
  } else {
    return {};
  }
@@ -818,6 +818,8 @@ std::optional<ModuleType> getModuleType(const std::string_view& value) {
     return {ModuleType::ACTIVE_BODY};
   } else if (value == "AIUpdateInterface") {
     return {ModuleType::AI};
+  } else if (value == "AnimationSteeringUpdate") {
+    return {ModuleType::ANIMATION_STEERING};
   } else if (value == "AnimatedParticleSysBoneClientUpdate") {
     return {ModuleType::ANIMATED_PARTICLE_SYS_BONE_CLIENT};
   } else if (value == "ArmorUpgrade") {
@@ -936,6 +938,8 @@ std::optional<ModuleType> getModuleType(const std::string_view& value) {
     return {ModuleType::GRANT_STEALTH};
   } else if (value == "GrantUpgradeCreate") {
     return {ModuleType::GRANT_UPGRADE};
+  } else if (value == "HackInternetAIUpdate") {
+    return {ModuleType::HACK_INTERNET};
   } else if (value == "HealContain") {
     return {ModuleType::HEAL_CONTAIN};
   } else if (value == "HeightDieUpdate") {
@@ -1046,6 +1050,8 @@ std::optional<ModuleType> getModuleType(const std::string_view& value) {
     return {ModuleType::REPAIR_DOCK};
   } else if (value == "ReplaceObjectUpgrade") {
     return {ModuleType::REPLACE_OBJECT_UPGRADE};
+  } else if (value == "RiderChangeContain") {
+    return {ModuleType::RIDER_CHANGE_CONTAIN};
   } else if (value == "SabotageCommandCenterCrateCollide") {
     return {ModuleType::SABOTAGE_COMMAND_CENTER};
   } else if (value == "SabotageFakeBuildingCrateCollide") {
@@ -1282,21 +1288,21 @@ std::optional<Status> getStatus(const std::string_view& value) {
     return {Status::IS_CARBOMB};
   } else if (value == "DECK_HEIGHT_OFFSET") {
     return {Status::DECK_HEIGHT_OFFSET};
-  } else if (value == "RIDER1") {
+  } else if (value == "STATUS_RIDER1") {
     return {Status::RIDER1};
-  } else if (value == "RIDER2") {
+  } else if (value == "STATUS_RIDER2") {
     return {Status::RIDER2};
-  } else if (value == "RIDER3") {
+  } else if (value == "STATUS_RIDER3") {
     return {Status::RIDER3};
-  } else if (value == "RIDER4") {
+  } else if (value == "STATUS_RIDER4") {
     return {Status::RIDER4};
-  } else if (value == "RIDER5") {
+  } else if (value == "STATUS_RIDER5") {
     return {Status::RIDER5};
-  } else if (value == "RIDER6") {
+  } else if (value == "STATUS_RIDER6") {
     return {Status::RIDER6};
-  } else if (value == "RIDER7") {
+  } else if (value == "STATUS_RIDER7") {
     return {Status::RIDER7};
-  } else if (value == "RIDER8") {
+  } else if (value == "STATUS_RIDER8") {
     return {Status::RIDER8};
   } else if (value == "FAERIE_FIRE") {
     return {Status::FAERIE_FIRE};
@@ -1451,41 +1457,41 @@ std::optional<WeaponBonusCondition> getWeaponBonusCondition(const std::string_vi
   }
 }
 
-std::optional<WeaponSet::Condition> getWeaponSetCondition(const std::string_view& value) {
+std::optional<WeaponCondition> getWeaponSetCondition(const std::string_view& value) {
   if (value == "VETERAN") {
-    return {WeaponSet::Condition::VETERAN};
+    return {WeaponCondition::VETERAN};
   } else if (value == "ELITE") {
-    return {WeaponSet::Condition::ELITE};
+    return {WeaponCondition::ELITE};
   } else if (value == "HERO") {
-    return {WeaponSet::Condition::HERO};
+    return {WeaponCondition::HERO};
   } else if (value == "PLAYER_UPGRADE") {
-    return {WeaponSet::Condition::PLAYER_UPGRADE};
+    return {WeaponCondition::PLAYER_UPGRADE};
   } else if (value == "CRATEUPGRADE_ONE") {
-    return {WeaponSet::Condition::CRATE_UPGRADE_ONE};
+    return {WeaponCondition::CRATE_UPGRADE_ONE};
   } else if (value == "CRATEUPGRADE_TWO") {
-    return {WeaponSet::Condition::CRATE_UPGRADE_TWO};
+    return {WeaponCondition::CRATE_UPGRADE_TWO};
   } else if (value == "HIJACK") {
-    return {WeaponSet::Condition::HIJACK};
+    return {WeaponCondition::HIJACK};
   } else if (value == "CARBOMB") {
-    return {WeaponSet::Condition::CAR_BOMB};
+    return {WeaponCondition::CAR_BOMB};
   } else if (value == "MINE_CLEARING_DETAIL") {
-    return {WeaponSet::Condition::MINE_CLEARNING};
-  } else if (value == "RIDER1") {
-    return {WeaponSet::Condition::RIDER1};
-  } else if (value == "RIDER2") {
-    return {WeaponSet::Condition::RIDER2};
-  } else if (value == "RIDER3") {
-    return {WeaponSet::Condition::RIDER3};
-  } else if (value == "RIDER4") {
-    return {WeaponSet::Condition::RIDER4};
-  } else if (value == "RIDER5") {
-    return {WeaponSet::Condition::RIDER5};
-  } else if (value == "RIDER6") {
-    return {WeaponSet::Condition::RIDER6};
-  } else if (value == "RIDER7") {
-    return {WeaponSet::Condition::RIDER7};
-  } else if (value == "RIDER8") {
-    return {WeaponSet::Condition::RIDER8};
+    return {WeaponCondition::MINE_CLEARNING};
+  } else if (value == "WEAPON_RIDER1") {
+    return {WeaponCondition::RIDER1};
+  } else if (value == "WEAPON_RIDER2") {
+    return {WeaponCondition::RIDER2};
+  } else if (value == "WEAPON_RIDER3") {
+    return {WeaponCondition::RIDER3};
+  } else if (value == "WEAPON_RIDER4") {
+    return {WeaponCondition::RIDER4};
+  } else if (value == "WEAPON_RIDER5") {
+    return {WeaponCondition::RIDER5};
+  } else if (value == "WEAPON_RIDER6") {
+    return {WeaponCondition::RIDER6};
+  } else if (value == "WEAPON_RIDER7") {
+    return {WeaponCondition::RIDER7};
+  } else if (value == "WEAPON_RIDER8") {
+    return {WeaponCondition::RIDER8};
   } else {
     return {};
   }
