@@ -38,6 +38,10 @@ class Playback {
     std::map<std::string, Audio::SoundBuffer> soundBuffers;
 
     using BufferMapIt = decltype(soundBuffers)::iterator;
+    static bool queueOrder(BufferMapIt& a, BufferMapIt& b) {
+      return a->second.isDisposable() && !b->second.isDisposable();
+    };
+
     std::priority_queue<
         BufferMapIt
       , std::vector<BufferMapIt>

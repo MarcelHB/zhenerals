@@ -24,13 +24,8 @@ Playback::Playback(
   , audioLoader(audioLoader)
   , iniLoader(iniLoader)
   , capacity(capacity)
-{
-  auto queueOrder = [](BufferMapIt& a, BufferMapIt& b) {
-    return a->second.isDisposable() && !b->second.isDisposable();
-  };
-
-  usage = decltype(usage) {queueOrder};
-}
+  , usage(queueOrder)
+{}
 
 bool Playback::load() {
   TRACY(ZoneScoped);
