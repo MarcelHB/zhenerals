@@ -133,7 +133,7 @@ template<std::input_iterator It> requires std::convertible_to<std::iter_value_t<
 Sphere getSphereFromSpheres(It start, It end) {
   Sphere sphere;
   // min/max positions for X, Y, Z
-  std::array<glm::vec3, 6> extremePositions;
+  std::array<glm::vec3, 6> extremePositions = {};
 
   std::array<glm::vec3, 3> units;
   units[0] = glm::vec3 { 1.0f, 0.0f, 0.0f };
