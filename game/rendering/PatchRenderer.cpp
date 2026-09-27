@@ -125,13 +125,16 @@ bool PatchRenderer::prepareRoads() {
         return false;
       }
 
-      roadTextures.emplace(hash, std::move(sampler));
+      textureLookup = roadTextures.emplace(hash, std::move(sampler)).first;
     }
 
+    // Some are 256x256, some 512x512
+    auto extent = textureLookup->second->getExtent();
     auto cut =
       RoadResolution::TEXTURE_CUTS[
         static_cast<std::underlying_type_t<RoadResolution::RoadElementType>>(element.type)
       ];
+    auto stretchCorrection = RoadResolution::T_SIZE / extent.width;
 
     auto& gfxElement = roadData.emplace_back();
     gfxElement.textureKey = hash;
@@ -160,7 +163,7 @@ bool PatchRenderer::prepareRoads() {
         * glm::scale(
             glm::mat4 {1.0f}
           , glm::vec3 {
-              cut.second[0] * element.stretch * ROAD_STRETCH
+              cut.second[0] * element.stretch * ROAD_STRETCH * stretchCorrection
             , cut.second[1]
             , 0.0f
           }
