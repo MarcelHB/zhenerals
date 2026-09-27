@@ -56,6 +56,7 @@ class RoadResolution {
   private:
     const Battlefield& battlefield;
 
+    void resetRoadSystem(const Battlefield::RoadNode&) const;
     void resolveRoadSystem(
         const Battlefield::RoadNode&
       , std::list<RoadElement>&

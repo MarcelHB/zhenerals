@@ -30,11 +30,22 @@ RoadResolution::RoadResolution(const Battlefield& battlefield) : battlefield(bat
 
 std::list<RoadResolution::RoadElement> RoadResolution::resolveRoadSystem(const Battlefield::RoadNode& node) const {
   std::list<RoadElement> roadElements;
-  uint8_t discoveryValue = ~node.discovery;
 
-  resolveRoadSystem(node, roadElements, discoveryValue);
+  resetRoadSystem(node);
+  resolveRoadSystem(node, roadElements, 1);
 
   return roadElements;
+}
+
+void RoadResolution::resetRoadSystem(const Battlefield::RoadNode& node) const {
+  node.discovery = 0;
+
+  for (auto& nodeRef : node.links) {
+    auto& otherNode = nodeRef.get();
+    if (otherNode.discovery != 0) {
+      resetRoadSystem(otherNode);
+    }
+  }
 }
 
 void RoadResolution::resolveRoadSystem(
@@ -46,40 +57,38 @@ void RoadResolution::resolveRoadSystem(
 
   for (auto& nodeRef : node.links) {
     auto& otherNode = nodeRef.get();
-    if (otherNode.discovery == discoveryValue) {
-      continue;
+    if (otherNode.discovery == 0) {
+      resolveRoadSystem(nodeRef.get(), elements, discoveryValue + 1);
+    } else if (otherNode.discovery < node.discovery) {
+      auto& roadElement = elements.emplace_back();
+      roadElement.roadType = node.type;
+      roadElement.type = RoadElementType::STRAIGHT;
+
+      // place center half-way between node locations
+      auto thisLocation = node.location;
+      thisLocation.y = battlefield.getWorldHeight(thisLocation);
+      auto otherLocation = otherNode.location;
+      otherLocation.y = battlefield.getWorldHeight(otherLocation);
+
+      auto distVec = otherLocation - thisLocation;
+      auto normDistVec = glm::normalize(distVec);
+      auto dist = glm::length(distVec);
+      roadElement.location = otherLocation - normDistVec * (dist / 2.0f);
+      roadElement.stretch = dist / T_SIZE;
+
+      auto dotX = glm::dot(normDistVec, glm::vec3 {1.0f, 0.0f, 0.0f});
+      auto dotZ = glm::dot(normDistVec, glm::vec3 {0.0f, 0.0f, 1.0f});
+
+      if (dotX < 0.0f && dotZ < 0.0f || dotX > 0.0f && dotZ < 0.0f) {
+        normDistVec *= -1.0f;
+      }
+
+      // rotation relative to X axis
+      roadElement.floorRotation =
+        -std::acos(
+          glm::dot(normDistVec, glm::vec3 {1.0f, 0.0f, 0.0f})
+        );
     }
-
-    auto& roadElement = elements.emplace_back();
-    roadElement.roadType = node.type;
-    roadElement.type = RoadElementType::STRAIGHT;
-
-    // place center half-way between node locations
-    auto thisLocation = node.location;
-    thisLocation.y = battlefield.getWorldHeight(thisLocation);
-    auto otherLocation = otherNode.location;
-    otherLocation.y = battlefield.getWorldHeight(otherLocation);
-
-    auto distVec = otherLocation - thisLocation;
-    auto normDistVec = glm::normalize(distVec);
-    auto dist = glm::length(distVec);
-    roadElement.location = otherLocation - normDistVec * (dist / 2.0f);
-    roadElement.stretch = dist / T_SIZE;
-
-    auto dotX = glm::dot(normDistVec, glm::vec3 {1.0f, 0.0f, 0.0f});
-    auto dotZ = glm::dot(normDistVec, glm::vec3 {0.0f, 0.0f, 1.0f});
-
-    if (dotX < 0.0f && dotZ < 0.0f || dotX > 0.0f && dotZ < 0.0f) {
-      normDistVec *= -1.0f;
-    }
-
-    // rotation relative to X axis
-    roadElement.floorRotation =
-      -std::acos(
-        glm::dot(normDistVec, glm::vec3 {1.0f, 0.0f, 0.0f})
-      );
-
-    resolveRoadSystem(nodeRef.get(), elements, discoveryValue);
   }
 }
 
