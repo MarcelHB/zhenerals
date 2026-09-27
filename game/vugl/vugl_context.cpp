@@ -577,6 +577,10 @@ Context::Error Context::getError () const {
   return error;
 }
 
+VkQueue Context::getGFXQueue () const {
+  return vkGFXQueue;
+}
+
 VkExtent2D Context::getExtent () const {
   return vkSwapchainExtent;
 }
@@ -629,6 +633,10 @@ std::optional<uint32_t> Context::findGFXQueueFamilyIndex (VkPhysicalDevice vkPhy
   }
 
   return std::nullopt;
+}
+
+VkPhysicalDevice Context::getVkPhysicalDevice () const {
+  return vkPhysicalDevice;
 }
 
 const VkPhysicalDeviceProperties& Context::getVkPhysicalDeviceProperties () const {

@@ -149,10 +149,12 @@ class Context {
     VkDevice getDevice () const;
     Error getError () const;
     VkExtent2D getExtent ()  const;
+    VkQueue getGFXQueue () const;
     VkInstance getInstance () const;
     Frame& getNextFrame ();
     const std::vector<VkImage>& getSwapchainImages () const;
     const std::vector<VkImageView>& getSwapchainImageViews () const;
+    VkPhysicalDevice getVkPhysicalDevice () const;
     const VkPhysicalDeviceProperties& getVkPhysicalDeviceProperties () const;
     VkSampleCountFlagBits getVkSamplingFlag () const;
     VkViewport getViewport () const;

@@ -169,7 +169,7 @@ VkResult CommandBuffer::closeCommands () {
   return VK_SUCCESS;
 }
 
-VkResult CommandBuffer::closeRendering () {
+VkResult CommandBuffer::closeRendering (std::function<void(VkCommandBuffer)> fn) {
   if (State::OPEN != state) {
     return VK_NOT_READY;
   }
@@ -177,6 +177,9 @@ VkResult CommandBuffer::closeRendering () {
   if (!secondary) {
     vkCmdEndRenderPass(vkCommandBuffer);
   }
+
+  fn(vkCommandBuffer);
+
   VkResult vkResult = vkEndCommandBuffer(vkCommandBuffer);
 
   if (VK_SUCCESS != vkResult) {

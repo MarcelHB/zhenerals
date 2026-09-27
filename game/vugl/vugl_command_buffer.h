@@ -61,7 +61,7 @@ class CommandBuffer {
     VkResult draw (std::function<VkResult(VkCommandBuffer, uint32_t)>);
     VkResult executeSecondary (const CommandBuffer&);
     VkResult closeCommands ();
-    VkResult closeRendering ();
+    VkResult closeRendering (std::function<void(VkCommandBuffer)> = [](VkCommandBuffer){});
 
     VkResult beginDebugLabel(const std::string&);
     VkResult endDebugLabel();
