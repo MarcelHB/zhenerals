@@ -16,6 +16,7 @@ struct Road {
   std::string texture;
   float width = 60.0f;
   float widthInTexture = 1.0f;
+  uint16_t zIndex = 0;
 };
 
 struct Bridge {
@@ -67,7 +68,7 @@ class RoadsBridgesINI : public INIFile {
 
   private:
     void parseBridge(std::unordered_map<uint32_t, Bridge>&);
-    void parseRoad(std::unordered_map<uint32_t, Road>&);
+    void parseRoad(std::unordered_map<uint32_t, Road>&, uint16_t);
     void parseTransition(Bridge&, bool isOCL);
 };
 

@@ -10,10 +10,11 @@ RoadsBridgesINI::RoadsBridgesINI(std::istream& stream) : INIFile(stream) {}
 RoadsBridgesINI::RoadsAndBridges RoadsBridgesINI::parse() {
   RoadsAndBridges roadsBridges;
 
+  uint16_t ithRoad = 0;
   while (!stream.eof()) {
     auto token = consumeComment();
     if (token == "Road") {
-      parseRoad(roadsBridges.roads);
+      parseRoad(roadsBridges.roads, ithRoad++);
     } else if (token == "Bridge") {
       parseBridge(roadsBridges.bridges);
     }
@@ -147,8 +148,10 @@ void RoadsBridgesINI::parseTransition(Bridge& bridge, bool isOCL) {
   }
 }
 
-void RoadsBridgesINI::parseRoad(std::unordered_map<uint32_t, Road>& roads) {
+void RoadsBridgesINI::parseRoad(std::unordered_map<uint32_t, Road>& roads, uint16_t i) {
   Road road;
+  // order of appearance in INI determines precedence
+  road.zIndex = i;
 
   advanceStream();
   auto key = getTokenInLine();

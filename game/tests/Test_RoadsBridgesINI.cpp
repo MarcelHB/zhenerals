@@ -24,6 +24,7 @@ TEST(RoadsBridgesINI, parsing) {
   EXPECT_EQ("concrete.tga", road1.texture);
   EXPECT_FLOAT_EQ(123.7f, road1.width);
   EXPECT_FLOAT_EQ(100.0f, road1.widthInTexture);
+  EXPECT_EQ(0, road1.zIndex);
 
   MurmurHash3_32 hasher2;
   hasher2.feed("Interstate");
@@ -34,6 +35,7 @@ TEST(RoadsBridgesINI, parsing) {
   EXPECT_EQ("cardboard.tga", road2.texture);
   EXPECT_FLOAT_EQ(1200.0f, road2.width);
   EXPECT_FLOAT_EQ(0.4f, road2.widthInTexture);
+  EXPECT_EQ(1, road2.zIndex);
 
   // Bridges
   auto& bridges = roadsBridges.bridges;
