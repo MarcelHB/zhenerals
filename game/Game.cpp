@@ -4,6 +4,12 @@
 #include "Logging.h"
 #include "ThreadPool.h"
 
+#define TRACY_FOR_GPU 1
+
+#if defined(USE_TRACY) && defined(TRACY_FOR_GPU)
+  #include <tracy/TracyVulkan.hpp>
+#endif
+
 namespace ZH {
 
 Game::Game(Config& config, Window& window)
@@ -231,6 +237,21 @@ void Game::draw(void *obj) {
 
   ThreadPool uiThreadPool {1};
 
+#if defined(USE_TRACY) && defined(TRACY_FOR_GPU)
+  auto physicalDevice = vuglContext.getVkPhysicalDevice();
+  auto device = vuglContext.getDevice();
+  auto gfxQueue = vuglContext.getGFXQueue();
+
+  std::vector<TracyVkCtx> tracyContexts;
+  tracyContexts.reserve(numSwapchainImages);
+
+  for (size_t i = 0; i < numSwapchainImages; ++i) {
+    auto tracyVkCtx =
+      TracyVkContext(physicalDevice, device, gfxQueue, commandBuffers[i * 3 + 1].getVkCommandBuffer());
+    tracyContexts.emplace_back(std::move(tracyVkCtx));
+  }
+#endif
+
   while (true) {
     auto& frame = vuglContext.getNextFrame();
     auto frameIndex = frame.getImageIndex();
@@ -244,6 +265,10 @@ void Game::draw(void *obj) {
     auto& guiSecondary = commandBuffers[frameIndex * 3 + 2];
 
     {
+#if defined(USE_TRACY) && defined(TRACY_FOR_GPU)
+      auto& tracyCtx = tracyContexts[frameIndex];
+      TracyVkZone(tracyCtx, primary.getVkCommandBuffer(), "Map");
+#endif
       auto lock = game->overlay->getLock();
       uiThreadPool.kickAll([&](uint16_t) {
         game->renderListFactory->createRenderList(guiSecondary, frameIndex, renderPass);
@@ -263,11 +288,26 @@ void Game::draw(void *obj) {
     primary.beginRendering(renderPass, clearColors);
     primary.executeSecondary(battlefieldSecondary);
     primary.executeSecondary(guiSecondary);
+
+#if defined(USE_TRACY) && defined(TRACY_FOR_GPU)
+    auto& tracyCtx = tracyContexts[frameIndex];
+    primary.closeRendering([&tracyCtx](VkCommandBuffer commandBuffer) {
+      TracyVkCollect(tracyCtx, commandBuffer);
+    });
+#else
     primary.closeRendering();
+#endif
 
     frame.submitAndPresent(primary);
+
     TRACY(FrameMark);
   }
+
+#if defined(USE_TRACY) && defined(TRACY_FOR_GPU)
+  for (size_t i = 0; i < numSwapchainImages; ++i) {
+    TracyVkDestroy(tracyContexts[i]);
+  }
+#endif
 }
 
 }
