@@ -303,6 +303,7 @@ ADD_EXECUTABLE(zhen
   game/ObjectLoader.cpp
   game/MemoryViewStream.cpp
   game/ResourceLoader.cpp
+  game/RoadResolution.cpp
   game/rendering/BattlefieldRenderer.cpp
   game/rendering/InstanceRenderer.cpp
   game/rendering/ModelRenderer.cpp

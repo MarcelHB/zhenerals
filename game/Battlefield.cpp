@@ -229,6 +229,10 @@ const glm::vec3 Battlefield::getSunlightNormal() const {
   return sunlightNormal;
 }
 
+const std::list<Battlefield::RoadNode>& Battlefield::getRoads() const {
+  return roads;
+}
+
 const std::list<Battlefield::ScorchData>& Battlefield::getScorches() const {
   return scorches;
 }

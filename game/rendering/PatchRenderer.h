@@ -8,6 +8,7 @@
 #include "gfx/FrameDisposable.h"
 #include "gfx/TextureCache.h"
 #include "inis/RoadsBridgesINI.h"
+#include "RoadResolution.h"
 #include "vugl/vugl_context.h"
 
 namespace ZH {
@@ -29,18 +30,32 @@ class PatchRenderer {
 
     bool init(Vugl::RenderPass&);
     void renderPatches(Vugl::CommandBuffer&, uint32_t frameIdx, bool);
+    void renderRoads(Vugl::CommandBuffer&, uint32_t frameIdx, bool);
+    void renderScorches(Vugl::CommandBuffer&, uint32_t frameIdx, bool);
   private:
     Vugl::Context& vuglContext;
     const Config& config;
     GFX::TextureCache& textureCache;
     Battlefield& battlefield;
+    RoadResolution roadResolution;
 
-    const RoadsBridgesINI::Roads& roads;
+    const RoadsBridgesINI::Roads& roadsINI;
+
+    struct RoadData : public GFX::FrameDisposable {
+      uint32_t textureKey = 0;
+      glm::mat4 mvp;
+      glm::mat4 uv;
+      std::shared_ptr<Vugl::DescriptorSet> descriptorSet;
+      std::shared_ptr<Vugl::UniformBuffer> uniformBuffer;
+      bool prepared = false;
+      uint64_t frameIdxSet = 0;
+    };
 
     struct ScorchUBData {
       alignas(16) glm::mat4 mvp;
       alignas(16) glm::mat4 uv;
       alignas(16) glm::vec3 sunlight;
+      alignas(4)  float heightOffset;
     };
 
     struct ScorchData : public GFX::FrameDisposable {
@@ -56,18 +71,27 @@ class PatchRenderer {
       ScorchData *scorch = nullptr;
       bool draw = true;
       float dist = 0.0f;
+      uint64_t frameIdxSet = 0;
     };
 
     std::shared_ptr<Vugl::Pipeline> patchPipeline;
 
+    std::vector<RoadData> roadData;
+    std::shared_ptr<Vugl::ElementBuffer> roadDefaultVertices;
+    std::unordered_map<
+        uint32_t
+      , std::shared_ptr<Vugl::CombinedSampler>
+    > roadTextures;
+
     std::shared_ptr<Vugl::CombinedSampler> scorchTextureSampler;
     std::unordered_map<uint64_t, ScorchData> scorchData;
-    uint64_t scorchFrameIdxSet = 0;
     std::vector<ScorchOrderData> scorchOrderData;
 
     bool preparePatches(Vugl::RenderPass&);
+    bool prepareRoads();
+    void prepareRoadData(RoadData&);
     bool prepareScorches();
-    bool prepareScorchData(const Battlefield::ScorchData&);
+    void prepareScorchData(const Battlefield::ScorchData&);
 };
 
 }

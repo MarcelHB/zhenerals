@@ -3,11 +3,16 @@
 #define GLM_FORCE_RADIANS
 #include <glm/gtc/matrix_transform.hpp>
 
-#include "gfx/Frustum.h"
 #include "BattlefieldRenderer.h"
+#include "gfx/Frustum.h"
+#include "MurmurHash.h"
 #include "PatchRenderer.h"
 
 namespace ZH {
+
+constexpr float ROAD_HEIGHT_OFFSET = 0.05f;
+constexpr float SCORCH_HEIGHT_OFFSET = 0.1f;
+constexpr float ROAD_STRETCH = 3.0f;
 
 PatchRenderer::PatchRenderer(
     Vugl::Context& vuglContext
@@ -19,28 +24,36 @@ PatchRenderer::PatchRenderer(
   , config(config)
   , textureCache(textureCache)
   , battlefield(battlefield)
-  , roads(roads)
+  , roadResolution(battlefield)
+  , roadsINI(roads)
 {}
 
 bool PatchRenderer::init(Vugl::RenderPass& renderPass) {
-  if (!prepareScorches()) {
-    return false;
-  }
-
-  if (!preparePatches(renderPass)) {
-    return false;
-  }
+  if (!preparePatches(renderPass)) { return false; }
+  if (!prepareScorches()) { return false; }
+  if (!prepareRoads()) { return false; }
 
   return true;
 }
 
 void PatchRenderer::beginResourceCounting() {
+  for (auto& road : roadData) {
+    road.increaseMiss();
+  }
   for (auto& pair : scorchData) {
     pair.second.increaseMiss();
   }
 }
 
 void PatchRenderer::finishResourceCounting() {
+  for (auto it = roadData.begin(); it != roadData.end();) {
+    if (it->getMisses() >= config.refreshRate.value_or(60) * 60) {
+      it = roadData.erase(it);
+    } else {
+      it++;
+    }
+  }
+
   for (auto it = scorchData.begin(); it != scorchData.end();) {
     if (it->second.getMisses() >= config.refreshRate.value_or(60) * 60) {
       it = scorchData.erase(it);
@@ -56,6 +69,103 @@ bool PatchRenderer::prepareScorches() {
     return false;
   }
   vuglContext.uploadResource(*scorchTextureSampler);
+
+  return true;
+}
+
+bool PatchRenderer::prepareRoads() {
+  auto& roads = battlefield.getRoads();
+  std::list<RoadResolution::RoadElement> elements;
+
+  uint32_t maxPreparedRoadSystem = 0;
+  for (auto& roadNode : roads) {
+    if (roadNode.roadSystem > maxPreparedRoadSystem) {
+      maxPreparedRoadSystem = roadNode.roadSystem;
+      auto subList = roadResolution.resolveRoadSystem(roadNode);
+      elements.insert(elements.cend(), subList.begin(), subList.end());
+    }
+  }
+
+  std::vector<float> data = {
+     // vertex            normal             uv             compat
+     -0.5f, 0.0f, -0.5f,  0.0f, 1.0f, 0.0f,  0.0f, 0.0f,    0, 0, 0.0f, 0.0f, 0.0f
+   ,  0.5f, 0.0f, -0.5f,  0.0f, 1.0f, 0.0f,  1.0f, 0.0f,    0, 0, 0.0f, 0.0f, 0.0f
+   ,  0.5f, 0.0f,  0.5f,  0.0f, 1.0f, 0.0f,  1.0f, 1.0f,    0, 0, 0.0f, 0.0f, 0.0f
+
+   , -0.5f, 0.0f, -0.5f,  0.0f, 1.0f, 0.0f,  0.0f, 0.0f,    0, 0, 0.0f, 0.0f, 0.0f
+   ,  0.5f, 0.0f,  0.5f,  0.0f, 1.0f, 0.0f,  1.0f, 1.0f,    0, 0, 0.0f, 0.0f, 0.0f
+   , -0.5f, 0.0f,  0.5f,  0.0f, 1.0f, 0.0f,  0.0f, 1.0f,    0, 0, 0.0f, 0.0f, 0.0f
+  };
+
+  roadDefaultVertices =
+    std::make_shared<Vugl::ElementBuffer>(vuglContext.createElementBuffer(0));
+  roadDefaultVertices->writeData(data, std::vector<uint16_t> {});
+  vuglContext.uploadResource(*roadDefaultVertices);
+
+  roadData.reserve(elements.size());
+
+  for (auto& element : elements) {
+    MurmurHash3_32 typeHasher;
+    typeHasher.feed(element.roadType);
+    auto hash = typeHasher.getHash();
+
+    auto typeLookup = roadsINI.find(hash);
+    if (typeLookup == roadsINI.cend()) {
+      return false;
+    }
+
+    MurmurHash3_32 textureHasher;
+    textureHasher.feed(typeLookup->second.texture);
+    hash = textureHasher.getHash();
+
+    auto textureLookup = roadTextures.find(hash);
+    if (textureLookup == roadTextures.cend()) {
+      auto sampler = textureCache.getTextureSampler(typeLookup->second.texture);
+      if (!sampler) {
+        return false;
+      }
+
+      roadTextures.emplace(hash, std::move(sampler));
+    }
+
+    auto cut =
+      RoadResolution::TEXTURE_CUTS[
+        static_cast<std::underlying_type_t<RoadResolution::RoadElementType>>(element.type)
+      ];
+
+    auto& gfxElement = roadData.emplace_back();
+    gfxElement.textureKey = hash;
+    gfxElement.mvp =
+      glm::translate(glm::mat4 {1.0f}, element.location)
+         * glm::rotate(glm::mat4 {1.0f}, element.floorRotation, glm::vec3 {0.0f, 1.0f, 0.0f})
+         * glm::scale(
+            glm::mat4 {1.0f}
+          , glm::vec3 {
+                element.stretch * RoadResolution::T_SIZE
+              , 1
+              , typeLookup->second.width * typeLookup->second.widthInTexture
+            }
+          );
+    gfxElement.mvp = battlefield.getMap()->getWorldOffsetMatrix() * gfxElement.mvp;
+
+    gfxElement.uv =
+      glm::translate(
+          glm::mat4 {1.0f}
+        , glm::vec3 {
+            element.offset + cut.first[0]
+          , element.offset + cut.first[1]
+          , 0.0f
+        }
+      )
+        * glm::scale(
+            glm::mat4 {1.0f}
+          , glm::vec3 {
+              cut.second[0] * element.stretch * ROAD_STRETCH
+            , cut.second[1]
+            , 0.0f
+          }
+        );
+  }
 
   return true;
 }
@@ -87,17 +197,35 @@ bool PatchRenderer::preparePatches(Vugl::RenderPass& renderPass) {
   patchPipeline =
     std::make_shared<Vugl::Pipeline>(vuglContext.createPipeline(pipelineSetup, renderPass.getVkRenderPass()));
 
-  if (patchPipeline->getLastResult() != VK_SUCCESS) {
-    return false;
-  }
-
-  return true;
+  return patchPipeline->getLastResult() == VK_SUCCESS;
 }
 
-bool PatchRenderer::prepareScorchData(const Battlefield::ScorchData& scorch) {
+void PatchRenderer::prepareRoadData(RoadData& roadData) {
+  if (roadData.prepared) {
+    return;
+  }
+
+  roadData.descriptorSet =
+    std::make_shared<Vugl::DescriptorSet>(patchPipeline->createDescriptorSet());
+  roadData.uniformBuffer =
+    std::make_shared<Vugl::UniformBuffer>(vuglContext.createUniformBuffer(sizeof(ScorchUBData)));
+
+  auto lookup = roadTextures.find(roadData.textureKey);
+  auto& sampler = lookup->second;
+
+  roadData.descriptorSet->assignUniformBuffer(*roadData.uniformBuffer);
+  roadData.descriptorSet->assignCombinedSampler(*sampler);
+
+  vuglContext.uploadResource(*sampler);
+  roadData.descriptorSet->updateDevice();
+
+  roadData.prepared = true;
+}
+
+void PatchRenderer::prepareScorchData(const Battlefield::ScorchData& scorch) {
   auto lookup = scorchData.find(scorch.id);
   if (lookup != scorchData.cend()) {
-    return true;
+    return;
   }
 
   auto entry = scorchData.emplace(std::make_pair(scorch.id, ScorchData {}));
@@ -166,21 +294,76 @@ bool PatchRenderer::prepareScorchData(const Battlefield::ScorchData& scorch) {
 
   vuglContext.uploadResource(*renderData.vertices);
   renderData.descriptorSet->updateDevice();
-
-  return true;
 }
 
 void PatchRenderer::renderPatches(Vugl::CommandBuffer& commandBuffer, uint32_t frameIdx, bool newMatrices) {
   TRACY(ZoneScoped);
 
+  renderRoads(commandBuffer, frameIdx, newMatrices);
+  renderScorches(commandBuffer, frameIdx, newMatrices);
+}
+
+void PatchRenderer::renderRoads(Vugl::CommandBuffer& commandBuffer, uint32_t frameIdx, bool newMatrices) {
+  if (vuglContext.isDebuggingAllowed()) {
+    commandBuffer.beginDebugLabel("Roads");
+  }
+
+  ScorchUBData ubData;
+  ubData.sunlight = battlefield.getSunlightNormal();
+  ubData.heightOffset = ROAD_HEIGHT_OFFSET;
+
+  auto& camera = battlefield.getCamera();
+  auto camMatrix = camera.getProjectionMatrix() * camera.getCameraMatrix();
+  auto heightCorrectionMatrix =
+    glm::scale(
+        glm::mat4 {1.0f}
+      , glm::vec3 {1.0f, Map::TERRAIN_HEIGHT_SCALE, 1.0f}
+    );
+
+  commandBuffer.bindResource(*patchPipeline);
+  commandBuffer.bindResource(*roadDefaultVertices);
+
+  for (auto& road : roadData) {
+    prepareRoadData(road);
+
+    if (newMatrices) {
+      road.frameIdxSet = 0;
+    }
+
+    road.decreaseMiss();
+
+    bool needsFrameUpdate = (road.frameIdxSet & (1 << frameIdx)) == 0;
+    if (needsFrameUpdate) {
+      ubData.uv = road.uv;
+      ubData.mvp =
+        camMatrix
+        * heightCorrectionMatrix
+        * road.mvp;
+
+      road.uniformBuffer->writeData(ubData, frameIdx);
+      road.frameIdxSet |= (1 << frameIdx);
+    }
+
+    commandBuffer.bindResource(*road.descriptorSet);
+    commandBuffer.draw([](VkCommandBuffer vkCommandBuffer, uint32_t) {
+      vkCmdDraw(vkCommandBuffer, 6, 1, 0, 0);
+
+      return VK_SUCCESS;
+    });
+  }
+
+  if (vuglContext.isDebuggingAllowed()) {
+    commandBuffer.endDebugLabel();
+  }
+}
+
+void PatchRenderer::renderScorches(Vugl::CommandBuffer& commandBuffer, uint32_t frameIdx, bool newMatrices) {
   if (vuglContext.isDebuggingAllowed()) {
     commandBuffer.beginDebugLabel("Scorches");
   }
 
   for (auto& scorch : battlefield.getScorches()) {
-    if (!prepareScorchData(scorch)) {
-      continue;
-    }
+    prepareScorchData(scorch);
   }
 
   // TODO consider changes to scorchs set (ptrs)
@@ -195,7 +378,6 @@ void PatchRenderer::renderPatches(Vugl::CommandBuffer& commandBuffer, uint32_t f
 
   if (newMatrices) {
     TRACY(ZoneScoped);
-    scorchFrameIdxSet = 0;
 
     auto& offsetMatrix = map->getWorldOffsetMatrix();
 
@@ -211,6 +393,7 @@ void PatchRenderer::renderPatches(Vugl::CommandBuffer& commandBuffer, uint32_t f
       drawData.scorch = &scorch;
       drawData.draw = frustrum.isSphereInside(position, radius);
       drawData.dist = glm::length(camera.getPosition() - position);
+      drawData.frameIdxSet = 0;
 
       i += 1;
     }
@@ -224,11 +407,11 @@ void PatchRenderer::renderPatches(Vugl::CommandBuffer& commandBuffer, uint32_t f
 
   float distStep = 0.1f / (scorchOrderData.size());
   size_t i = 0;
-  bool needsFrameUpdate = (scorchFrameIdxSet & (1 << frameIdx)) == 0;
   auto camMatrix = camera.getProjectionMatrix() * camera.getCameraMatrix();
 
   ScorchUBData ubData;
   ubData.sunlight = battlefield.getSunlightNormal();
+  ubData.heightOffset = SCORCH_HEIGHT_OFFSET;
 
   for (auto& orderData : scorchOrderData) {
     TRACY(ZoneScoped);
@@ -240,6 +423,8 @@ void PatchRenderer::renderPatches(Vugl::CommandBuffer& commandBuffer, uint32_t f
     }
 
     scorch->decreaseMiss();
+
+    bool needsFrameUpdate = (orderData.frameIdxSet & (1 << frameIdx)) == 0;
     if (needsFrameUpdate) {
       ubData.uv = scorch->uv;
       ubData.mvp =
@@ -247,6 +432,7 @@ void PatchRenderer::renderPatches(Vugl::CommandBuffer& commandBuffer, uint32_t f
         * BattlefieldRenderer::getTerrainScaleMatrix();
 
       scorch->uniformBuffer->writeData(ubData, frameIdx);
+      orderData.frameIdxSet |= (1 << frameIdx);
     }
 
     if (vuglContext.isDebuggingAllowed()) {
@@ -270,7 +456,6 @@ void PatchRenderer::renderPatches(Vugl::CommandBuffer& commandBuffer, uint32_t f
     i += 1;
   }
 
-  scorchFrameIdxSet |= (1 << frameIdx);
 
   if (vuglContext.isDebuggingAllowed()) {
     commandBuffer.endDebugLabel();

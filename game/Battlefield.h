@@ -36,6 +36,7 @@ class Battlefield {
       BitField<Objects::Instance::InstanceFlag> flags;
 
       std::list<std::reference_wrapper<RoadNode>> links;
+      mutable uint8_t discovery = 0;
     };
 
     Battlefield(
@@ -52,6 +53,7 @@ class Battlefield {
     std::shared_ptr<Map> getMap() const;
     const glm::vec2& getMapGameSize() const;
     std::list<std::shared_ptr<Objects::Instance>>& getObjectInstances();
+    const std::list<RoadNode>& getRoads() const;
     const std::list<ScorchData>& getScorches() const;
     const glm::vec3 getSunlightNormal() const;
     float getWorldHeight(const glm::vec3&) const;
