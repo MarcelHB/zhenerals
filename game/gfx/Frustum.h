@@ -6,6 +6,7 @@
 #include <array>
 
 #include "Camera.h"
+#include "Geometry.h"
 
 namespace ZH::GFX {
 
@@ -13,7 +14,7 @@ class Frustum {
   public:
     Frustum(const Camera& camera);
 
-    bool isSphereInside(const glm::vec3&, float) const;
+    bool isSphereInside(const Sphere&) const;
   private:
     struct Plane {
       glm::vec3 normal;

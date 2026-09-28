@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0
 
+#include "Geometry.h"
 #include "Frustum.h"
 
 namespace ZH::GFX {
@@ -24,9 +25,9 @@ Frustum::Frustum(const Camera& camera) {
   }
 }
 
-bool Frustum::isSphereInside(const glm::vec3& position, float radius) const {
+bool Frustum::isSphereInside(const Sphere& sphere) const {
   for (size_t i = 0; i < 6; ++i) {
-    if (glm::dot(planes[i].normal, position) + planes[i].distance < -radius) {
+    if (glm::dot(planes[i].normal, sphere.position) + planes[i].distance < -sphere.radius) {
       return false;
     }
   }

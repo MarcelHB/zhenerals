@@ -375,7 +375,7 @@ void BattlefieldRenderer::renderObjectInstances(
       // bounding sphere to world
       auto& sphere = drawCheck.sphere;
       drawCheck.sphere.position = glm::vec3 {modelMatrix * axisFlip * glm::vec4 {sphere.position, 1.0f}};
-      drawCheck.draw = frustrum.isSphereInside(sphere.position, sphere.radius);
+      drawCheck.draw = frustrum.isSphereInside(sphere);
       drawCheck.dist = glm::length(camera.getPosition() - sphere.position);
     }
 

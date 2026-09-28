@@ -393,12 +393,14 @@ void PatchRenderer::renderScorches(Vugl::CommandBuffer& commandBuffer, uint32_t 
       auto& scorch = pair.second;
       auto& drawData = scorchOrderData[i];
 
-      auto radius = std::sqrt(2 * scorch.radius * scorch.radius);
-      auto position = glm::vec3 {offsetMatrix * glm::vec4 {scorch.position, 1.0f}};
+      Sphere sphere = {
+          glm::vec3 {offsetMatrix * glm::vec4 {scorch.position, 1.0f}}
+        , std::sqrt(2 * scorch.radius * scorch.radius)
+      };
 
       drawData.scorch = &scorch;
-      drawData.draw = frustrum.isSphereInside(position, radius);
-      drawData.dist = glm::length(camera.getPosition() - position);
+      drawData.draw = frustrum.isSphereInside(sphere);
+      drawData.dist = glm::length(camera.getPosition() - sphere.position);
       drawData.frameIdxSet = 0;
 
       i += 1;
