@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0
 
-#ifndef H_GFX_FRUSTRUM
-#define H_GFX_FRUSTRUM
+#ifndef H_GFX_FRUSTUM
+#define H_GFX_FRUSTUM
 
 #include <array>
 
@@ -14,6 +14,7 @@ class Frustum {
   public:
     Frustum(const Camera& camera);
 
+    bool isPatchPlaneInside(const PatchPlane&) const;
     bool isSphereInside(const Sphere&) const;
   private:
     struct Plane {

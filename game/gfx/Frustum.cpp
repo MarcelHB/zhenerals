@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0
 
-#include "Geometry.h"
+#include <algorithm>
+
 #include "Frustum.h"
 
 namespace ZH::GFX {
@@ -23,6 +24,28 @@ Frustum::Frustum(const Camera& camera) {
     plane.normal /= length;
     plane.distance /= length;
   }
+}
+
+bool Frustum::isPatchPlaneInside(const PatchPlane& plane) const {
+  std::array<glm::vec3, 4> points;
+  points[0] = plane.position;
+  points[1] = plane.position + plane.width;
+  points[2] = plane.position + plane.height;
+  points[3] = plane.position + plane.width + plane.height;
+
+  for (size_t i = 0; i < 6; ++i) {
+    auto& plane = planes[i];
+
+    auto allOutside =
+      std::all_of(points.cbegin(), points.cend(), [&plane](const glm::vec3& p) {
+        return glm::dot(plane.normal, p) + plane.distance < 0;
+      });
+    if (allOutside) {
+      return false;
+    }
+  }
+
+  return true;
 }
 
 bool Frustum::isSphereInside(const Sphere& sphere) const {

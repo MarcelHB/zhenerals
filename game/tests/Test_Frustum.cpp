@@ -6,6 +6,45 @@
 
 namespace ZH {
 
+TEST(Frustum, isPatchPlaneInside) {
+  GFX::Camera cam;
+  cam.reposition(
+      glm::vec3 {0.0f, 0.0f, 0.0f}
+    , glm::vec3 {1.0f, 0.0f, 0.0f}
+    , glm::vec3 {0.0f, 1.0f, 0.0f}
+  );
+  cam.setPerspectiveProjection({
+      .near = 0.1f
+    , .far  = 10.0f
+    , .fovDeg = 90.0f
+    , .width = 1.0f
+    , .height = 1.0f
+  });
+
+  GFX::Frustum unit {cam};
+
+  // fully inside
+  EXPECT_TRUE(unit.isPatchPlaneInside({
+      glm::vec3 {0.2f, 0.0f, 0.0f}
+    , glm::vec3 {1.0f, 0.0f, 0.0f}
+    , glm::vec3 {0.0f, 1.0f, 0.0f}
+  }));
+
+  // crossing
+  EXPECT_TRUE(unit.isPatchPlaneInside({
+      glm::vec3 {8.0f, 0.0f, 0.0f}
+    , glm::vec3 {5.0f, 0.0f, 0.0f}
+    , glm::vec3 {0.0f, 5.0f, 0.0f}
+  }));
+
+  // outside
+  EXPECT_FALSE(unit.isPatchPlaneInside({
+      glm::vec3 {12.0f, 0.0f, 0.0f}
+    , glm::vec3 {1.0f, 0.0f, 0.0f}
+    , glm::vec3 {0.0f, 1.0f, 0.0f}
+  }));
+}
+
 TEST(Frustum, isSphereInside0) {
   GFX::Camera cam;
   cam.reposition(

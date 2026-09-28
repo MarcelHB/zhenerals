@@ -378,7 +378,7 @@ void PatchRenderer::renderScorches(Vugl::CommandBuffer& commandBuffer, uint32_t 
   auto& camera = battlefield.getCamera();
   auto map = battlefield.getMap();
 
-  GFX::Frustum frustrum {camera};
+  GFX::Frustum frustum {camera};
 
   commandBuffer.bindResource(*patchPipeline);
 
@@ -399,7 +399,7 @@ void PatchRenderer::renderScorches(Vugl::CommandBuffer& commandBuffer, uint32_t 
       };
 
       drawData.scorch = &scorch;
-      drawData.draw = frustrum.isSphereInside(sphere);
+      drawData.draw = frustum.isSphereInside(sphere);
       drawData.dist = glm::length(camera.getPosition() - sphere.position);
       drawData.frameIdxSet = 0;
 

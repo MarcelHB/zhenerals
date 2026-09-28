@@ -14,6 +14,12 @@
 
 namespace ZH {
 
+struct PatchPlane {
+  glm::vec3 position {0.0f};
+  glm::vec3 width {0.0f};
+  glm::vec3 height {0.0f};
+};
+
 struct Sphere {
   Sphere() = default;
   Sphere(glm::vec3 && pos, float r) : position(std::move(pos)), radius(r) {}

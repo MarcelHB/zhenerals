@@ -361,7 +361,7 @@ void BattlefieldRenderer::renderObjectInstances(
     drawChecks.clear();
     drawChecks.reserve(battlefield.getObjectInstances().size());
 
-    GFX::Frustum frustrum {camera};
+    GFX::Frustum frustum {camera};
 
     for (auto& instance : battlefield.getObjectInstances()) {
       instanceRenderer.resetFrames(*instance);
@@ -375,7 +375,7 @@ void BattlefieldRenderer::renderObjectInstances(
       // bounding sphere to world
       auto& sphere = drawCheck.sphere;
       drawCheck.sphere.position = glm::vec3 {modelMatrix * axisFlip * glm::vec4 {sphere.position, 1.0f}};
-      drawCheck.draw = frustrum.isSphereInside(sphere);
+      drawCheck.draw = frustum.isSphereInside(sphere);
       drawCheck.dist = glm::length(camera.getPosition() - sphere.position);
     }
 
