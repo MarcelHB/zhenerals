@@ -50,6 +50,7 @@ class PatchRenderer {
       std::shared_ptr<Vugl::UniformBuffer> uniformBuffer;
       bool prepared = false;
       uint64_t frameIdxSet = 0;
+      bool draw = true;
     };
 
     struct ScorchUBData {

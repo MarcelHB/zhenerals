@@ -325,6 +325,8 @@ void PatchRenderer::renderRoads(Vugl::CommandBuffer& commandBuffer, uint32_t fra
       , glm::vec3 {1.0f, Map::TERRAIN_HEIGHT_SCALE, 1.0f}
     );
 
+  GFX::Frustum frustum {camera};
+
   commandBuffer.bindResource(*patchPipeline);
   commandBuffer.bindResource(*roadDefaultVertices);
 
@@ -339,23 +341,34 @@ void PatchRenderer::renderRoads(Vugl::CommandBuffer& commandBuffer, uint32_t fra
 
     bool needsFrameUpdate = (road.frameIdxSet & (1 << frameIdx)) == 0;
     if (needsFrameUpdate) {
+      auto worldMatrix = heightCorrectionMatrix * road.mvp;
       ubData.heightOffset = ROAD_HEIGHT_OFFSET - 0.5f * (road.zIndex * 1.0f / totalRoadTypes);
       ubData.uv = road.uv;
-      ubData.mvp =
-        camMatrix
-        * heightCorrectionMatrix
-        * road.mvp;
+      ubData.mvp = camMatrix * worldMatrix;
 
       road.uniformBuffer->writeData(ubData, frameIdx);
       road.frameIdxSet |= (1 << frameIdx);
+
+      PatchPlane plane;
+      plane.position = {-0.5f, 0.0f, -0.5f};
+      plane.width = glm::vec3 {1.0f, 0.0f, 0.0f};
+      plane.height = glm::vec3 {0.0f, 0.0f, 1.0f};
+
+      plane.position = glm::vec3 {worldMatrix * glm::vec4 {plane.position, 1.0f}};
+      plane.width = glm::vec3 {worldMatrix * glm::vec4 {plane.width, 1.0f}};
+      plane.height = glm::vec3 {worldMatrix * glm::vec4 {plane.height, 1.0f}};
+
+      road.draw = frustum.isPatchPlaneInside(plane);
     }
 
-    commandBuffer.bindResource(*road.descriptorSet);
-    commandBuffer.draw([](VkCommandBuffer vkCommandBuffer, uint32_t) {
-      vkCmdDraw(vkCommandBuffer, 6, 1, 0, 0);
+    if (road.draw) {
+      commandBuffer.bindResource(*road.descriptorSet);
+      commandBuffer.draw([](VkCommandBuffer vkCommandBuffer, uint32_t) {
+        vkCmdDraw(vkCommandBuffer, 6, 1, 0, 0);
 
-      return VK_SUCCESS;
-    });
+        return VK_SUCCESS;
+      });
+    }
   }
 
   if (vuglContext.isDebuggingAllowed()) {
