@@ -43,6 +43,7 @@ class PatchRenderer {
 
     struct RoadData : public GFX::FrameDisposable {
       uint32_t textureKey = 0;
+      uint16_t zIndex = 0;
       glm::mat4 mvp;
       glm::mat4 uv;
       std::shared_ptr<Vugl::DescriptorSet> descriptorSet;

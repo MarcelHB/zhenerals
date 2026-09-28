@@ -10,8 +10,8 @@
 
 namespace ZH {
 
-constexpr float ROAD_HEIGHT_OFFSET = 0.05f;
-constexpr float SCORCH_HEIGHT_OFFSET = 0.1f;
+constexpr float ROAD_HEIGHT_OFFSET = 0.9f;
+constexpr float SCORCH_HEIGHT_OFFSET = 1.0f;
 constexpr float ROAD_STRETCH = 3.0f;
 
 PatchRenderer::PatchRenderer(
@@ -138,6 +138,8 @@ bool PatchRenderer::prepareRoads() {
 
     auto& gfxElement = roadData.emplace_back();
     gfxElement.textureKey = hash;
+    gfxElement.zIndex = typeLookup->second.zIndex;
+
     gfxElement.mvp =
       glm::translate(glm::mat4 {1.0f}, element.location)
          * glm::rotate(glm::mat4 {1.0f}, element.floorRotation, glm::vec3 {0.0f, 1.0f, 0.0f})
@@ -311,9 +313,9 @@ void PatchRenderer::renderRoads(Vugl::CommandBuffer& commandBuffer, uint32_t fra
     commandBuffer.beginDebugLabel("Roads");
   }
 
+  auto totalRoadTypes = roadsINI.size();
   ScorchUBData ubData;
   ubData.sunlight = battlefield.getSunlightNormal();
-  ubData.heightOffset = ROAD_HEIGHT_OFFSET;
 
   auto& camera = battlefield.getCamera();
   auto camMatrix = camera.getProjectionMatrix() * camera.getCameraMatrix();
@@ -337,6 +339,7 @@ void PatchRenderer::renderRoads(Vugl::CommandBuffer& commandBuffer, uint32_t fra
 
     bool needsFrameUpdate = (road.frameIdxSet & (1 << frameIdx)) == 0;
     if (needsFrameUpdate) {
+      ubData.heightOffset = ROAD_HEIGHT_OFFSET - 0.5f * (road.zIndex * 1.0f / totalRoadTypes);
       ubData.uv = road.uv;
       ubData.mvp =
         camMatrix
